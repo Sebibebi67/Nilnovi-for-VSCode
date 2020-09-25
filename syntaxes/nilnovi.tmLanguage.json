@@ -67,7 +67,7 @@
 			"patterns": [
 				{
 					"name": "entity.name.function",
-					"match": "\\b(empiler|reserver|empilerAd|empilerParam|add|mult|sous|div|affectation|valeurPile|get|put|moins|egal|diff|inf|infeg|sup|supeg|et|ou|non|erreur)\\b"
+					"match": "\\b(empiler|reserver|empilerAd|empilerParam|add|mult|sous|div|affectation|valeurPile|get|put|moins|egal|diff|inf|infeg|sup|supeg|et|ou|non|erreur|reserverBloc)\\b"
 				}
 			]
 		}
