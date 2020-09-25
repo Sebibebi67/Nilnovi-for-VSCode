@@ -12,6 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
   let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
 
     console.log(vscode.window.activeTextEditor);
+    __dirname = (path.resolve(__dirname));
     
     if (vscode.window.activeTextEditor){
       var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
