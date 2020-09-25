@@ -7,14 +7,29 @@
 		},
 		{
 			"include": "#strings"
+		},
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#constant"
+		},
+		{
+			"include": "#entity"
 		}
 	],
 	"repository": {
 		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.nilnovi",
-				"match": "\\b(if|while|for|return)\\b"
-			}]
+			"patterns": [
+				{
+					"name": "keyword.control.nilnovi",
+					"match": "\\b(debutProg|finProg|retourFonct|retourProc)\\b"
+				},
+				{
+					"name": "keyword.other.nilnovi",
+					"match": "\\b(tra|tze|traStat)\\b"
+				}
+			]
 		},
 		"strings": {
 			"name": "string.quoted.double.nilnovi",
@@ -26,7 +41,36 @@
 					"match": "\\\\."
 				}
 			]
+		},
+		"comment":{
+			"patterns": [
+				{
+					"name": "comment.line.number-sign",
+					"match": "\\#.*"
+				},
+				{
+					"name": "comment.block.documentation",
+					"begin": "\\/\\*",
+					"end": "\\*\\/"
+				}
+			]
+		},
+		"constant":{
+			"patterns":[
+				{
+					"name": "constant.numeric",
+					"match": "[0-9]"
+				}
+			]
+		},
+		"entity":{
+			"patterns": [
+				{
+					"name": "entity.name.function",
+					"match": "\\b(empiler|reserver|empilerAd|empilerParam|add|mult|sous|div|affectation|valeurPile|get|put|moins|egal|diff|inf|infeg|sup|supeg|et|ou|non|erreur)\\b"
+				}
+			]
 		}
 	},
-	"scopeName": "source.nn"
+	"scopeName": "source.nilnovi"
 }
