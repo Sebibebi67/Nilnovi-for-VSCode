@@ -10,15 +10,19 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:nilnovi-for-vscode.run"
-
+		"onCommand:nilnovi-for-vscode.run",
+		"onCommand:nilnovi-for-vscode.pile"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command" : "nilnovi-for-vscode.run",
-				"title" : "Run Nilnovi"
+				"command": "nilnovi-for-vscode.run",
+				"title": "Run Nilnovi"
+			},
+			{
+				"command": "nilnovi-for-vscode.pile",
+				"title": "Pile Nilnovi"
 			}
 		],
 		"languages": [
