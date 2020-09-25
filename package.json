@@ -11,14 +11,13 @@
 	],
 	"activationEvents": [
 		"onCommand:nilnovi-for-vscode.run"
-
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command" : "nilnovi-for-vscode.run",
-				"title" : "Run Nilnovi"
+				"command": "nilnovi-for-vscode.run",
+				"title": "Run Nilnovi"
 			}
 		],
 		"languages": [
