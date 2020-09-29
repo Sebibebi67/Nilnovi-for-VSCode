@@ -41,6 +41,7 @@ function runNilnovi() {
         var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
         if (fileNamePath.endsWith(".nn")) {
             executor.loadingFile(fs_1.readFileSync(fileNamePath, "utf-8"));
+            executor.run();
             //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
             //   output.appendLine("Hello there");
             //   console.log(executor.currentLineCpt);

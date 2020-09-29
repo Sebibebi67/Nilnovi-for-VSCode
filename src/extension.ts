@@ -5,6 +5,7 @@ import { PythonShell } from "python-shell";
 import path = require("path");
 import { readFileSync } from "fs";
 import { Executor } from "./Executor";
+import { exec } from "child_process";
 
 let executor = new Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
@@ -49,6 +50,7 @@ function runNilnovi() {
     var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
     if (fileNamePath.endsWith(".nn")) {
 		executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+		executor.run();
       //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
       //   output.appendLine("Hello there");
       //   console.log(executor.currentLineCpt);
