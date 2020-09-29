@@ -10,6 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
+		"onLanguage:nilnovi",
 		"onCommand:nilnovi-for-vscode.run",
 		"onCommand:nilnovi-for-vscode.pile"
 	],

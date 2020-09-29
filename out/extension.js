@@ -4,43 +4,20 @@ exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require("vscode");
-const python_shell_1 = require("python-shell");
 const path = require("path");
+const fs_1 = require("fs");
+const Executor_1 = require("./Executor");
+let executor = new Executor_1.Executor();
+// let output = vscode.window.createOutputChannel("Nilnovi - Output");
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
         console.log(vscode.window.activeTextEditor);
-        __dirname = (path.resolve(__dirname));
-        if (vscode.window.activeTextEditor) {
-            var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
-            if (fileNamePath.endsWith(".nn")) {
-                var options = {
-                    scriptPath: __dirname + "/../src/",
-                    args: [fileNamePath],
-                };
-                console.log(fileNamePath);
-                python_shell_1.PythonShell.run("exec.py", options, function (err, results) {
-                    if (err) {
-                        console.log(err);
-                        vscode.window.showErrorMessage("A python error occurs : " + err.message + "\n" + err.traceback);
-                    }
-                    else {
-                        vscode.window.showInformationMessage("Running successfully " + path.basename(fileNamePath));
-                    }
-                    console.log(results);
-                });
-            }
-            else {
-                vscode.window.showErrorMessage(path.basename(fileNamePath) + " is not a Nilnovi file, please use the\".nn\" extension");
-            }
-        }
-        else {
-            vscode.window.showErrorMessage("No current file");
-        }
+        runNilnovi();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
-        const panel = vscode.window.createWebviewPanel('pile', 'Pile éxecution', vscode.ViewColumn.Two, {});
+        const panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
         panel.webview.html = getWebviewContent();
     });
 }
@@ -50,14 +27,50 @@ function getWebviewContent() {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cat Coding</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Cat Coding</title>
 </head>
 <body>
-    <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+	<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
 </body>
 </html>`;
+}
+function runNilnovi() {
+    if (vscode.window.activeTextEditor) {
+        var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
+        if (fileNamePath.endsWith(".nn")) {
+            executor.loadingFile(fs_1.readFileSync(fileNamePath, "utf-8"));
+            //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
+            //   output.appendLine("Hello there");
+            //   console.log(executor.currentLineCpt);
+            //   for (let line of file){
+            // 	  console.log(line);
+            // 	  break;
+            //   }
+            //   console.log(file);
+            // var options = {
+            //   scriptPath: __dirname + "/../src/",
+            //   args: [fileNamePath],
+            // };
+            // PythonShell.run("exec.py", options, function (err, results) {
+            //   if (err){
+            //     console.log(err);
+            //     vscode.window.showErrorMessage("A python error occurs : "+err.message+"\n"+err.traceback);
+            //   }else{
+            //     vscode.window.showInformationMessage("Running successfully "+path.basename(fileNamePath))
+            //   }
+            //   console.log(results);
+            // });
+        }
+        else {
+            vscode.window.showErrorMessage(path.basename(fileNamePath) +
+                ' is not a Nilnovi file, please use the".nn" extension');
+        }
+    }
+    else {
+        vscode.window.showErrorMessage("No current file");
+    }
 }
 // this method is called when your extension is deactivated
 function deactivate() { }
