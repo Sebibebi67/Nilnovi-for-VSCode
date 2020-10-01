@@ -1,3 +1,9 @@
 debutProg();
-toto();
+
+/*toto
+*/
+
+# toto
+
+erreur(this is undefined)
 finProg();

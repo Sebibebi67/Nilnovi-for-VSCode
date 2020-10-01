@@ -30,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 }
 
+
 //fonction webviewcontent
 function getWebviewContent() {
   return `<!DOCTYPE html>
@@ -52,7 +53,8 @@ function runNilnovi() {
     executor.output.clear();
     executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
 		executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
-		executor.run();
+    executor.run();
+    
       //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
       //   output.appendLine("Hello there");
       //   console.log(executor.currentLineCpt);

@@ -1,5 +1,5 @@
 "use strict";
-//== Class Executor ==//
+//================================ Class Executor ================================//
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Executor = void 0;
 //--------------------------------- Description ----------------------------------//
@@ -19,24 +19,61 @@ class Executor {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
     constructor() {
+        //------------------------------- Class Variables --------------------------------//
         this.currentLineCpt = 0;
         this.pile = [];
         this.base = -1;
         this.lines = [];
         this.end = false;
-        this.commentedLine = false;
+        this.commentedStates = {
+            NOT_COMMENTED: 0,
+            COMMENTED_LINE: 1,
+            NEXT_LINE_COMMENTED: 2,
+        };
+        this.commentedState = this.commentedStates.NOT_COMMENTED;
         this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
         this.output.show(true);
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
+    /**
+     * Description : loads and converts the file into an array of strings, one string per line. It also removes the block of comments
+     *
+     * Input:
+     * * The file which should be loaded
+     *
+     * Output: None
+     *
+     * Authors:
+     * * Sébastien HERT
+     */
     loadingFile(file) {
-        this.lines = file.split(/\r?\n/);
+        // First, we will remove all the blocks of comments and replace them by empty lines, then filling our array of lines
+        const regex = /\/\*(.|[\r\n])*\*\//;
+        this.lines = file.replace(regex, "\r\n").split(/\r?\n/);
     }
+    /**
+     * Description : runs the file previously loaded
+     *
+     * Input:
+     * * (Optional) The delay
+     *
+     * Output: None
+     *
+     * Authors:
+     * * Sébastien HERT
+     */
     run(delay) {
-        this.end = false;
+        // resets the global values
+        this.reset();
+        // while not "FinProg" or error
         while (!this.end) {
-            this.eval(this.lines[this.currentLineCpt]);
+            // Evaluating current line
+            const returnValue = this.eval(this.lines[this.currentLineCpt]);
+            // An error occurs
+            if (returnValue != 0) {
+                this.stop();
+            }
         }
     }
     //--------------------------------------------------------------------------------//
@@ -44,79 +81,130 @@ class Executor {
     eval(line) {
         // First, we need to remove the spaces at begin and end of the line
         line = line.trim();
+        // if the line is empty or commented
+        if (line.length == 0 || line.startsWith("#")) {
+            this.currentLineCpt++;
+            return 0;
+        }
+        let method = line.split(";")[0].split("=>")[0];
+        // User cannot use word "undefined", except for the "erreur" method
+        let arg = line.split("(")[1].split(")")[0];
+        if (arg.includes("undefined") && !method.includes("erreur")) {
+            this.wordUndefinedUseError();
+            return 1;
+        }
+        // console.log(method + "n");
+        // console.log(line, method);
         // checks if the line is commented or empty
         if (!(line.length == 0) && !line.startsWith("#")) {
-            if (line.startsWith("/*")) {
-                this.commentedLine = true;
-            }
+            // console.log(method);
             // If it's not
-            if (!this.commentedLine) {
-                let method = (line.split(";")[0]).split("=>")[0];
+            if (!(this.commentedState == this.commentedStates.COMMENTED_LINE)) {
                 try {
-                    eval("this.evaluable_" + method);
+                    const returnValue = eval("this.evaluable_" + method);
+                    if (returnValue != 0) {
+                        return 1;
+                    }
                 }
                 catch (error) {
-                    // console.log(error);
-                    this.currentLineCpt++;
-                    this.end = true;
-                    this.output.appendLine("\nERROR at line " + this.currentLineCpt + ".");
-                    this.output.appendLine("Please check if it's a correct method");
-                    this.currentLineCpt = 0;
+                    //TODO, need to check type of arguments
+                    // if 
+                    // this.functionNotDefinedError(method.split("(")[0]);
+                    console.log(error);
+                    console.log(error.name, error.message);
+                    return 1;
                 }
                 // else, we should increase the currentLineCpt
             }
             else {
                 this.currentLineCpt++;
             }
-            // checks if it's the end of the comment
-            if (line.endsWith("*/")) {
-                this.commentedLine = false;
-            }
         }
         else {
             // else, we should increase the currentLineCpt
             this.currentLineCpt++;
         }
+        return 0;
+    }
+    stop() {
+        this.end = true;
+    }
+    reset() {
+        this.end = false;
+        this.currentLineCpt = 0;
+        this.commentedState = this.commentedStates.NOT_COMMENTED;
+    }
+    paramsError(name, nbOfParams) {
+        const currentLine = this.currentLineCpt + 1;
+        const methodName = name.split("_")[1];
+        this.output.appendLine("ERROR at line " +
+            currentLine +
+            " : Method " +
+            methodName +
+            " requires " +
+            nbOfParams +
+            " parameter(s).");
+        this.stop();
+    }
+    wordUndefinedUseError() {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " +
+            currentLine +
+            ' : Please do not use the word "undefined"');
+        this.stop();
+    }
+    functionNotDefinedError(name) {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + " : Method " + name + " is not defined.");
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Nilnovi Methods -------------------------------//
     /**
-         * Description : enables the beginning of the program
-         *
-         * Input : None
-         *
-         * Output: None
-         *
-         * Authors:
-         * * Sébastien HERT
-         */
-    evaluable_debutProg() {
-        this.output.appendLine("Début de Programme");
-        this.currentLineCpt++;
+     * Description : enables the beginning of the program
+     *
+     * Input : None
+     *
+     * Output: None
+     *
+     * Authors:
+     * * Sébastien HERT
+     */
+    evaluable_debutProg(error = undefined) {
+        if (error === undefined) {
+            this.output.appendLine("Début de Programme");
+            this.currentLineCpt++;
+        }
+        else {
+            this.paramsError(this.evaluable_debutProg.name, 0);
+            return 1;
+        }
+        return 0;
     }
     /**
-    * Description : enables the end of the program
-    *
-    * Input: None
-    *
-    * Output: None
-    *
-    * Authors:
-    * * Sébastien HERT
-    */
+     * Description : enables the end of the program
+     *
+     * Input: None
+     *
+     * Output: None
+     *
+     * Authors:
+     * * Sébastien HERT
+     */
     evaluable_finProg() {
         this.output.appendLine("Fin de Programme");
-        this.output.appendLine("toto");
         this.end = true;
         this.currentLineCpt = 0;
+        return 0;
     }
     evaluable_reserver(n) {
         this.output.appendLine("TODO");
         this.currentLineCpt++;
     }
     evaluable_empiler(n) {
+        // console.log(n);
         this.output.appendLine("TODO");
         this.currentLineCpt++;
+        // return 0;
     }
     evaluable_affectation() {
         this.output.appendLine("TODO");
@@ -201,6 +289,7 @@ class Executor {
     evaluable_erreur(exp) {
         this.output.appendLine("TODO");
         this.currentLineCpt++;
+        return 0;
     }
     evaluable_empilerAd(n) {
         this.output.appendLine("TODO");
