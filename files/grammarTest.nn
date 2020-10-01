@@ -41,3 +41,5 @@ empiler(34)
 moins()
 put()
 finProg()
+debutProg()finProg()
+

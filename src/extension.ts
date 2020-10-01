@@ -3,6 +3,8 @@
 import * as vscode from "vscode";
 import { PythonShell } from "python-shell";
 import path = require("path");
+import {autoCompletion} from "./providers";
+import {hovers} from "./providers";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -39,6 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
     }else{
       vscode.window.showErrorMessage("No current file");
     }
+
   });
 
   let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
@@ -50,6 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
     panel.webview.html = getWebviewContent();
   });
+
+  context.subscriptions.push(autoCompletion(), hovers());
 }
 
 //fonction webviewcontent
