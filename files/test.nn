@@ -6,5 +6,5 @@ debutProg();
 # toto
 # toto();
 
-erreur(this is undefined)
+# erreur(this is undefined)
 finProg();

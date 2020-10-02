@@ -25,12 +25,6 @@ class Executor {
         this.base = -1;
         this.lines = [];
         this.end = false;
-        this.commentedStates = {
-            NOT_COMMENTED: 0,
-            COMMENTED_LINE: 1,
-            NEXT_LINE_COMMENTED: 2,
-        };
-        this.commentedState = this.commentedStates.NOT_COMMENTED;
         this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
         this.output.show(true);
     }
@@ -95,31 +89,23 @@ class Executor {
         }
         // checks if the line is commented or empty
         if (!(line.length == 0) && !line.startsWith("#")) {
-            // console.log(method);
-            // If it's not
-            if (!(this.commentedState == this.commentedStates.COMMENTED_LINE)) {
-                try {
-                    const returnValue = eval("this.evaluable_" + method);
-                    if (returnValue != 0) {
-                        return 1;
-                    }
-                }
-                catch (error) {
-                    if (error.message.endsWith("is not a function")) {
-                        this.functionNotDefinedError(method.split("(")[0]);
-                        return 1;
-                    }
-                    if (error.name == "SyntaxError") {
-                        this.syntaxError();
-                        return 1;
-                    }
-                    this.unknownError();
+            try {
+                const returnValue = eval("this.evaluable_" + method);
+                if (returnValue != 0) {
                     return 1;
                 }
-                // else, we should increase the currentLineCpt
             }
-            else {
-                this.currentLineCpt++;
+            catch (error) {
+                if (error.message.endsWith("is not a function")) {
+                    this.functionNotDefinedError(method.split("(")[0]);
+                    return 1;
+                }
+                if (error.name == "SyntaxError") {
+                    this.syntaxError();
+                    return 1;
+                }
+                this.unknownError();
+                return 1;
             }
         }
         else {
@@ -134,7 +120,7 @@ class Executor {
     reset() {
         this.end = false;
         this.currentLineCpt = 0;
-        this.commentedState = this.commentedStates.NOT_COMMENTED;
+        // this.commentedState = this.commentedStates.NOT_COMMENTED;
     }
     paramsError(name, nbOfParams) {
         const currentLine = this.currentLineCpt + 1;
@@ -172,36 +158,41 @@ class Executor {
     /**
      * Description : Enables the beginning of the program
      *
-     * Input : None
+     * Input :
+     * * No parameter should be given (The parameter error checks if no argument has been given)
      *
-     * Output: None
+     * Output:
+     * * The return status 1 | 0
      *
      * Authors:
      * * Sébastien HERT
      */
     evaluable_debutProg(error = undefined) {
-        if (error === undefined) {
-            this.output.appendLine("Début de Programme");
-            // this.output.show();
-            this.currentLineCpt++;
-        }
-        else {
+        if (!(error === undefined)) {
             this.paramsError(this.evaluable_debutProg.name, 0);
             return 1;
         }
+        this.output.appendLine("Début de Programme");
+        this.currentLineCpt++;
         return 0;
     }
     /**
      * Description : Enables the end of the program
      *
-     * Input: None
+     * Input:
+     * * No parameter should be given (The parameter error checks if no argument has been given)
      *
-     * Output: None
+     * Output:
+     * * The return status 1 | 0
      *
      * Authors:
      * * Sébastien HERT
      */
-    evaluable_finProg() {
+    evaluable_finProg(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_finProg.name, 0);
+            return 1;
+        }
         this.output.appendLine("Fin de Programme");
         this.end = true;
         this.currentLineCpt = 0;

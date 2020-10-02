@@ -28,12 +28,6 @@ export class Executor {
 
   private lines: string[] = [];
   private end = false;
-  private commentedStates = {
-    NOT_COMMENTED: 0,
-    COMMENTED_LINE: 1,
-    NEXT_LINE_COMMENTED: 2,
-  };
-  private commentedState = this.commentedStates.NOT_COMMENTED;
 
   //--------------------------------------------------------------------------------//
 
@@ -116,33 +110,24 @@ export class Executor {
 
     // checks if the line is commented or empty
     if (!(line.length == 0) && !line.startsWith("#")) {
-      // console.log(method);
-
-      // If it's not
-      if (!(this.commentedState == this.commentedStates.COMMENTED_LINE)) {
-        try {
-          const returnValue = eval("this.evaluable_" + method);
-          if (returnValue != 0) {
-            return 1;
-          }
-        } catch (error) {
-          if (error.message.endsWith("is not a function")){
-            this.functionNotDefinedError(method.split("(")[0]);
-            return 1;
-          }
-
-          if (error.name == "SyntaxError"){
-            this.syntaxError();
-            return 1;
-          }
-
-          this.unknownError();
+      try {
+        const returnValue = eval("this.evaluable_" + method);
+        if (returnValue != 0) {
+          return 1;
+        }
+      } catch (error) {
+        if (error.message.endsWith("is not a function")) {
+          this.functionNotDefinedError(method.split("(")[0]);
           return 1;
         }
 
-        // else, we should increase the currentLineCpt
-      } else {
-        this.currentLineCpt++;
+        if (error.name == "SyntaxError") {
+          this.syntaxError();
+          return 1;
+        }
+
+        this.unknownError();
+        return 1;
       }
     } else {
       // else, we should increase the currentLineCpt
@@ -158,7 +143,7 @@ export class Executor {
   private reset() {
     this.end = false;
     this.currentLineCpt = 0;
-    this.commentedState = this.commentedStates.NOT_COMMENTED;
+    // this.commentedState = this.commentedStates.NOT_COMMENTED;
   }
 
   private paramsError(name: string, nbOfParams: number) {
@@ -195,16 +180,12 @@ export class Executor {
 
   private syntaxError() {
     const currentLine = this.currentLineCpt + 1;
-    this.output.appendLine(
-      "ERROR at line " + currentLine + " : Syntax Error."
-    );
+    this.output.appendLine("ERROR at line " + currentLine + " : Syntax Error.");
   }
 
   private unknownError() {
     const currentLine = this.currentLineCpt + 1;
-    this.output.appendLine(
-      "ERROR at line " + currentLine+"."
-    );
+    this.output.appendLine("ERROR at line " + currentLine + ".");
   }
 
   //--------------------------------------------------------------------------------//
@@ -214,36 +195,42 @@ export class Executor {
   /**
    * Description : Enables the beginning of the program
    *
-   * Input : None
+   * Input :
+   * * No parameter should be given (The parameter error checks if no argument has been given)
    *
-   * Output: None
+   * Output: 
+   * * The return status 1 | 0
    *
    * Authors:
    * * Sébastien HERT
    */
   private evaluable_debutProg(error = undefined) {
-    if (error === undefined) {
-      this.output.appendLine("Début de Programme");
-      // this.output.show();
-      this.currentLineCpt++;
-    } else {
+    if (!(error === undefined)) {
       this.paramsError(this.evaluable_debutProg.name, 0);
       return 1;
     }
+    this.output.appendLine("Début de Programme");
+    this.currentLineCpt++;
     return 0;
   }
 
   /**
    * Description : Enables the end of the program
    *
-   * Input: None
+   * Input:
+   * * No parameter should be given (The parameter error checks if no argument has been given)
    *
-   * Output: None
+   * Output:
+   * * The return status 1 | 0
    *
    * Authors:
    * * Sébastien HERT
    */
-  private evaluable_finProg() {
+  private evaluable_finProg(error = undefined) {
+    if (!(error === undefined)) {
+      this.paramsError(this.evaluable_finProg.name, 0);
+      return 1;
+    }
     this.output.appendLine("Fin de Programme");
     this.end = true;
     this.currentLineCpt = 0;
