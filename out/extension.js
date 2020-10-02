@@ -7,6 +7,7 @@ const vscode = require("vscode");
 const path = require("path");
 const fs_1 = require("fs");
 const Executor_1 = require("./Executor");
+const PileWebViewPanel_1 = require("./PileWebViewPanel");
 let executor = new Executor_1.Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./providers");
@@ -19,26 +20,11 @@ function activate(context) {
         runNilnovi();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
-        const panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
-        panel.webview.html = getWebviewContent();
+        let panel = PileWebViewPanel_1.PileWebViewPanel.get();
     });
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());
 }
 exports.activate = activate;
-//fonction webviewcontent
-function getWebviewContent() {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Cat Coding</title>
-</head>
-<body>
-	<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
-</body>
-</html>`;
-}
 function runNilnovi() {
     if (vscode.window.activeTextEditor) {
         var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
