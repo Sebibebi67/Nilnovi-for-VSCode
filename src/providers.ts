@@ -46,13 +46,194 @@ export function hovers(){
     
             const range = document.getWordRangeAtPosition(position);
             const word = document.getText(range);
-    
-            if (word == "debutProg") {
-    
-                return new vscode.Hover({
-                    language: "NilNovi",
-                    value: "TODO"
-                });
+
+            switch(word){
+                case "debutProg":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO1"
+                    });
+                    break;
+                case "finProg":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO2"
+                    });
+                    break;
+                case "reserver":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO3"
+                    });
+                    break;
+                case "empiler":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "affectation":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "valeurPile":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "get":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "put":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "moins":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "sous":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "add":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "mult":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "div":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "egal":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "diff":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "inf":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "infeg":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "sup":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "supeg":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "et":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "ou":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "non":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "tra":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "tze":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "erreur":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "empilerAd":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "empilerParam":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "retourFonct":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "retourProc":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "reserverBloc":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
+                case "traStat":
+                    return new vscode.Hover({
+                        language: "NilNovi",
+                        value: "TODO"
+                    });
+                    break;
             }
         }
       });
