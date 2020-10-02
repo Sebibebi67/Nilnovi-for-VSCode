@@ -37,7 +37,7 @@ class Executor {
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
     /**
-     * Description : loads and converts the file into an array of strings, one string per line. It also removes the block of comments
+     * Description : Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
      *
      * Input:
      * * The file which should be loaded
@@ -53,7 +53,7 @@ class Executor {
         this.lines = file.replace(regex, "\r\n").split(/\r?\n/);
     }
     /**
-     * Description : runs the file previously loaded
+     * Description : Runs the file previously loaded
      *
      * Input:
      * * (Optional) The delay
@@ -93,8 +93,6 @@ class Executor {
             this.wordUndefinedUseError();
             return 1;
         }
-        // console.log(method + "n");
-        // console.log(line, method);
         // checks if the line is commented or empty
         if (!(line.length == 0) && !line.startsWith("#")) {
             // console.log(method);
@@ -107,11 +105,15 @@ class Executor {
                     }
                 }
                 catch (error) {
-                    //TODO, need to check type of arguments
-                    // if 
-                    // this.functionNotDefinedError(method.split("(")[0]);
-                    console.log(error);
-                    console.log(error.name, error.message);
+                    if (error.message.endsWith("is not a function")) {
+                        this.functionNotDefinedError(method.split("(")[0]);
+                        return 1;
+                    }
+                    if (error.name == "SyntaxError") {
+                        this.syntaxError();
+                        return 1;
+                    }
+                    this.unknownError();
                     return 1;
                 }
                 // else, we should increase the currentLineCpt
@@ -157,10 +159,18 @@ class Executor {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " + currentLine + " : Method " + name + " is not defined.");
     }
+    syntaxError() {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + " : Syntax Error.");
+    }
+    unknownError() {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + ".");
+    }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Nilnovi Methods -------------------------------//
     /**
-     * Description : enables the beginning of the program
+     * Description : Enables the beginning of the program
      *
      * Input : None
      *
@@ -172,6 +182,7 @@ class Executor {
     evaluable_debutProg(error = undefined) {
         if (error === undefined) {
             this.output.appendLine("Début de Programme");
+            // this.output.show();
             this.currentLineCpt++;
         }
         else {
@@ -181,7 +192,7 @@ class Executor {
         return 0;
     }
     /**
-     * Description : enables the end of the program
+     * Description : Enables the end of the program
      *
      * Input: None
      *

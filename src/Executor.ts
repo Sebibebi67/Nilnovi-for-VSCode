@@ -49,7 +49,7 @@ export class Executor {
   //-------------------------------- Public Methods --------------------------------//
 
   /**
-   * Description : loads and converts the file into an array of strings, one string per line. It also removes the block of comments
+   * Description : Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
    *
    * Input:
    * * The file which should be loaded
@@ -66,7 +66,7 @@ export class Executor {
   }
 
   /**
-   * Description : runs the file previously loaded
+   * Description : Runs the file previously loaded
    *
    * Input:
    * * (Optional) The delay
@@ -114,9 +114,6 @@ export class Executor {
       return 1;
     }
 
-    // console.log(method + "n");
-
-    // console.log(line, method);
     // checks if the line is commented or empty
     if (!(line.length == 0) && !line.startsWith("#")) {
       // console.log(method);
@@ -129,11 +126,17 @@ export class Executor {
             return 1;
           }
         } catch (error) {
-          //TODO, need to check type of arguments
-          // if 
-          // this.functionNotDefinedError(method.split("(")[0]);
-          console.log(error);
-          console.log(error.name, error.message);
+          if (error.message.endsWith("is not a function")){
+            this.functionNotDefinedError(method.split("(")[0]);
+            return 1;
+          }
+
+          if (error.name == "SyntaxError"){
+            this.syntaxError();
+            return 1;
+          }
+
+          this.unknownError();
           return 1;
         }
 
@@ -190,12 +193,26 @@ export class Executor {
     );
   }
 
+  private syntaxError() {
+    const currentLine = this.currentLineCpt + 1;
+    this.output.appendLine(
+      "ERROR at line " + currentLine + " : Syntax Error."
+    );
+  }
+
+  private unknownError() {
+    const currentLine = this.currentLineCpt + 1;
+    this.output.appendLine(
+      "ERROR at line " + currentLine+"."
+    );
+  }
+
   //--------------------------------------------------------------------------------//
 
   //-------------------------------- Nilnovi Methods -------------------------------//
 
   /**
-   * Description : enables the beginning of the program
+   * Description : Enables the beginning of the program
    *
    * Input : None
    *
@@ -207,6 +224,7 @@ export class Executor {
   private evaluable_debutProg(error = undefined) {
     if (error === undefined) {
       this.output.appendLine("Début de Programme");
+      // this.output.show();
       this.currentLineCpt++;
     } else {
       this.paramsError(this.evaluable_debutProg.name, 0);
@@ -216,7 +234,7 @@ export class Executor {
   }
 
   /**
-   * Description : enables the end of the program
+   * Description : Enables the end of the program
    *
    * Input: None
    *

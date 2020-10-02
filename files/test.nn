@@ -4,6 +4,7 @@ debutProg();
 */
 
 # toto
+# toto();
 
 erreur(this is undefined)
 finProg();
