@@ -20,6 +20,6 @@ import * as vscode from "vscode";
 
 export class PileWebView {
 
-    private pilewebview;
+    // private pilewebview;
 
 }
