@@ -23,6 +23,7 @@ class Executor {
         this.currentLineCpt = 0;
         this.pile = [];
         this.base = -1;
+        this.cptPile = 0;
         this.lines = [];
         this.end = false;
         this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
@@ -105,6 +106,7 @@ class Executor {
                     return 1;
                 }
                 this.unknownError();
+                console.log(error);
                 return 1;
             }
         }
@@ -120,6 +122,9 @@ class Executor {
     reset() {
         this.end = false;
         this.currentLineCpt = 0;
+        this.pile = [];
+        this.cptPile = 0;
+        this.base = -1;
         // this.commentedState = this.commentedStates.NOT_COMMENTED;
     }
     paramsError(name, nbOfParams) {
@@ -149,6 +154,14 @@ class Executor {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " + currentLine + " : Syntax Error.");
     }
+    notValidNumber(n) {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + " : " + n + " is not a valid number.");
+    }
+    pileError(str) {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + " : " + str);
+    }
     unknownError() {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " + currentLine + ".");
@@ -159,7 +172,8 @@ class Executor {
      * Description : Enables the beginning of the program
      *
      * Input :
-     * * No parameter should be given (The parameter error checks if no argument has been given)
+     * * No parameter should be given
+     * * (The parameter error checks if no argument has been given)
      *
      * Output:
      * * The return status 1 | 0
@@ -180,7 +194,8 @@ class Executor {
      * Description : Enables the end of the program
      *
      * Input:
-     * * No parameter should be given (The parameter error checks if no argument has been given)
+     * * No parameter should be given
+     * * (The parameter error checks if no argument has been given)
      *
      * Output:
      * * The return status 1 | 0
@@ -198,23 +213,110 @@ class Executor {
         this.currentLineCpt = 0;
         return 0;
     }
-    evaluable_reserver(n) {
-        this.output.appendLine("TODO");
+    /**
+     * Description : reserves n slots in the pile
+     *
+     * Input:
+     * * n : the number of slots
+     * * (The parameter error checks if no argument has been given)
+     *
+     * Output:
+     * * The return status 1 | 0
+     *
+     * Authors:
+     * * Sébastien HERT
+     */
+    evaluable_reserver(n, error = undefined) {
+        if (!(error === undefined) || n === undefined) {
+            this.paramsError(this.evaluable_reserver.name, 1);
+            return 1;
+        }
+        for (let i = 0; i < n; i++) {
+            this.pile.push(0);
+        }
+        this.cptPile += n;
         this.currentLineCpt++;
+        return 0;
     }
-    evaluable_empiler(n) {
-        // console.log(n);
-        this.output.appendLine("TODO");
+    /**
+     * Description : stacks the value n at the top of the pile
+     *
+     * Input:
+     * * n : the value to stack
+     * * (The parameter error checks if no argument has been given)
+     *
+     * Output:
+     * * The return status 1 | 0
+     *
+     * Authors:
+     * * Sébastien HERT
+     */
+    evaluable_empiler(n, error = undefined) {
+        if (!(error === undefined) || n === undefined) {
+            this.paramsError(this.evaluable_empiler.name, 1);
+            return 1;
+        }
+        if (!Number.isInteger(n)) {
+            this.notValidNumber(n);
+            return 1;
+        }
+        this.pile.push(n);
+        this.cptPile++;
         this.currentLineCpt++;
-        // return 0;
+        return 0;
     }
-    evaluable_affectation() {
-        this.output.appendLine("TODO");
+    /**
+    * Description :
+    *
+    * Input: None
+    *
+    * Output: None
+    *
+    * Authors:
+    * * Sébastien HERT
+    * * Adam RIVIERE
+    */
+    evaluable_affectation(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_affectation.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough arguments.");
+            return 1;
+        }
+        const value = this.pile.pop();
+        const address = this.pile.pop();
+        if (address === undefined || address < 0 || address > this.pile.length || this.pile.length || value === undefined) {
+            this.pileError("Address isn't is the pile");
+            return 1;
+        }
+        try {
+            this.pile[address] = value;
+        }
+        catch (error) {
+            console.log(error);
+            this.stop();
+            return 1;
+        }
+        this.cptPile -= 2;
         this.currentLineCpt++;
+        console.log(this.pile);
+        return 0;
     }
-    evaluable_valeurPile() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_valeurPile(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_affectation.name, 0);
+            return 1;
+        }
+        const address = this.pile.pop();
+        if (address === undefined || address < 0 || address > this.pile.length) {
+            this.pileError("Address isn't is the pile");
+            return 1;
+        }
+        const value = this.pile[address];
+        this.evaluable_empiler(value);
+        return 0;
     }
     evaluable_get() {
         this.output.appendLine("TODO");

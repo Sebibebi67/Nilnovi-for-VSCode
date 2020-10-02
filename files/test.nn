@@ -1,5 +1,8 @@
 debutProg();
-
+# reserver(3);
+empiler(1);
+empiler(5);
+affectation();
 /*toto
 */
 

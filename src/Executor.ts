@@ -22,8 +22,9 @@ export class Executor {
   //------------------------------- Class Variables --------------------------------//
 
   public currentLineCpt = 0;
-  public pile = [];
+  public pile: number[] = [];
   public base = -1;
+  public cptPile = 0;
   public output: vscode.OutputChannel;
 
   private lines: string[] = [];
@@ -127,6 +128,7 @@ export class Executor {
         }
 
         this.unknownError();
+        console.log(error);
         return 1;
       }
     } else {
@@ -143,6 +145,9 @@ export class Executor {
   private reset() {
     this.end = false;
     this.currentLineCpt = 0;
+    this.pile = [];
+    this.cptPile = 0;
+    this.base = -1;
     // this.commentedState = this.commentedStates.NOT_COMMENTED;
   }
 
@@ -183,6 +188,20 @@ export class Executor {
     this.output.appendLine("ERROR at line " + currentLine + " : Syntax Error.");
   }
 
+  private notValidNumber(n: number) {
+    const currentLine = this.currentLineCpt + 1;
+    this.output.appendLine(
+      "ERROR at line " + currentLine + " : " + n + " is not a valid number."
+    );
+  }
+
+  private pileError(str : string){
+    const currentLine = this.currentLineCpt + 1;
+    this.output.appendLine(
+      "ERROR at line " + currentLine + " : " + str
+    );
+  }
+
   private unknownError() {
     const currentLine = this.currentLineCpt + 1;
     this.output.appendLine("ERROR at line " + currentLine + ".");
@@ -196,9 +215,10 @@ export class Executor {
    * Description : Enables the beginning of the program
    *
    * Input :
-   * * No parameter should be given (The parameter error checks if no argument has been given)
+   * * No parameter should be given
+   * * (The parameter error checks if no argument has been given)
    *
-   * Output: 
+   * Output:
    * * The return status 1 | 0
    *
    * Authors:
@@ -218,7 +238,8 @@ export class Executor {
    * Description : Enables the end of the program
    *
    * Input:
-   * * No parameter should be given (The parameter error checks if no argument has been given)
+   * * No parameter should be given
+   * * (The parameter error checks if no argument has been given)
    *
    * Output:
    * * The return status 1 | 0
@@ -237,27 +258,126 @@ export class Executor {
     return 0;
   }
 
-  private evaluable_reserver(n: number) {
-    this.output.appendLine("TODO");
+  /**
+   * Description : reserves n slots in the pile
+   *
+   * Input:
+   * * n : the number of slots
+   * * (The parameter error checks if no argument has been given)
+   *
+   * Output:
+   * * The return status 1 | 0
+   *
+   * Authors:
+   * * Sébastien HERT
+   */
+  private evaluable_reserver(n: number, error = undefined) {
+    if (!(error === undefined) || n === undefined) {
+      this.paramsError(this.evaluable_reserver.name, 1);
+      return 1;
+    }
+    for (let i = 0; i < n; i++) {
+      this.pile.push(0);
+    }
+    this.cptPile += n;
     this.currentLineCpt++;
+    return 0;
   }
 
-  private evaluable_empiler(n: number) {
-    // console.log(n);
-    this.output.appendLine("TODO");
+  /**
+   * Description : stacks the value n at the top of the pile
+   *
+   * Input:
+   * * n : the value to stack
+   * * (The parameter error checks if no argument has been given)
+   *
+   * Output:
+   * * The return status 1 | 0
+   *
+   * Authors:
+   * * Sébastien HERT
+   */
+  private evaluable_empiler(n: number, error = undefined) {
+    if (!(error === undefined) || n === undefined) {
+      this.paramsError(this.evaluable_empiler.name, 1);
+      return 1;
+    }
 
+    if (!Number.isInteger(n)) {
+      this.notValidNumber(n);
+      return 1;
+    }
+
+    this.pile.push(n);
+    this.cptPile++;
     this.currentLineCpt++;
-    // return 0;
+    return 0;
   }
 
-  private evaluable_affectation() {
-    this.output.appendLine("TODO");
+  /**
+  * Description : 
+  * 
+  * Input: None
+  * 
+  * Output: None
+  *
+  * Authors:
+  * * Sébastien HERT
+  * * Adam RIVIERE
+  */
+  private evaluable_affectation(error = undefined) {
+    if (!(error === undefined)) {
+      this.paramsError(this.evaluable_affectation.name, 0);
+      return 1;
+    }
+
+    if (this.pile.length < 2) {
+      this.pileError("Pile doesn't have enough arguments.");
+
+      return 1;
+    }
+
+    const value = this.pile.pop();
+    const address = this.pile.pop();
+
+    if (address === undefined || address < 0 || address > this.pile.length || this.pile.length || value === undefined) {
+
+      this.pileError("Address isn't is the pile");
+      return 1;
+    }
+
+    try {
+      this.pile[address] = value;
+    } catch (error) {
+      console.log(error);
+      this.stop();
+      return 1;
+    }
+    this.cptPile -= 2;
     this.currentLineCpt++;
+    console.log(this.pile);
+    return 0;
   }
 
-  private evaluable_valeurPile() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
+
+
+  private evaluable_valeurPile(error = undefined) {
+    if (!(error === undefined)) {
+      this.paramsError(this.evaluable_affectation.name, 0);
+      return 1;
+    }
+
+    const address = this.pile.pop();
+
+    if (address === undefined || address < 0 || address > this.pile.length){
+      this.pileError("Address isn't is the pile");
+      return 1;
+    }
+
+    const value = this.pile[address];
+    this.evaluable_empiler(value);
+
+    return 0;
   }
 
   private evaluable_get() {
