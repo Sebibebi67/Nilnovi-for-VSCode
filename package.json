@@ -12,7 +12,9 @@
 	"activationEvents": [
 		"onLanguage:nilnovi",
 		"onCommand:nilnovi-for-vscode.run",
-		"onCommand:nilnovi-for-vscode.pile"
+		"onCommand:nilnovi-for-vscode.pile",
+		"onLanguage:nilnovi",
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

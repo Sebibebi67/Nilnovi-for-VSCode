@@ -9,6 +9,8 @@ import { exec } from "child_process";
 
 let executor = new Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
+import {autoCompletion} from "./providers";
+import {hovers} from "./providers";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -28,6 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
     panel.webview.html = getWebviewContent();
   });
+
+  context.subscriptions.push(autoCompletion(), hovers());
 }
 
 
@@ -54,7 +58,7 @@ function runNilnovi() {
     executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
 		executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
     executor.run();
-    
+
       //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
       //   output.appendLine("Hello there");
       //   console.log(executor.currentLineCpt);
