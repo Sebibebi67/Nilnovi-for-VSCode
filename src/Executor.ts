@@ -1,3 +1,6 @@
+import { exec } from "child_process";
+import { pipeline } from "stream";
+import { isNull } from "util";
 //================================ Class Executor ================================//
 
 //--------------------------------- Description ----------------------------------//
@@ -15,6 +18,7 @@
 //----------------------------------- Imports ------------------------------------//
 
 import * as vscode from "vscode";
+import { InputBoxOptions } from "vscode";
 
 //--------------------------------------------------------------------------------//
 
@@ -24,11 +28,12 @@ export class Executor {
   public currentLineCpt = 0;
   public pile: number[] = [];
   public base = -1;
-  public cptPile = 0;
+  public cptPile = -1;
   public output: vscode.OutputChannel;
 
   private lines: string[] = [];
   private end = false;
+  // public inputString : String = "";
 
   //--------------------------------------------------------------------------------//
 
@@ -71,14 +76,14 @@ export class Executor {
    * Authors:
    * * Sébastien HERT
    */
-  public run(delay?: number) {
+  public async run(delay?: number) {
     // resets the global values
     this.reset();
 
     // while not "FinProg" or error
     while (!this.end) {
       // Evaluating current line
-      const returnValue = this.eval(this.lines[this.currentLineCpt]);
+      const returnValue = await this.eval(this.lines[this.currentLineCpt]);
 
       // An error occurs
       if (returnValue != 0) {
@@ -91,7 +96,7 @@ export class Executor {
 
   //-------------------------------- Private Methods -------------------------------//
 
-  private eval(line: string) {
+  private async eval(line: string) {
     // First, we need to remove the spaces at begin and end of the line
     line = line.trim();
 
@@ -112,7 +117,7 @@ export class Executor {
     // checks if the line is commented or empty
     if (!(line.length == 0) && !line.startsWith("#")) {
       try {
-        const returnValue = eval("this.evaluable_" + method);
+        const returnValue = await eval("this.evaluable_" + method);
         if (returnValue != 0) {
           return 1;
         }
@@ -124,6 +129,11 @@ export class Executor {
 
         if (error.name == "SyntaxError") {
           this.syntaxError();
+          return 1;
+        }
+
+        if (error.name == "ReferenceError"){
+          this.referenceError(error.message);
           return 1;
         }
 
@@ -188,17 +198,27 @@ export class Executor {
     this.output.appendLine("ERROR at line " + currentLine + " : Syntax Error.");
   }
 
-  private notValidNumber(n: number) {
+  private referenceError(message : string){
+    const currentLine = this.currentLineCpt + 1;
+    this.output.appendLine("ERROR at line " + currentLine + " : "+message);
+  }
+
+  private notValidNumberError(n: number) {
     const currentLine = this.currentLineCpt + 1;
     this.output.appendLine(
       "ERROR at line " + currentLine + " : " + n + " is not a valid number."
     );
   }
 
-  private pileError(str : string){
+  private pileError(str: string) {
+    const currentLine = this.currentLineCpt + 1;
+    this.output.appendLine("ERROR at line " + currentLine + " : " + str);
+  }
+
+  private notNumberError(str: string | undefined) {
     const currentLine = this.currentLineCpt + 1;
     this.output.appendLine(
-      "ERROR at line " + currentLine + " : " + str
+      "ERROR at line " + currentLine + " : '" + str + "' is not a number."
     );
   }
 
@@ -230,6 +250,7 @@ export class Executor {
       return 1;
     }
     this.output.appendLine("Début de Programme");
+    // this.output.show();
     this.currentLineCpt++;
     return 0;
   }
@@ -289,7 +310,7 @@ export class Executor {
    *
    * Input:
    * * n : the value to stack
-   * * (The parameter error checks if no argument has been given)
+   * * (The parameter error checks if only one argument has been given)
    *
    * Output:
    * * The return status 1 | 0
@@ -304,7 +325,7 @@ export class Executor {
     }
 
     if (!Number.isInteger(n)) {
-      this.notValidNumber(n);
+      this.notValidNumberError(n);
       return 1;
     }
 
@@ -315,16 +336,16 @@ export class Executor {
   }
 
   /**
-  * Description : 
-  * 
-  * Input: None
-  * 
-  * Output: None
-  *
-  * Authors:
-  * * Sébastien HERT
-  * * Adam RIVIERE
-  */
+   * Description :
+   *
+   * Input: None
+   *
+   * Output: None
+   *
+   * Authors:
+   * * Sébastien HERT
+   * * Adam RIVIERE
+   */
   private evaluable_affectation(error = undefined) {
     if (!(error === undefined)) {
       this.paramsError(this.evaluable_affectation.name, 0);
@@ -332,7 +353,7 @@ export class Executor {
     }
 
     if (this.pile.length < 2) {
-      this.pileError("Pile doesn't have enough arguments.");
+      this.pileError("Pile doesn't have enough elements.");
 
       return 1;
     }
@@ -340,8 +361,13 @@ export class Executor {
     const value = this.pile.pop();
     const address = this.pile.pop();
 
-    if (address === undefined || address < 0 || address > this.pile.length || this.pile.length || value === undefined) {
-
+    if (
+      address === undefined ||
+      address < 0 ||
+      address > this.pile.length ||
+      this.pile.length ||
+      value === undefined
+    ) {
       this.pileError("Address isn't is the pile");
       return 1;
     }
@@ -355,21 +381,30 @@ export class Executor {
     }
     this.cptPile -= 2;
     this.currentLineCpt++;
-    console.log(this.pile);
     return 0;
   }
 
-
-
+  /**
+   * Description :
+   *
+   * Input: None
+   *
+   * Output: None
+   *
+   * Authors:
+   * * Sébastien HERT
+   * * Adam RIVIERE
+   */
   private evaluable_valeurPile(error = undefined) {
     if (!(error === undefined)) {
-      this.paramsError(this.evaluable_affectation.name, 0);
+      this.paramsError(this.evaluable_valeurPile.name, 0);
       return 1;
     }
 
     const address = this.pile.pop();
+    this.cptPile--;
 
-    if (address === undefined || address < 0 || address > this.pile.length){
+    if (address === undefined || address < 0 || address > this.pile.length) {
       this.pileError("Address isn't is the pile");
       return 1;
     }
@@ -380,15 +415,138 @@ export class Executor {
     return 0;
   }
 
-  private evaluable_get() {
-    this.output.appendLine("TODO");
+  /**
+   * Description :
+   *
+   * Input: None
+   *
+   * Output: None
+   *
+   * Authors:
+   * * Sébastien HERT
+   * * Adam RIVIERE
+   */
+
+  private async evaluable_get() {
+
+    if (this.pile.length < 1) {
+      this.pileError("Pile doesn't have enough elements.");
+      return 1;
+    }
+
+
+    async function getInputValue() {
+      var res = await vscode.window.showInputBox({
+        placeHolder: "",
+        prompt: "Please enter an integer."
+      });
+      if (res === undefined){
+        return "";
+      }else{
+        return res;
+      }
+
+      // console.log(executor.inputString);
+
+
+      // var userInputWindow = await vscode.window.showInputBox({
+      //   placeHolder: myPlaceHolder,
+      //   prompt: "Please enter an integer.",
+      // });
+      // return userInputWindow;
+    }
+
+    // function voidFunction(){
+    //   // return 0
+    // }
+
+    // voidFunction().then(
+
+    // )
+
+    // var inputString : string;
+
+    // await getInputValue().then(res => {
+    //   inputString = res;
+    // })
+
+    var inputString = await getInputValue();
+    // this.inputString
+
+    // console.log(inputString);
+    // this.currentLineCpt++;
+    // return 0;
+    // console.log("rip")
+    
+    // console.log("toto");
+    
+
+
+
+
+    // // let inputBox = newBox("n", callback());
+
+    // // inputBox = newBox("test");
+
+    if (inputString === undefined) {
+      console.log("inputBox is undefined");
+      this.currentLineCpt++;
+      return 0;
+    }
+
+    var inputNumber: number = parseInt(inputString);
+
+    if (isNaN(inputNumber)) {
+      this.notNumberError(inputString);
+      return 1;
+    }
+
+    const address = this.pile.pop();
+    this.cptPile--;
+
+    if (address === undefined || address < 0 || address > this.pile.length) {
+      this.pileError("Address isn't is the pile");
+      return 1;
+    }
+
+    this.pile[address] = inputNumber;
+    // console.log(this.pile);
+
     this.currentLineCpt++;
+
+    return 0;
   }
 
-  private evaluable_put() {
-    this.output.appendLine("TODO");
+  /**
+   * Description :
+   *
+   * Input: None
+   *
+   * Output: None
+   *
+   * Authors:
+   * * Sébastien HERT
+   * * Adam RIVIERE
+   */
+  private evaluable_put(error = undefined) {
+    if (!(error === undefined)) {
+      this.paramsError(this.evaluable_put.name, 0);
+      return 1;
+    }
+    const value = this.pile.pop();
+
+    if (value === undefined) {
+      this.pileError("Pile doesn't have enough elements.");
+      return 1;
+    }
+
+    this.cptPile--;
     this.currentLineCpt++;
+    this.output.appendLine(value.toString());
+
+    return 0;
   }
+
   private evaluable_moins() {
     this.output.appendLine("TODO");
     this.currentLineCpt++;

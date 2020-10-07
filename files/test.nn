@@ -1,13 +1,6 @@
 debutProg();
-# reserver(3);
-empiler(1);
-empiler(5);
-affectation();
-/*toto
-*/
-
-# toto
-# toto();
-
-# erreur(this is undefined)
+# empiler(1);
+empiler(0);
+get();
+put();
 finProg();
