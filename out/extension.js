@@ -15,7 +15,7 @@ const providers_2 = require("./providers");
 // your extension is activated the very first time the command is executed
 function activate(context) {
     let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-        console.log(vscode.window.activeTextEditor);
+        // console.log(vscode.window.activeTextEditor);
         runNilnovi();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {

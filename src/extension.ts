@@ -17,7 +17,7 @@ import {hovers} from "./providers";
 export function activate(context: vscode.ExtensionContext) {
 
   let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-    console.log(vscode.window.activeTextEditor);
+    // console.log(vscode.window.activeTextEditor);
     runNilnovi();
   });
 

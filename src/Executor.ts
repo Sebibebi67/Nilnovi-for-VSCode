@@ -1,6 +1,3 @@
-import { exec } from "child_process";
-import { pipeline } from "stream";
-import { isNull } from "util";
 //================================ Class Executor ================================//
 
 //--------------------------------- Description ----------------------------------//
@@ -18,7 +15,6 @@ import { isNull } from "util";
 //----------------------------------- Imports ------------------------------------//
 
 import * as vscode from "vscode";
-import { InputBoxOptions } from "vscode";
 
 //--------------------------------------------------------------------------------//
 
