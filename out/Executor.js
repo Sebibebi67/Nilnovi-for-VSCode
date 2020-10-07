@@ -389,32 +389,9 @@ class Executor {
                     else {
                         return res;
                     }
-                    // console.log(executor.inputString);
-                    // var userInputWindow = await vscode.window.showInputBox({
-                    //   placeHolder: myPlaceHolder,
-                    //   prompt: "Please enter an integer.",
-                    // });
-                    // return userInputWindow;
                 });
             }
-            // function voidFunction(){
-            //   // return 0
-            // }
-            // voidFunction().then(
-            // )
-            // var inputString : string;
-            // await getInputValue().then(res => {
-            //   inputString = res;
-            // })
             var inputString = yield getInputValue();
-            // this.inputString
-            // console.log(inputString);
-            // this.currentLineCpt++;
-            // return 0;
-            // console.log("rip")
-            // console.log("toto");
-            // // let inputBox = newBox("n", callback());
-            // // inputBox = newBox("test");
             if (inputString === undefined) {
                 console.log("inputBox is undefined");
                 this.currentLineCpt++;
@@ -432,7 +409,6 @@ class Executor {
                 return 1;
             }
             this.pile[address] = inputNumber;
-            // console.log(this.pile);
             this.currentLineCpt++;
             return 0;
         });
