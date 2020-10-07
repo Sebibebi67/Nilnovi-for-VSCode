@@ -371,8 +371,12 @@ class Executor {
      * * Sébastien HERT
      * * Adam RIVIERE
      */
-    evaluable_get() {
+    evaluable_get(error = undefined) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!(error === undefined)) {
+                this.paramsError(this.evaluable_valeurPile.name, 0);
+                return 1;
+            }
             if (this.pile.length < 1) {
                 this.pileError("Pile doesn't have enough elements.");
                 return 1;
@@ -439,6 +443,16 @@ class Executor {
         this.output.appendLine(value.toString());
         return 0;
     }
+    /**
+    * Description :
+    *
+    * Input: None
+    *
+    * Output: None
+    *
+    * Authors:
+    * * Sébastien HERT
+    */
     evaluable_moins() {
         this.output.appendLine("TODO");
         this.currentLineCpt++;

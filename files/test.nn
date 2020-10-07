@@ -1,6 +1,6 @@
 debutProg();
 # empiler(1);
-empiler(0);
+# empiler(0);
 get();
 put();
 finProg();

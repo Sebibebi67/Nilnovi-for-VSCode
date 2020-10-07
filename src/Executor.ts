@@ -427,7 +427,12 @@ export class Executor {
    * * Adam RIVIERE
    */
 
-  private async evaluable_get() {
+  private async evaluable_get(error = undefined) {
+
+    if (!(error === undefined)) {
+      this.paramsError(this.evaluable_valeurPile.name, 0);
+      return 1;
+    }
 
     if (this.pile.length < 1) {
       this.pileError("Pile doesn't have enough elements.");
@@ -506,6 +511,16 @@ export class Executor {
     return 0;
   }
 
+  /**
+  * Description : 
+  * 
+  * Input: None
+  * 
+  * Output: None
+  *
+  * Authors:
+  * * Sébastien HERT
+  */
   private evaluable_moins() {
     this.output.appendLine("TODO");
     this.currentLineCpt++;
