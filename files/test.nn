@@ -1,10 +1,5 @@
 debutProg();
-empiler(5);
-empiler(0);
-# moins(9);
-# sous();
-# add();
-# mult();
-div();
+empiler(1);
+non();
 put();
 finProg();

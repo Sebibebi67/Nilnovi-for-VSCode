@@ -192,6 +192,12 @@ class Executor {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " + currentLine + " : division by zero.");
     }
+    notBooleanError(n) {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " +
+            currentLine +
+            " : " + n + " is not a valid value of Boolean.\nPlease use 0 or 1.");
+    }
     unknownError() {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " + currentLine + ".");
@@ -388,7 +394,7 @@ class Executor {
                 return __awaiter(this, void 0, void 0, function* () {
                     var res = yield vscode.window.showInputBox({
                         placeHolder: "",
-                        prompt: "Please enter an integer."
+                        prompt: "Please enter an integer.",
                     });
                     if (res === undefined) {
                         return "";
@@ -447,16 +453,16 @@ class Executor {
         return 0;
     }
     /**
-    * Description :
-    *
-    * Input: None
-    *
-    * Output: None
-    *
-    * Authors:
-    * * Sébastien HERT
-    * * adam
-    */
+     * Description :
+     *
+     * Input: None
+     *
+     * Output: None
+     *
+     * Authors:
+     * * Sébastien HERT
+     * * adam
+     */
     evaluable_moins(error = undefined) {
         if (!(error === undefined)) {
             this.paramsError(this.evaluable_moins.name, 0);
@@ -526,7 +532,7 @@ class Executor {
     }
     evaluable_div(error = undefined) {
         if (!(error === undefined)) {
-            this.paramsError(this.evaluable_sous.name, 0);
+            this.paramsError(this.evaluable_div.name, 0);
             return 1;
         }
         if (this.pile.length < 2) {
@@ -545,41 +551,182 @@ class Executor {
         }
         return this.evaluable_empiler(Math.floor(b / a));
     }
-    evaluable_egal() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_egal(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_egal.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        // if (a==b){
+        //   return this.evaluable_empiler(1);
+        // }else{
+        //   return this.evaluable_empiler(0);
+        // }
+        return this.evaluable_empiler(Number(a == b));
     }
-    evaluable_diff() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_diff(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_diff.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        return this.evaluable_empiler(Number(!(a == b)));
     }
-    evaluable_inf() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_inf(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_inf.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        return this.evaluable_empiler(Number(b > a));
     }
-    evaluable_infeg() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_infeg(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_infeg.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        return this.evaluable_empiler(Number(b >= a));
     }
-    evaluable_sup() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_sup(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_sup.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        return this.evaluable_empiler(Number(b > a));
     }
-    evaluable_supeg() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_supeg(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_supeg.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        return this.evaluable_empiler(Number(b >= a));
     }
-    evaluable_et() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_et(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_et.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        if (a != 0 && a != 1) {
+            this.notBooleanError(a);
+            return 1;
+        }
+        if (b != 0 && b != 1) {
+            this.notBooleanError(b);
+            return 1;
+        }
+        return this.evaluable_empiler(Number(b && a));
     }
-    evaluable_ou() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_ou(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_ou.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 2) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        var b = this.pile.pop();
+        this.cptPile -= 2;
+        if (a === undefined || b === undefined) {
+            return 1;
+        }
+        if (a != 0 && a != 1) {
+            this.notBooleanError(a);
+            return 1;
+        }
+        if (b != 0 && b != 1) {
+            this.notBooleanError(b);
+            return 1;
+        }
+        return this.evaluable_empiler(Number(b || a));
     }
-    evaluable_non() {
-        this.output.appendLine("TODO");
-        this.currentLineCpt++;
+    evaluable_non(error = undefined) {
+        if (!(error === undefined)) {
+            this.paramsError(this.evaluable_ou.name, 0);
+            return 1;
+        }
+        if (this.pile.length < 1) {
+            this.pileError("Pile doesn't have enough elements.");
+            return 1;
+        }
+        var a = this.pile.pop();
+        this.cptPile--;
+        if (a === undefined) {
+            return 1;
+        }
+        if (a != 0 && a != 1) {
+            this.notBooleanError(a);
+            return 1;
+        }
+        return this.evaluable_empiler(Number(!a));
     }
     evaluable_tra(n) {
         this.output.appendLine("TODO");
