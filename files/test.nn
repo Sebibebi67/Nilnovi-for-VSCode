@@ -1,6 +1,10 @@
 debutProg();
-# empiler(1);
-# empiler(0);
-get();
+empiler(5);
+empiler(0);
+# moins(9);
+# sous();
+# add();
+# mult();
+div();
 put();
 finProg();
