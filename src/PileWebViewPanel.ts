@@ -76,13 +76,13 @@ export class PileWebViewPanel {
         const styleSrc = this.panel.webview.asWebviewUri(onDiskPathStyle);
         const nyanSrc = this.panel.webview.asWebviewUri(onDiskPathNyan);
 
-        console.log(path.join(context.extensionPath, '/src/Webview'));
-        readFile(__dirname + '/../src/Webview/temp.html', 'utf8', (err, data) => {
-            if (err) { console.error(err) }
-            this.panel.webview.html = data;
-        });
-        // this.panel.webview.html = this.getWebviewContent(nyanSrc, styleSrc);
-        
+        // console.log(path.join(context.extensionPath, '/src/Webview'));
+        // readFile(__dirname + '/../src/Webview/temp.html', 'utf8', (err, data) => {
+        //     if (err) { console.error(err) }
+        //     this.panel.webview.html = data;
+        // });
+        this.panel.webview.html = this.getWebviewContent(nyanSrc, styleSrc);
+
         this.panel.onDidDispose(() => {
             PileWebViewPanel.dispose();
         })

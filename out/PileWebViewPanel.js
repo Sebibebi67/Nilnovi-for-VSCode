@@ -15,7 +15,6 @@ exports.PileWebViewPanel = void 0;
 //----------------------------------- Imports ------------------------------------//
 const vscode = require("vscode");
 const path = require("path");
-const fs_1 = require("fs");
 //--------------------------------------------------------------------------------//
 class PileWebViewPanel {
     // private constructor(){
@@ -58,14 +57,12 @@ class PileWebViewPanel {
         const onDiskPathNyan = vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'nyan.gif'));
         const styleSrc = this.panel.webview.asWebviewUri(onDiskPathStyle);
         const nyanSrc = this.panel.webview.asWebviewUri(onDiskPathNyan);
-        console.log(path.join(context.extensionPath, '/src/Webview'));
-        fs_1.readFile(__dirname + '/../src/Webview/temp.html', 'utf8', (err, data) => {
-            if (err) {
-                console.error(err);
-            }
-            this.panel.webview.html = data;
-        });
-        // this.panel.webview.html = this.getWebviewContent(nyanSrc, styleSrc);
+        // console.log(path.join(context.extensionPath, '/src/Webview'));
+        // readFile(__dirname + '/../src/Webview/temp.html', 'utf8', (err, data) => {
+        //     if (err) { console.error(err) }
+        //     this.panel.webview.html = data;
+        // });
+        this.panel.webview.html = this.getWebviewContent(nyanSrc, styleSrc);
         this.panel.onDidDispose(() => {
             PileWebViewPanel.dispose();
         });
