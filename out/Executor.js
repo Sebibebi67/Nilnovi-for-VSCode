@@ -25,7 +25,6 @@ exports.Executor = void 0;
 const vscode = require("vscode");
 //--------------------------------------------------------------------------------//
 class Executor {
-    // public inputString : String = "";
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
     constructor() {
@@ -42,31 +41,33 @@ class Executor {
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
     /**
-     * Description : Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
-     *
-     * Input:
-     * * The file which should be loaded
-     *
-     * Output: None
-     *
-     * Authors:
-     * * Sébastien HERT
+     * @description Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
+     * @param String The file which should be loaded
+     * @author Sébastien HERT
      */
     loadingFile(file) {
         // First, we will remove all the blocks of comments and replace them by empty lines, then filling our array of lines
-        const regex = /\/\*(.|[\r\n])*\*\//;
-        this.lines = file.replace(regex, "\r\n").split(/\r?\n/);
+        // const regex = /\/\*(.|[\r\n])*\*\//;
+        this.lines = file.split(/\r?\n/);
+        var commentedBlock = false;
+        this.lines.forEach((line) => {
+            line.trim();
+            if (line.includes("/*") && commentedBlock == false) {
+                if (!line.startsWith('erreur("')) {
+                    line.replace("/*", "#");
+                    commentedBlock = true;
+                }
+                else {
+                }
+            }
+        });
+        console.log(this.lines);
     }
     /**
-     * Description : Runs the file previously loaded
-     *
-     * Input:
-     * * (Optional) The delay
-     *
-     * Output: None
-     *
-     * Authors:
-     * * Sébastien HERT
+     * @async
+     * @description Runs the file previously loaded
+     * @param Number The delay (optional)
+     * @author Sébastien HERT
      */
     run(delay) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -85,6 +86,12 @@ class Executor {
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Private Methods -------------------------------//
+    /**
+     * @async
+     * @description evaluates the current line
+     * @param String line
+     * @author Sébastien HERT
+     */
     eval(line) {
         return __awaiter(this, void 0, void 0, function* () {
             // First, we need to remove the spaces at begin and end of the line
@@ -134,16 +141,23 @@ class Executor {
             return 0;
         });
     }
+    /**
+     * @description ends the program
+     * @author Sébastien HERT
+     */
     stop() {
         this.end = true;
     }
+    /**
+     * @description Resets the class values
+     * @author Sébastien HERT
+     */
     reset() {
         this.end = false;
         this.currentLineCpt = 0;
         this.pile = [];
         this.cptPile = 0;
         this.base = -1;
-        // this.commentedState = this.commentedStates.NOT_COMMENTED;
     }
     paramsError(name, nbOfParams) {
         const currentLine = this.currentLineCpt + 1;
@@ -196,7 +210,9 @@ class Executor {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " +
             currentLine +
-            " : " + n + " is not a valid value of Boolean.\nPlease use 0 or 1.");
+            " : " +
+            n +
+            " is not a valid value of Boolean.\nPlease use 0 or 1.");
     }
     unknownError() {
         const currentLine = this.currentLineCpt + 1;
@@ -566,11 +582,6 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        // if (a==b){
-        //   return this.evaluable_empiler(1);
-        // }else{
-        //   return this.evaluable_empiler(0);
-        // }
         return this.evaluable_empiler(Number(a == b));
     }
     evaluable_diff(error = undefined) {

@@ -29,7 +29,6 @@ export class Executor {
 
   private lines: string[] = [];
   private end = false;
-  // public inputString : String = "";
 
   //--------------------------------------------------------------------------------//
 
@@ -45,32 +44,35 @@ export class Executor {
   //-------------------------------- Public Methods --------------------------------//
 
   /**
-   * Description : Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
-   *
-   * Input:
-   * * The file which should be loaded
-   *
-   * Output: None
-   *
-   * Authors:
-   * * Sébastien HERT
+   * @description Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
+   * @param String The file which should be loaded
+   * @author Sébastien HERT
    */
   public loadingFile(file: string) {
     // First, we will remove all the blocks of comments and replace them by empty lines, then filling our array of lines
-    const regex = /\/\*(.|[\r\n])*\*\//;
-    this.lines = file.replace(regex, "\r\n").split(/\r?\n/);
+    // const regex = /\/\*(.|[\r\n])*\*\//;
+    this.lines = file.split(/\r?\n/);
+
+    var commentedBlock = false;
+
+    this.lines.forEach((line) => {
+      line.trim();
+      if (line.includes("/*") && commentedBlock == false) {
+        if (!line.startsWith('erreur("')) {
+          line.replace("/*", "#");
+          commentedBlock = true;
+        } else {
+        }
+      }
+    });
+    console.log(this.lines);
   }
 
   /**
-   * Description : Runs the file previously loaded
-   *
-   * Input:
-   * * (Optional) The delay
-   *
-   * Output: None
-   *
-   * Authors:
-   * * Sébastien HERT
+   * @async
+   * @description Runs the file previously loaded
+   * @param Number The delay (optional)
+   * @author Sébastien HERT
    */
   public async run(delay?: number) {
     // resets the global values
@@ -92,6 +94,12 @@ export class Executor {
 
   //-------------------------------- Private Methods -------------------------------//
 
+  /**
+   * @async
+   * @description evaluates the current line
+   * @param String line
+   * @author Sébastien HERT
+   */
   private async eval(line: string) {
     // First, we need to remove the spaces at begin and end of the line
     line = line.trim();
@@ -144,17 +152,24 @@ export class Executor {
     return 0;
   }
 
+  /**
+   * @description ends the program
+   * @author Sébastien HERT
+   */
   private stop() {
     this.end = true;
   }
 
+  /**
+   * @description Resets the class values
+   * @author Sébastien HERT
+   */
   private reset() {
     this.end = false;
     this.currentLineCpt = 0;
     this.pile = [];
     this.cptPile = 0;
     this.base = -1;
-    // this.commentedState = this.commentedStates.NOT_COMMENTED;
   }
 
   private paramsError(name: string, nbOfParams: number) {
@@ -229,7 +244,9 @@ export class Executor {
     this.output.appendLine(
       "ERROR at line " +
         currentLine +
-        " : "+n+" is not a valid value of Boolean.\nPlease use 0 or 1."
+        " : " +
+        n +
+        " is not a valid value of Boolean.\nPlease use 0 or 1."
     );
   }
 
@@ -660,11 +677,6 @@ export class Executor {
       return 1;
     }
 
-    // if (a==b){
-    //   return this.evaluable_empiler(1);
-    // }else{
-    //   return this.evaluable_empiler(0);
-    // }
     return this.evaluable_empiler(Number(a == b));
   }
   private evaluable_diff(error = undefined) {
@@ -849,7 +861,7 @@ export class Executor {
 
     var a = this.pile.pop();
 
-    this.cptPile --;
+    this.cptPile--;
 
     if (a === undefined) {
       return 1;
@@ -860,8 +872,6 @@ export class Executor {
     }
     return this.evaluable_empiler(Number(!a));
   }
-
-
 
   private evaluable_tra(n: number) {
     this.output.appendLine("TODO");
