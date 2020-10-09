@@ -12,7 +12,8 @@
 	"activationEvents": [
 		"onLanguage:nilnovi",
 		"onCommand:nilnovi-for-vscode.run",
-		"onCommand:nilnovi-for-vscode.pile",
+		"onCommand:nilnovi-for-vscode.showPile",
+		"onCommand:nilnovi-for-vscode.test",
 		"onLanguage:nilnovi",
 		"*"
 	],
@@ -24,8 +25,12 @@
 				"title": "Run Nilnovi"
 			},
 			{
-				"command": "nilnovi-for-vscode.pile",
-				"title": "Pile Nilnovi"
+				"command": "nilnovi-for-vscode.showPile",
+				"title": "Afficher Pile Nilnovi"
+			},
+			{
+				"command": "nilnovi-for-vscode.test",
+				"title": "Test Nilnovi"
 			}
 		],
 		"languages": [

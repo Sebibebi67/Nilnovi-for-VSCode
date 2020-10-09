@@ -1,4 +1,4 @@
-import { timeStamp } from "console";
+import { debug, timeStamp } from "console";
 //================================ Class Executor ================================//
 
 //--------------------------------- Description ----------------------------------//
@@ -16,39 +16,57 @@ import { timeStamp } from "console";
 //----------------------------------- Imports ------------------------------------//
 
 import * as vscode from "vscode";
+import * as path from 'path';
+import { readFile, readFileSync } from "fs";
+import { dirname } from "path";
 
 //--------------------------------------------------------------------------------//
 
 export class PileWebViewPanel {
 
-    private static instance: PileWebViewPanel;
+    private static instance: PileWebViewPanel | undefined = undefined;
     private panel: vscode.WebviewPanel;
-    private static active: boolean = false;
+    public text: string = "";
 
     private constructor(){
-        this.panel = vscode.window.createWebviewPanel("pile","Pile éxecution",vscode.ViewColumn.Two,{});
-        this.panel.webview.html = this.getWebviewContent();
+        this.panel = vscode.window.createWebviewPanel(
+            "pile",
+            "Pile éxecution",
+            vscode.ViewColumn.Two,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true
+            });
+        readFile(__dirname + '/../src/temp.html','utf8', (err, data) => {
+            if (err) { console.error(err) }
+            this.panel.webview.html = data;
+        });
+
+        this.panel.onDidDispose(()=>{
+            PileWebViewPanel.dispose();
+        })
+        
+        // A utiliser si l'on souhaite envoyer un message depuis la webview vers le reste de l'extension
+        // this.panel.webview.onDidReceiveMessage(
+        //     message => {
+        //         switch (message.command) {
+        //             case 'alert':
+        //                 vscode.window.showErrorMessage(message.text);
+        //                 return;
+        //         }
+        //     },
+        //     undefined
+        // );
     }
     
     public static get(){
-        if(!this.active){
+        if(!this.instance){
             this.instance = new PileWebViewPanel();
-            this.active = true;
         }
         return this.instance.panel;
     }
 
-    private getWebviewContent(){
-        return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Cat Coding</title>
-        </head>
-        <body>
-            <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
-        </body>
-        </html>`;
+    private static dispose(){
+        this.instance = undefined;
     }
 }

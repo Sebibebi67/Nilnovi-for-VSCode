@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Coding</title>
+</head>
+
+<body>
+    <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+    <h1 id="lines-of-code-counter">0</h1>
+
+    <div>
+        <ul id='myItemList'>
+            <li>Elem1</li>
+        </ul>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        const counter = document.getElementById('lines-of-code-counter');
+
+        let count = 0;
+        setInterval(() => {
+            counter.textContent = count++;
+        }, 100);
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                // case 'coucou':
+                //     li = document.createElement('li');
+                //     li.innerHTML = message.text;
+                //     let ul = document.getElementById('myItemList');
+                //     ul.appendChild(li);
+                //     break;
+
+                case 'testprim':
+                    ul = document.getElementById('myItemList');
+                    let array = message.args
+                    array.forEach(item => {
+                        li = document.createElement('li');
+                        li.innerHTML = item.toString();
+                        ul.appendChild(li);
+                    });
+                    break;
+
+                case 'testbis':
+                    ul = document.getElementById('myItemList');
+                    num = message.args[0];
+                    ul.children[num].innerHTML = message.text;
+                    break;
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>

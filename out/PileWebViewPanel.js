@@ -14,33 +14,46 @@ exports.PileWebViewPanel = void 0;
 //--------------------------------------------------------------------------------//
 //----------------------------------- Imports ------------------------------------//
 const vscode = require("vscode");
+const fs_1 = require("fs");
 //--------------------------------------------------------------------------------//
 class PileWebViewPanel {
     constructor() {
-        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
-        this.panel.webview.html = this.getWebviewContent();
+        this.text = "";
+        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {
+            enableScripts: true,
+            retainContextWhenHidden: true
+        });
+        fs_1.readFile(__dirname + '/../src/temp.html', 'utf8', (err, data) => {
+            if (err) {
+                console.error(err);
+            }
+            this.panel.webview.html = data;
+        });
+        this.panel.onDidDispose(() => {
+            PileWebViewPanel.dispose();
+        });
+        // A utiliser si l'on souhaite envoyer un message depuis la webview vers le reste de l'extension
+        // this.panel.webview.onDidReceiveMessage(
+        //     message => {
+        //         switch (message.command) {
+        //             case 'alert':
+        //                 vscode.window.showErrorMessage(message.text);
+        //                 return;
+        //         }
+        //     },
+        //     undefined
+        // );
     }
     static get() {
-        if (!this.active) {
+        if (!this.instance) {
             this.instance = new PileWebViewPanel();
-            this.active = true;
         }
         return this.instance.panel;
     }
-    getWebviewContent() {
-        return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Cat Coding</title>
-        </head>
-        <body>
-            <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
-        </body>
-        </html>`;
+    static dispose() {
+        this.instance = undefined;
     }
 }
 exports.PileWebViewPanel = PileWebViewPanel;
-PileWebViewPanel.active = false;
+PileWebViewPanel.instance = undefined;
 //# sourceMappingURL=PileWebViewPanel.js.map
