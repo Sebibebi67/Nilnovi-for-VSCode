@@ -4,11 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <!-- <link rel="stylesheet" type="text/css" href="${styleSrc}"> -->
+    <!-- <style>
+        body {
+        background-color: white;
+        font-family: Verdana, sans-serif;
+        font-size: 100%;
+        }
+    </style> -->
     <title>Cat Coding</title>
 </head>
 
 <body>
-    <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+    <img src="${webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'nyan.gif'))}"/>
+    <!-- <img src="./nyan.gif" width="300" /> -->
+    <!-- <img src="${nyanSrc}" width="300" /> -->
     <h1 id="lines-of-code-counter">0</h1>
 
     <div>
@@ -20,6 +31,8 @@
     <script>
         const vscode = acquireVsCodeApi();
         const counter = document.getElementById('lines-of-code-counter');
+
+        
 
         let count = 0;
         setInterval(() => {
@@ -44,7 +57,7 @@
                     array.forEach(item => {
                         li = document.createElement('li');
                         li.innerHTML = item.toString();
-                        ul.appendChild(li);
+                        ul.insertBefore(li, ul.children[0]);
                     });
                     break;
 
@@ -53,6 +66,15 @@
                     num = message.args[0];
                     ul.children[num].innerHTML = message.text;
                     break;
+
+                case 'css':
+                    var link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.type = 'text/css';
+                    link.href = message.args[0];
+                    document.getElementsByTagName('HEAD')[0].appendChild(link);
+                    break;
+
             }
 
         });

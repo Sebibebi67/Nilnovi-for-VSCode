@@ -20,12 +20,13 @@ function activate(context) {
         runNilnovi();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
-        let panel = PileWebViewPanel_1.PileWebViewPanel.get();
+        let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
         //panel.webview.postMessage({command: "showPile", args: [1,2,3,4,5,6,7,8,9]})
         panel.webview.postMessage({ command: "testprim", args: [1, 2, 3, 4, 5, 6, 7, 8, 9] });
+        panel.webview.postMessage({ command: "css", args: [panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'style.css')))] });
     });
     let test = vscode.commands.registerCommand("nilnovi-for-vscode.test", () => {
-        let panel = PileWebViewPanel_1.PileWebViewPanel.get();
+        let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
         panel.webview.postMessage({ command: "testbis", args: [1, 2], text: "banane" });
     });
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());

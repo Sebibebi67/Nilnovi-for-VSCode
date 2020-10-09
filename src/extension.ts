@@ -24,13 +24,14 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
-    let panel: vscode.WebviewPanel = PileWebViewPanel.get();
+    let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
     //panel.webview.postMessage({command: "showPile", args: [1,2,3,4,5,6,7,8,9]})
     panel.webview.postMessage({command: "testprim", args:[1,2,3,4,5,6,7,8,9]})
+    panel.webview.postMessage({ command: "css", args: [panel.webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'style.css')))]})
   });
 
   let test = vscode.commands.registerCommand("nilnovi-for-vscode.test", () => {
-    let panel: vscode.WebviewPanel = PileWebViewPanel.get();
+    let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
     panel.webview.postMessage({command: "testbis", args:[1,2], text: "banane"})
   });
 
