@@ -23,11 +23,11 @@
 			"patterns": [
 				{
 					"name": "keyword.control.nilnovi",
-					"match": "\\b(debutProg|finProg|retourFonct|retourProc)\\b"
+					"match": "\\b(begin|end|return|if|elif|else|while|for)\\b"
 				},
 				{
 					"name": "keyword.other.nilnovi",
-					"match": "\\b(tra|tze|traStat)\\b"
+					"match": "\\b(loop|then|from|to|is|procedure|function|or|and|not|true|false)\\b"
 				}
 			]
 		},
@@ -67,7 +67,11 @@
 			"patterns": [
 				{
 					"name": "entity.name.function",
-					"match": "\\b(empiler|reserver|empilerAd|empilerParam|add|mult|sous|div|affectation|valeurPile|get|put|moins|egal|diff|inf|infeg|sup|supeg|et|ou|non|erreur|reserverBloc)\\b"
+					"match": "\\b(get|put)\\b"
+				},
+				{
+					"name": "entity.name.type",
+					"match": "\\b(integer|boolean)\\b"
 				}
 			]
 		}

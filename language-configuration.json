@@ -8,20 +8,25 @@
     // symbols used as brackets
     "brackets": [
         ["(", ")"],
-        ["debutProg()","finProg()"]
+        ["begin","end"],
+        ["if","end"],
+        ["for","end"],
+        ["while","end"]
     ],
     // symbols that are auto closed when typing
     "autoClosingPairs": [
         ["(", ")"],
         ["\"", "\""],
-        ["'", "'"],
-        ["debutProg()","finProg()"]
+        ["'", "'"]
     ],
     // symbols that can be used to surround a selection
     "surroundingPairs": [
         ["(", ")"],
         ["\"", "\""],
         ["'", "'"],
-        ["debutProg()","finProg()"]
+        ["begin","end"],
+        ["if","end"],
+        ["for","end"],
+        ["while","end"]
     ]
 }
