@@ -1,4 +1,9 @@
+import path = require("path");
+import { checkServerIdentity } from "tls";
+import { pathToFileURL } from "url";
 import * as vscode from "vscode";
+import { Uri } from "vscode";
+import { SyntaxError } from "./SyntaxError";
 
 export function autoCompletion(){
     return vscode.languages.registerCompletionItemProvider('nilnovi',{
@@ -237,4 +242,32 @@ export function hovers(){
             }
         }
       });
+}
+
+export const errors : SyntaxError[] = [];
+
+export function updateDiags(document: vscode.TextDocument, collection: vscode.DiagnosticCollection): void {
+    errors.push(new SyntaxError(404,"test", "error", 5));
+    errors.forEach(error => {
+        let diag : vscode.Diagnostic = new vscode.Diagnostic(new vscode.Range(new vscode.Position(error.line, 0), new vscode.Position(error.line, 30)), error.message, vscode.DiagnosticSeverity.Error);
+        diag.source = 'nilnovi';
+        //diag.relatedInformation = [new vscode.DiagnosticRelatedInformation(new vscode.Location(document.uri, new vscode.Range(new vscode.Position(error.line, 0), new vscode.Position(error.line, 30))), error.message)];
+        diag.code = error.code;
+
+        if(document && path.basename(document.uri.fsPath) === 'test.nn'){
+            collection.set(document.uri, [diag]);
+        }else{
+            collection.clear();
+        }
+    });
+    
+}
+
+export function setErrors(file : string) {
+    var lines: string[] = [];
+    var regex = /\/\*(.|[\r\n])*\*\//;
+    lines = file.replace(regex, "\r\n").split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+        errors.push(new SyntaxError(10 + i,"test", "error", i));
+    };
 }

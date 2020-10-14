@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hovers = exports.autoCompletion = void 0;
+exports.setErrors = exports.updateDiags = exports.errors = exports.hovers = exports.autoCompletion = void 0;
+const path = require("path");
 const vscode = require("vscode");
+const SyntaxError_1 = require("./SyntaxError");
 function autoCompletion() {
     return vscode.languages.registerCompletionItemProvider('nilnovi', {
         provideCompletionItems(document, position, token, context) {
@@ -239,4 +241,31 @@ function hovers() {
     });
 }
 exports.hovers = hovers;
+exports.errors = [];
+function updateDiags(document, collection) {
+    exports.errors.push(new SyntaxError_1.SyntaxError(404, "test", "error", 5));
+    exports.errors.forEach(error => {
+        let diag = new vscode.Diagnostic(new vscode.Range(new vscode.Position(error.line, 0), new vscode.Position(error.line, 30)), error.message, vscode.DiagnosticSeverity.Error);
+        diag.source = 'nilnovi';
+        //diag.relatedInformation = [new vscode.DiagnosticRelatedInformation(new vscode.Location(document.uri, new vscode.Range(new vscode.Position(error.line, 0), new vscode.Position(error.line, 30))), error.message)];
+        diag.code = error.code;
+        if (document && path.basename(document.uri.fsPath) === 'test.nn') {
+            collection.set(document.uri, [diag]);
+        }
+        else {
+            collection.clear();
+        }
+    });
+}
+exports.updateDiags = updateDiags;
+function setErrors(file) {
+    var lines = [];
+    var regex = /\/\*(.|[\r\n])*\*\//;
+    lines = file.replace(regex, "\r\n").split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+        exports.errors.push(new SyntaxError_1.SyntaxError(10 + i, "test", "error", i));
+    }
+    ;
+}
+exports.setErrors = setErrors;
 //# sourceMappingURL=providers.js.map

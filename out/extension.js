@@ -22,6 +22,19 @@ function activate(context) {
         const panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
         panel.webview.html = getWebviewContent();
     });
+    const diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
+    if (vscode.window.activeTextEditor) {
+        providers_1.updateDiags(vscode.window.activeTextEditor.document, diag_coll);
+    }
+    var editor = vscode.window.activeTextEditor;
+    if (editor !== undefined) {
+        providers_1.setErrors(editor.document.getText());
+    }
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((e) => {
+        if (e !== undefined) {
+            providers_1.updateDiags(e.document, diag_coll);
+        }
+    }));
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());
 }
 exports.activate = activate;
