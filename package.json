@@ -47,6 +47,12 @@
 				"scopeName": "source.nilnovi",
 				"path": "./syntaxes/nilnovi.tmLanguage.json"
 			}
+		],
+		"snippets": [
+			{
+				"language": "nilnovi",
+				"path": "./syntaxes/snippets.json"
+			}
 		]
 	},
 	"scripts": {
