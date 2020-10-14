@@ -8,8 +8,10 @@ import { Compiler } from "./Compiler";
 import {autoCompletion} from "./providers";
 import {hovers} from "./providers";
 
-let executor = new Executor();
-let compiler = new Compiler();
+let output = vscode.window.createOutputChannel("Nilnovi Executor Output");
+output.show(true);
+let executor = new Executor(output);
+let compiler = new Compiler(output);
 
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
 

@@ -8,8 +8,10 @@ const Executor_1 = require("./Executor");
 const Compiler_1 = require("./Compiler");
 const providers_1 = require("./providers");
 const providers_2 = require("./providers");
-let executor = new Executor_1.Executor();
-let compiler = new Compiler_1.Compiler();
+let output = vscode.window.createOutputChannel("Nilnovi Executor Output");
+output.show(true);
+let executor = new Executor_1.Executor(output);
+let compiler = new Compiler_1.Compiler(output);
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed

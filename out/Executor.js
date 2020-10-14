@@ -27,7 +27,7 @@ const vscode = require("vscode");
 class Executor {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
-    constructor() {
+    constructor(output) {
         //------------------------------- Class Variables --------------------------------//
         this.currentLineCpt = 0;
         this.pile = [];
@@ -35,8 +35,7 @@ class Executor {
         this.cptPile = -1;
         this.lines = [];
         this.end = false;
-        this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
-        this.output.show(true);
+        this.output = output;
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
@@ -721,7 +720,7 @@ class Executor {
     }
     evaluable_non(error = undefined) {
         if (!(error === undefined)) {
-            this.paramsError(this.evaluable_ou.name, 0);
+            this.paramsError(this.evaluable_non.name, 0);
             return 1;
         }
         if (this.pile.length < 1) {

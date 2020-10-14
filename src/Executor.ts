@@ -34,9 +34,9 @@ export class Executor {
 
   //--------------------------------- Constructor ----------------------------------//
 
-  constructor() {
-    this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
-    this.output.show(true);
+  constructor(output : vscode.OutputChannel) {
+    
+    this.output = output;
   }
 
   //--------------------------------------------------------------------------------//
@@ -851,7 +851,7 @@ export class Executor {
 
   private evaluable_non(error = undefined) {
     if (!(error === undefined)) {
-      this.paramsError(this.evaluable_ou.name, 0);
+      this.paramsError(this.evaluable_non.name, 0);
       return 1;
     }
     if (this.pile.length < 1) {

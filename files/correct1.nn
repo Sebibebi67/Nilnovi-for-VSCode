@@ -6,6 +6,8 @@ empiler(1);
 affectation();
 empilerAd(0);
 valeurPile();
+
+
 empiler(5);
 diff();
 tze(37);
