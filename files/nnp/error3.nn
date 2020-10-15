@@ -1,0 +1,11 @@
+//-----------------------------------------------
+//  Programme incorrect
+//  
+//  Dejan Paris
+//  Fonction non déclarée
+//-----------------------------------------------  
+procedure pp is
+  a:integer;
+begin
+  f(a)			//mess. erreur attendu
+end.

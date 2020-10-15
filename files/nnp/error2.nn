@@ -1,0 +1,14 @@
+//-----------------------------------------------
+//  Programme incorrect
+//  
+//  Dejan Paris
+//  Mauvais type de paramètre
+//------------------------------------------------------
+procedure pp is
+  function double(v : in integer) return integer is
+  begin
+    return 2*v
+  end;
+begin
+  put(double(true))			// mess. erreur attendu
+end.

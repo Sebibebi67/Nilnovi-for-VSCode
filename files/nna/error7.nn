@@ -1,0 +1,10 @@
+//-----------------------------------------------
+//  programme incorrect
+//  
+//  M. Guyomard
+//  variable non déclarée
+//-----------------------------------------------  
+procedure pp is
+begin
+  put(a)			//mess. erreur attendu
+end.

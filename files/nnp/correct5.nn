@@ -1,0 +1,18 @@
+#----------------------------------------------------
+# Programme correct
+#
+#------------------------------------------------------
+procedure pp is
+  procedure p(v : in integer; i : in out integer) is
+  begin
+    i := 1;
+    v := 2;
+  end;
+  a, b : integer;
+begin
+  a := 1;
+  b := 2;
+  p(a,b);
+  put(a);
+  put(b);
+end.

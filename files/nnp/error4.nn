@@ -1,0 +1,14 @@
+//-----------------------------------------------
+//  Programme incorrect
+//  
+//  Dejan Paris
+//  Passage d'une valeur en entrée-sortie
+//------------------------------------------------------
+procedure pp is
+  function double(v : in out integer) return integer is
+  begin
+    return 2*v			
+  end;
+begin
+  put(double(7))			// mess. erreur attendu
+end.

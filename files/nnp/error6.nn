@@ -1,0 +1,14 @@
+//-----------------------------------------------
+//  Programme incorrect
+//  
+//  Dejan Paris
+//  Pas assez d'arguments
+//------------------------------------------------------
+procedure pp is
+  function double(u, v : in integer) return integer is
+  begin
+    return 2*v			
+  end;
+begin
+  put(double(7))			// mess. erreur attendu
+end.
