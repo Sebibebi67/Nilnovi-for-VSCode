@@ -26,8 +26,8 @@ export function autoCompletion(){
           completions.push(new vscode.CompletionItem('boolean',vscode.CompletionItemKind.TypeParameter));
           completions.push(new vscode.CompletionItem('true',vscode.CompletionItemKind.Constant));
           completions.push(new vscode.CompletionItem('false',vscode.CompletionItemKind.Constant));
-          completions.push(new vscode.CompletionItem('get(n);',vscode.CompletionItemKind.Function));
-          completions.push(new vscode.CompletionItem('put(n);',vscode.CompletionItemKind.Function));
+          completions.push(new vscode.CompletionItem('get',vscode.CompletionItemKind.Function));
+          completions.push(new vscode.CompletionItem('put',vscode.CompletionItemKind.Function));
           return completions;
         }
       });
