@@ -8,15 +8,16 @@ const path = require("path");
 const fs_1 = require("fs");
 const Executor_1 = require("./Executor");
 let executor = new Executor_1.Executor();
-// let output = vscode.window.createOutputChannel("Nilnovi - Output");
+var output = vscode.window.createOutputChannel("Nilnovi Executor Output");
 const providers_1 = require("./providers");
 const providers_2 = require("./providers");
+const Compiler_1 = require("./compiler/Compiler");
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-        console.log(vscode.window.activeTextEditor);
-        runNilnovi();
+        // runNilnovi();
+        compile();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
         const panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
@@ -77,6 +78,21 @@ function runNilnovi() {
     else {
         vscode.window.showErrorMessage("No current file");
     }
+}
+function compile() {
+    if (vscode.window.activeTextEditor) {
+        var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
+        if (fileNamePath.endsWith(".nn")) {
+            // var output: vscode.OutputChannel;
+            output.clear();
+            output.show(true);
+            output.appendLine("Compiling " + path.basename(fileNamePath) + "\n");
+            var compiler = new Compiler_1.Compiler(fs_1.readFileSync(fileNamePath, "utf-8"));
+        }
+    }
+    // executor.output.clear();
+    // executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+    // executor.run();
 }
 // this method is called when your extension is deactivated
 function deactivate() { }

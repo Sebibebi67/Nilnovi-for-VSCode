@@ -1,9 +1,9 @@
-//-------------------------------------------------------
-// Programme correct
-//  M. Guyomard
-//
-//  Évaluation de conditions complexes
-//-------------------------------------------------------
+# //-------------------------------------------------------
+# // Programme correct
+# //  M. Guyomard
+# //
+# //  Évaluation de conditions complexes
+# //-------------------------------------------------------
 
 procedure pp is
   b:boolean;

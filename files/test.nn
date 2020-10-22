@@ -1,10 +1,19 @@
-debutProg();
+procedure pp() is
+	a, b, c:integer;
+begin
+	a := 5;
+	b := (5*6)+4;
 
-/*toto
-*/
 
-# toto
-# toto();
 
-# erreur(this is undefined)
-finProg();
+#ERSDTFYGUIKHJGTRERSDTCFYGIH\r\nUKGJDRTCFVGUBHKJGFDR
+
+
+
+
+
+
+
+
+	c := a+b;
+end

@@ -3,22 +3,28 @@
 import * as vscode from "vscode";
 import { PythonShell } from "python-shell";
 import path = require("path");
-import { readFileSync } from "fs";
+import { read, readFileSync } from "fs";
 import { Executor } from "./Executor";
 import { exec } from "child_process";
 
 let executor = new Executor();
-// let output = vscode.window.createOutputChannel("Nilnovi - Output");
+var output = vscode.window.createOutputChannel("Nilnovi Executor Output");
+
+
+
+
 import {autoCompletion} from "./providers";
 import {hovers} from "./providers";
+import { Compiler } from "./compiler/Compiler";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
   let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-    console.log(vscode.window.activeTextEditor);
-    runNilnovi();
+    // runNilnovi();
+    compile();
+
   });
 
   let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
@@ -89,6 +95,28 @@ function runNilnovi() {
   } else {
     vscode.window.showErrorMessage("No current file");
   }
+}
+
+function compile(){
+  if (vscode.window.activeTextEditor) {
+    var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
+    if (fileNamePath.endsWith(".nn")) {
+      // var output: vscode.OutputChannel;
+      output.clear();
+      output.show(true);
+      
+      output.appendLine("Compiling "+path.basename(fileNamePath)+"\n");
+
+      var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"));
+
+    }
+  }
+      
+
+
+    // executor.output.clear();
+		// executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+    // executor.run();
 }
 
 // this method is called when your extension is deactivated
