@@ -1,9 +1,10 @@
-//=============================== Class blockWhile ===============================//
+//================================ Class BlockFor ================================//
+
 
 
 //--------------------------------- Description ----------------------------------//
 //
-// This is a structure which describes the block While
+// This is a structure which describes the block For
 //
 //--------------------------------------------------------------------------------//
 
@@ -17,25 +18,29 @@
 
 
 //----------------------------------- Imports ------------------------------------//
-//
+
+import { Variable } from "../tables/Variable";
+import { BlockWhile } from "./BlockWhile";
+
 //--------------------------------------------------------------------------------//
 
 
-export class blockWhile {
+export class BlockFor extends BlockWhile{
 
 
-	//------------------------------- Class Variables --------------------------------//
+	//------------------------------- Class Variables --------------------------------//	
 	
-	public indexOfTze : number = -1;
-	public indexOfTra : number = -1;
-	
-	
+	public variable : Variable;
+
 	//--------------------------------------------------------------------------------//
 	
 	
 	//--------------------------------- Constructor ----------------------------------//
 	
-		constructor(){}
+		constructor(variable : Variable){
+			super();
+			this.variable = variable;
+		}
 	
 	//--------------------------------------------------------------------------------//
 	

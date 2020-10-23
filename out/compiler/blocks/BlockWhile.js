@@ -1,10 +1,10 @@
 "use strict";
-//================================= Class blockIf ================================//
+//=============================== Class BlockWhile ===============================//
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.blockIf = void 0;
+exports.BlockWhile = void 0;
 //--------------------------------- Description ----------------------------------//
 //
-// This is a structure which describes the block If 
+// This is a structure which describes the block While
 //
 //--------------------------------------------------------------------------------//
 //----------------------------------- Authors ------------------------------------//
@@ -16,15 +16,15 @@ exports.blockIf = void 0;
 //----------------------------------- Imports ------------------------------------//
 //
 //--------------------------------------------------------------------------------//
-class blockIf {
+class BlockWhile {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
     constructor() {
         //------------------------------- Class Variables --------------------------------//
         this.indexOfTze = -1;
-        this.indexOfTra = [];
+        this.indexOfTra = -1;
     }
 }
-exports.blockIf = blockIf;
+exports.BlockWhile = BlockWhile;
 //================================================================================//
-//# sourceMappingURL=blockIf.js.map
+//# sourceMappingURL=BlockWhile.js.map

@@ -1,1 +1,0 @@
-{"version":3,"file":"blockFor.js","sourceRoot":"","sources":["../../../src/compiler/blocks/blockFor.ts"],"names":[],"mappings":";AAAA,oFAAoF;;;AAsBpF,6CAA0C;AAE1C,oFAAoF;AAGpF,MAAa,QAAS,SAAQ,uBAAU;IAOvC,oFAAoF;IAGpF,oFAAoF;IAEnF,YAAY,QAAmB;QAC9B,KAAK,EAAE,CAAC;QACR,IAAI,CAAC,QAAQ,GAAG,QAAQ,CAAC;IAC1B,CAAC;CAUD;AAzBF,4BAyBE;AACD,oFAAoF"}
