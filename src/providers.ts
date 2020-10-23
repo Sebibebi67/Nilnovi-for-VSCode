@@ -1,9 +1,39 @@
+//================================= providers.ts =================================//
+
+//--------------------------------- Description ----------------------------------//
+//
+// This file regroups the methods used to provide some user-friendly features
+//
+//--------------------------------------------------------------------------------//
+
+//----------------------------------- Authors ------------------------------------//
+//
+// Adam RIVIERE
+//
+//--------------------------------------------------------------------------------//
+
+//----------------------------------- Imports ------------------------------------//
+
 import * as vscode from "vscode";
+
+//--------------------------------------------------------------------------------//
+
+//------------------------------------ Methods -----------------------------------//
+
+/**
+   * Description : Provides auto-compltion for the Nilnovi language
+   *
+   * @returns The provider to push
+   *
+   * @author Adam RIVIERE
+*/
 
 export function autoCompletion(){
     return vscode.languages.registerCompletionItemProvider('nilnovi',{
         provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext){
           const completions = [];
+          
+          // Here we define every word we want to be auto-completed and we give it a category
           completions.push(new vscode.CompletionItem('begin', vscode.CompletionItemKind.Keyword));
           completions.push(new vscode.CompletionItem('end',vscode.CompletionItemKind.Keyword));
           completions.push(new vscode.CompletionItem('return',vscode.CompletionItemKind.Keyword));
@@ -30,16 +60,26 @@ export function autoCompletion(){
           completions.push(new vscode.CompletionItem('put',vscode.CompletionItemKind.Function));
           return completions;
         }
-      });
+    });
 }
+
+/**
+   * Description : Provides hovers for the Nilnovi functions
+   *
+   * @returns The provider to push
+   *
+   * @author Adam RIVIERE
+*/
 
 export function hovers(){
     return vscode.languages.registerHoverProvider('nilnovi', {
         provideHover(document, position, token) {
     
+            // First we get the position of the user's cursor to display the hover
             const range = document.getWordRangeAtPosition(position);
             const word = document.getText(range);
 
+            // Then we define the hover to display (only for the two existing Nilnovi functions)
             switch(word){
                 case "put":
                     return new vscode.Hover({
@@ -57,3 +97,7 @@ export function hovers(){
         }
       });
 }
+
+//--------------------------------------------------------------------------------//
+
+//================================================================================//
