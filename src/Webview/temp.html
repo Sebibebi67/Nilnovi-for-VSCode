@@ -1,85 +1,71 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!-- <!DOCTYPE html>
+            <html lang="fr">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="./style.css">
-    <!-- <link rel="stylesheet" type="text/css" href="${styleSrc}"> -->
-    <!-- <style>
-        body {
-        background-color: white;
-        font-family: Verdana, sans-serif;
-        font-size: 100%;
-        }
-    </style> -->
-    <title>Cat Coding</title>
-</head>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" type="text/css" href="${webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'style.css')))}">
+                <title>Cat Coding</title>
+            </head>
 
-<body>
-    <img src="${webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'nyan.gif'))}"/>
-    <!-- <img src="./nyan.gif" width="300" /> -->
-    <!-- <img src="${nyanSrc}" width="300" /> -->
-    <h1 id="lines-of-code-counter">0</h1>
+            <body>
 
-    <div>
-        <ul id='myItemList'>
-            <li>Elem1</li>
-        </ul>
-    </div>
+                <h1 id="lines-of-code-counter">0</h1>
 
-    <script>
-        const vscode = acquireVsCodeApi();
-        const counter = document.getElementById('lines-of-code-counter');
+                <div>
+                    <ul id='pileExecution'>
+                        <li>elem0</li>
+                        <li>elem1</li>
+                        <li>elem2</li>
+                        <li>elem3</li>
+                    </ul>
+                </div>
+                <p id='debug'>debug</p>
 
-        
+                <script>
 
-        let count = 0;
-        setInterval(() => {
-            counter.textContent = count++;
-        }, 100);
+                        let count = 0;
+                        setInterval(() => {
+                            counter.textContent = count++;
+                        }, 1000);
+                        const counter = document.getElementById('lines-of-code-counter');
 
-        // Handle the message inside the webview
-        window.addEventListener('message', event => {
-            const message = event.data; // The JSON data our extension sent
+                    const vscode = acquireVsCodeApi();
+                    // Handle the message inside the webview
+                    window.addEventListener('message', event => {
+                        const message = event.data; // The JSON data our extension sent
+                        document.getElementById('debug').innerHTML = message.command;
+                        switch (message.command) {
 
-            switch (message.command) {
-                // case 'coucou':
-                //     li = document.createElement('li');
-                //     li.innerHTML = message.text;
-                //     let ul = document.getElementById('myItemList');
-                //     ul.appendChild(li);
-                //     break;
+                            case 'test':
+                                ul = document.getElementById('pileExecution');
+                                // num = message.args[0];
+                                let li = document.createElement('li');
+                                li.innerHTML = 'item.toString()';
+                                ul.appendChild(li);
+                                // ul.children[1].innerHTML = 'message.text';
+                                break;
 
-                case 'testprim':
-                    ul = document.getElementById('myItemList');
-                    let array = message.args
-                    array.forEach(item => {
-                        li = document.createElement('li');
-                        li.innerHTML = item.toString();
-                        ul.insertBefore(li, ul.children[0]);
+                            case 'showPile':
+                                ul = document.getElementById('pileExecution');
+                                let pile = message.pile;
+                                pile.forEach(num => {
+                                    let li = document.createElement('li');
+                                    li.innerHTML = item.toString();
+                                    if(document.getElementById('pileExecution').hasChildNodes()){
+                                         ul.insertBefore(li, ul.firstChild);
+                                         document.getElementById('debug').innerHTML = 'children';
+                                    }
+                                    // }else{
+                                    //     ul.appendChild(li);
+                                    // }
+                                }
+                                break;
+                        }
+
                     });
-                    break;
+                </script>
 
-                case 'testbis':
-                    ul = document.getElementById('myItemList');
-                    num = message.args[0];
-                    ul.children[num].innerHTML = message.text;
-                    break;
+            </body>
 
-                case 'css':
-                    var link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.type = 'text/css';
-                    link.href = message.args[0];
-                    document.getElementsByTagName('HEAD')[0].appendChild(link);
-                    break;
-
-            }
-
-        });
-    </script>
-
-</body>
-
-</html>
+        </html> -->
