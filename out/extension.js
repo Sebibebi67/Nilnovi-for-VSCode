@@ -22,6 +22,24 @@ function activate(context) {
         const panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
         panel.webview.html = getWebviewContent();
     });
+    var diag_list = [];
+    // var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');
+    // var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
+    var editor = vscode.window.activeTextEditor;
+    if (editor !== undefined) {
+        // updateDiags(editor.document, diag_coll);
+        providers_1.setErrors(editor.document.getText());
+        // diag_coll = updateDiags(editor.document, diag_coll);
+        providers_1.updateDiags(editor.document, diag_list);
+        // console.log("done opening")
+    }
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((e) => {
+        if (e !== undefined) {
+            diag_list.forEach(diag => diag.clear());
+            providers_1.setErrors(e.document.getText());
+            providers_1.updateDiags(e.document, diag_list);
+        }
+    }));
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());
 }
 exports.activate = activate;

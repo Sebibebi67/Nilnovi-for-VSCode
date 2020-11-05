@@ -9,7 +9,7 @@ import { exec } from "child_process";
 
 let executor = new Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
-import {autoCompletion} from "./providers";
+import {autoCompletion, errors, setErrors, updateDiags} from "./providers";
 import {hovers} from "./providers";
 
 // this method is called when your extension is activated
@@ -30,6 +30,28 @@ export function activate(context: vscode.ExtensionContext) {
     );
     panel.webview.html = getWebviewContent();
   });
+
+  var diag_list: vscode.DiagnosticCollection[] = [];
+  // var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');
+  // var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
+  var editor = vscode.window.activeTextEditor;
+  if(editor !== undefined) {
+    // updateDiags(editor.document, diag_coll);
+    setErrors(editor.document.getText());
+    // diag_coll = updateDiags(editor.document, diag_coll);
+    updateDiags(editor.document, diag_list);
+    // console.log("done opening")
+  }
+
+  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(
+    (e: vscode.TextDocumentChangeEvent | undefined) => {
+      if (e !== undefined) {
+        diag_list.forEach(diag => diag.clear());
+        setErrors(e.document.getText());
+        updateDiags(e.document, diag_list);
+      }
+    }
+  ));
 
   context.subscriptions.push(autoCompletion(), hovers());
 }

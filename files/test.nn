@@ -1,10 +1,11 @@
-debutProg();
-
-/*toto
-*/
-
-# toto
-# toto();
-
-# erreur(this is undefined)
-finProg();
+procedure name(parameter : integer) is
+     #variable1 :  Type;
+begin
+     #statement;
+end
+toto
+fghjk
+toto
+jnsfkvndsfjkgbhjs
+dsflkjsnjkfb
+tata  ;

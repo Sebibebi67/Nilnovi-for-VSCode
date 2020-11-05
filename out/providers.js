@@ -1,7 +1,7 @@
 "use strict";
 //================================= providers.ts =================================//
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hovers = exports.autoCompletion = void 0;
+exports.setErrors = exports.updateDiags = exports.errors = exports.hovers = exports.autoCompletion = void 0;
 //--------------------------------- Description ----------------------------------//
 //
 // This file regroups the methods used to provide some user-friendly features
@@ -10,10 +10,13 @@ exports.hovers = exports.autoCompletion = void 0;
 //----------------------------------- Authors ------------------------------------//
 //
 // Adam RIVIERE
+// Sébastien HERT
 //
 //--------------------------------------------------------------------------------//
 //----------------------------------- Imports ------------------------------------//
+const path = require("path");
 const vscode = require("vscode");
+const SyntaxError_1 = require("./SyntaxError");
 //--------------------------------------------------------------------------------//
 //------------------------------------ Methods -----------------------------------//
 /**
@@ -89,6 +92,96 @@ function hovers() {
     });
 }
 exports.hovers = hovers;
+exports.errors = [];
+function updateDiags(document, collection) {
+    // console.log(errors.length);
+    for (let i = 0; i < exports.errors.length; i++) {
+        var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
+        var error = exports.errors[i];
+        // console.log(error.line-1);
+        let diag = new vscode.Diagnostic(new vscode.Range(new vscode.Position(error.line - 1, 0), new vscode.Position(error.line - 1, 30)), error.message, vscode.DiagnosticSeverity.Error);
+        diag.source = 'nilnovi';
+        //diag.relatedInformation = [new vscode.DiagnosticRelatedInformation(new vscode.Location(document.uri, new vscode.Range(new vscode.Position(error.line, 0), new vscode.Position(error.line, 30))), error.message)];
+        diag.code = error.code;
+        var docNameRegexp = new RegExp(/.*\.nn$/mg);
+        if (document && docNameRegexp.test(path.basename(document.uri.fsPath))) {
+            // console.log(document.uri, [diag]);
+            diag_coll.set(document.uri, [diag]);
+        }
+        else {
+            diag_coll.clear();
+        }
+        collection.push(diag_coll);
+        // collection.forEach(diag => console.log(diag.get(document.uri)));
+        // console.log(collection.values);
+        // console.log("yeet");
+    }
+    // console.log(diag_coll);
+    // return diag_coll;
+}
+exports.updateDiags = updateDiags;
+function setErrors(file) {
+    exports.errors = [];
+    // var cpt = 0
+    // First, let's index our file
+    // We nned a list of line
+    var parsedFile = file.split(/\r?\n/);
+    var indexedFile = "";
+    var i = 1;
+    // then for each line, we recreate a single-line string with the current line and le line number
+    for (let index = 0; index < parsedFile.length; index++) {
+        var line = parsedFile[index];
+        indexedFile = indexedFile + line + "$" + i + "\n";
+        i++;
+    }
+    // We should now remove the comments from the file, which is a single-line string
+    var lines = [];
+    file = removeComments(indexedFile);
+    lines = file.split(/\r?\n/);
+    // console.log(lines);
+    // Now, for each line, we need to check for errors
+    for (let i = 0; i < lines.length; i++) {
+        var splitedLine = lines[i].trim().split("$");
+        if (splitedLine.length > 2) {
+            var nbLine = parseInt(splitedLine[splitedLine.length - 1]);
+            var currentLine = "";
+            for (let i = 0; i < splitedLine.length - 2; i++) {
+                currentLine += splitedLine[i];
+            }
+            exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
+        }
+        else {
+            var nbLine = parseInt(splitedLine[1]);
+            var currentLine = splitedLine[0];
+        }
+        const regexSemiColon = new RegExp(/^(?!begin|end|if|elif|else|while|for|procedure|function).*(?<!\;)$/);
+        const regexUnexpectedChar = new RegExp(/^[a-zA-Z0-9\+\*\-\/<>=:\(\)_ ;,]*$/);
+        const regexAffectation = new RegExp(/.*:=.*$/);
+        const regexDefinition = new RegExp(/.*: *(integer|boolean)/);
+        const regexTwoPoints = new RegExp(/.*:.*/);
+        if (currentLine.length != 0) {
+            if (regexSemiColon.test(currentLine)) {
+                exports.errors.push(new SyntaxError_1.SyntaxError(401, "; expected", nbLine));
+            }
+            if (!regexUnexpectedChar.test(currentLine)) {
+                exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
+            }
+            if (regexTwoPoints.test(currentLine)) {
+                if (!regexAffectation.test(currentLine)) {
+                    if (!regexDefinition.test(currentLine)) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
+                    }
+                }
+            }
+        }
+    }
+    ;
+}
+exports.setErrors = setErrors;
+function removeComments(file) {
+    var regexpComment = /(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\#.*)/gm;
+    return file.replace(regexpComment, "");
+}
 //--------------------------------------------------------------------------------//
 //================================================================================//
 //# sourceMappingURL=providers.js.map
