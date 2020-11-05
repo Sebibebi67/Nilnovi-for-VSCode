@@ -1,9 +1,14 @@
-procedure name(parameter : integer) is
+function name(parameter :  integer) return  integer is
+       #variable1 :  Type;
+begin
+       #statement;
+return 0;
+end
      #variable1 :  Type;
 begin
      #statement;
 end
-toto
+toto := 2
 fghjk
 toto
 jnsfkvndsfjkgbhjs

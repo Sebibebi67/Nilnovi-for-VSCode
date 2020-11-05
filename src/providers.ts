@@ -21,6 +21,14 @@ import { SyntaxError } from "./SyntaxError";
 
 //--------------------------------------------------------------------------------//
 
+var methodsTable : {[id:string] : {name:string, nbParams:number}}= {};
+// methodsTable["toto"] = {name : "toto", nbParams: 4}
+// console.log(methodsTable["tata"] === undefined)
+// console.log(methodsTable["toto"]["nbParams"])
+
+var variablesTable : {[id:string] : {name:string, type:string}}= {};
+// variablesTable["toto"] = {name : "toto", type: "integer"}
+
 //------------------------------------ Methods -----------------------------------//
 
 /**
@@ -173,27 +181,119 @@ export function setErrors(file : string) {
         const regexSemiColon = new RegExp(/^(?!begin|end|if|elif|else|while|for|procedure|function).*(?<!\;)$/);
         const regexUnexpectedChar = new RegExp(/^[a-zA-Z0-9\+\*\-\/<>=:\(\)_ ;,]*$/);
         const regexAffectation = new RegExp(/.*:=.*$/);
-        const regexDefinition = new RegExp(/.*: *(integer|boolean)/);
+        const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
         const regexTwoPoints = new RegExp(/.*:.*/);
-
+        // const regexIf = new RegExp(/^[iI][fF] /);
+        const regexKeyWord = new RegExp(/^(begin|end|if|elif|else|while|for|procedure|function|return|loop|to|from|then|is|true|false|integer|boolean|or|and|not)(?!(_|[a-zA-Z0-9]))/);
         
         if (currentLine.length != 0){
 
-            if(regexSemiColon.test(currentLine)){
-                errors.push(new SyntaxError(401,"; expected",nbLine));
-            }
+            // ';' is missing
+            if(regexSemiColon.test(currentLine)){errors.push(new SyntaxError(401,"; expected",nbLine));}
 
-            if(!regexUnexpectedChar.test(currentLine)){
-                errors.push(new SyntaxError(402, "Unexpected character", nbLine));
-            }
+            // Unknown character is spotted
+            if(!regexUnexpectedChar.test(currentLine)){ errors.push(new SyntaxError(402, "Unexpected character", nbLine));}
 
-            if(regexTwoPoints.test(currentLine)){
-                if(!regexAffectation.test(currentLine)){
-                    if(!regexDefinition.test(currentLine)){
-                        errors.push(new SyntaxError(403, "Undefined type", nbLine));
+            // //if it's a block 'if
+            // if (regexIf.test(currentLine)){
+                
+            // }
+
+            // if procedure or function
+            if (new RegExp(/^(procedure|function)/).test(currentLine)){
+                // it'sa procedure
+                if (new RegExp(/^procedure/).test(currentLine)){
+                    // console.log("procedure");
+
+                    // If the procedure format isnt right
+                    if (!new RegExp(/^procedure\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*is\s*$/).test(currentLine)){
+                        errors.push(new SyntaxError(408, "Wrong procedure block format",nbLine));
+                    }
+
+                    // it is supposed to be exact
+                    else{
+                        // console.log(currentLine.match(new RegExp(/\(/g)));
+                        // console.log(cu);
+                        // console.log((currentLine.match(new RegExp(/\(/g)) || []).length > 1 || (currentLine.match(new RegExp(/\)/g)) || []).length > 1);
+                        // console.log("correctFormat");
+                        // Let's count how many parentheses there is
+                        // if there is more than One parenthesis of each type
+                        if ((currentLine.match(new RegExp(/\(/g)) || []).length > 1 || (currentLine.match(new RegExp(/\)/g)) || []).length > 1){
+                            // console.log("pb");
+                            errors.push(new SyntaxError(412, "to many parentheses in procedure definition", nbLine))
+                        }
+                        // Else let's check the parameter(s)
+                        else{
+                            // console.log("() ok");
+                            var params = currentLine.split("(")[1].split(")")[0].trim();
+                            if (regexTwoPoints.test(params)){
+                                // console.log(":");
+                                if (! regexDefinition.test(params)){
+                                    errors.push(new SyntaxError(403, "Undefined type", nbLine));
+                                }else{
+                                    // TODO REGISTER
+                                    // console.log("isok");
+                                }
+                            }else{
+                                // console.log("nothing to hide");
+                                if(params.length != 0){
+                                    errors.push(new SyntaxError(408, "Wrong procedure block format",nbLine));
+                                }else{
+                                    // console.log("isok");
+                                    //TODO REGISTER
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    //if the function format isn't right
+                    if (!new RegExp(/^function\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*return\s*.*\s*is\s*$/).test(currentLine)){
+                        errors.push(new SyntaxError(407, "Wrong function block format",nbLine));
+                    }else{
+                        if ((currentLine.match(new RegExp(/\(/g)) || []).length > 1 || (currentLine.match(new RegExp(/\)/g)) || []).length > 1){
+                            errors.push(new SyntaxError(412, "to many parentheses in function definition", nbLine))
+                        }else{
+                            var params = currentLine.split("(")[1].split(")")[0].trim();
+                            if(regexTwoPoints.test(params)){
+                                if(!regexDefinition.test(params)){
+                                    errors.push(new SyntaxError(403, "Undefined type", nbLine));
+                                }else{
+                                    var outputs = currentLine.split("return")[1].split("is")[0].trim();
+                                    if(!new RegExp(/^(integer|boolean)$/).test(outputs)){
+                                        errors.push(new SyntaxError(403, "Undefined type", nbLine));
+                                    }else{
+                                        // TODO REGISTER
+                                    }
+                                }
+                            }else{
+                                if(params.length != 0){
+                                    errors.push(new SyntaxError(407, "Wrong function block format",nbLine));
+                                }else{
+                                    var outputs = currentLine.split("return")[1].split("is")[0].trim();
+                                    if(!new RegExp(/^(integer|boolean)$/).test(outputs)){
+                                        errors.push(new SyntaxError(403, "Undefined type", nbLine));
+                                    }else{
+                                        // TODO REGSTER
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+            // console.log("yeet");
+
+
+            // if line contains ':'
+            // if(regexTwoPoints.test(currentLine)){
+            //     // if line doesn't conatains ':='
+            //     if(!regexAffectation.test(currentLine)){
+            //         // if line is not a proper variable definition
+            //         if(!regexDefinition.test(currentLine)){
+            //             errors.push(new SyntaxError(403, "Undefined type", nbLine));
+            //         }
+            //     }
+            // }
         }
         
     };
