@@ -58,7 +58,15 @@ class PileWebViewPanel {
                         <tbody  id='pileBody'></tbody>
                     </table>
                 </div>
-                <p id='debug'>debug</p>
+                <table><tbody>
+                    <tr>
+                        <td>Couleurs:</td>
+                        <td id='int'>Entier</td>
+                        <td id='bool'>Booléen</td>
+                        <td id='link'>Adresse</td>
+                        <td id='block'>Bloc de liaison</td>
+                    </tr>
+                </tbody></table>
 
                 <script>
 
@@ -66,7 +74,7 @@ class PileWebViewPanel {
                     // Handle the message inside the webview
                     window.addEventListener('message', event => {
                         const message = event.data; // The JSON data our extension sent
-                        document.getElementById('debug').innerHTML = message.command;
+                        // document.getElementById('debug').innerHTML = message.command;
                         switch (message.command) {
 
                             case 'showPile':
@@ -76,6 +84,9 @@ class PileWebViewPanel {
                                     let tr = document.createElement('tr');
                                     let num = document.createElement('td');
                                     num.innerHTML = table.rows.length - 1;
+                                    if(message.pointeur == num.innerHTML){
+                                        num.innerHTML = 'ip -> '+num.innerHTML;
+                                    }
                                     tr.appendChild(num);
                                     let content = document.createElement('td');
                                     content.innerHTML = element.value;

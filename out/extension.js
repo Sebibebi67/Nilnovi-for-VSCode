@@ -12,7 +12,8 @@ let executor = new Executor_1.Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./providers");
 const providers_2 = require("./providers");
-var pileExec = [{ value: 51, type: 'block' }, { value: 23, type: 'value' }, { value: 17, type: 'value' }, { value: 22, type: 'value' }, { value: 97, type: 'value' }, { value: 10, type: 'value' }, { value: 6, type: 'value' }, { value: 0, type: 'bool' }, { value: 4, type: 'value' }];
+var pileExec = [{ value: 51, type: 'link' }, { value: 23, type: 'int' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'block' }, { value: 6, type: 'block' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
+let pointeurPile = 0;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -22,7 +23,7 @@ function activate(context) {
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
         let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
-        panel.webview.postMessage({ command: "showPile", pile: pileExec });
+        panel.webview.postMessage({ command: "showPile", pile: pileExec, pointeur: pointeurPile });
     });
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());
 }
