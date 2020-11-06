@@ -78,7 +78,8 @@ class PileWebViewPanel {
                                     num.innerHTML = table.rows.length - 1;
                                     tr.appendChild(num);
                                     let content = document.createElement('td');
-                                    content.innerHTML = element;
+                                    content.innerHTML = element.value;
+                                    content.id = element.type;
                                     tr.appendChild(content);
                                     tablebody.insertBefore(tr, tablebody.firstChild);
                                 })

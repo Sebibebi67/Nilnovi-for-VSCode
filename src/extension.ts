@@ -14,6 +14,8 @@ import {autoCompletion} from "./providers";
 import {hovers} from "./providers";
 import { debug } from "console";
 
+var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'block' }, { value: 23, type: 'value' }, { value: 17, type: 'value' }, { value: 22, type: 'value' }, { value: 97, type: 'value' }, { value: 10, type: 'value' }, { value: 6, type: 'value' }, {value: 0, type: 'bool'}, { value: 4, type: 'value' }];
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -25,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
     let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
-    panel.webview.postMessage({command:"showPile", pile:[51,23,987,654,98,7654,21]})
+    panel.webview.postMessage({command:"showPile", pile: pileExec})
   });
 
   context.subscriptions.push(autoCompletion(), hovers());
