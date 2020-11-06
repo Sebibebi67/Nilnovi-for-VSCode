@@ -14,3 +14,9 @@ toto
 jnsfkvndsfjkgbhjs
 dsflkjsnjkfb
 tata  ;
+
+procedure name(parameter :  integer) is
+      #variable1 :  Type;
+begin
+      #statement;
+end
