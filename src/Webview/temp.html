@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
             <html lang="fr">
 
             <head>
@@ -10,25 +10,15 @@
 
             <body>
 
-                <h1 id="lines-of-code-counter">0</h1>
-
                 <div>
-                    <ul id='pileExecution'>
-                        <li>elem0</li>
-                        <li>elem1</li>
-                        <li>elem2</li>
-                        <li>elem3</li>
-                    </ul>
+                    <table id='pileExecution'>
+                        <thead><tr><td>lignes</td><td>Pile d'éxecution</td></tr></thead>
+                        <tbody  id='pileBody'></tbody>
+                    </table>
                 </div>
                 <p id='debug'>debug</p>
 
                 <script>
-
-                        let count = 0;
-                        setInterval(() => {
-                            counter.textContent = count++;
-                        }, 1000);
-                        const counter = document.getElementById('lines-of-code-counter');
 
                     const vscode = acquireVsCodeApi();
                     // Handle the message inside the webview
@@ -37,29 +27,19 @@
                         document.getElementById('debug').innerHTML = message.command;
                         switch (message.command) {
 
-                            case 'test':
-                                ul = document.getElementById('pileExecution');
-                                // num = message.args[0];
-                                let li = document.createElement('li');
-                                li.innerHTML = 'item.toString()';
-                                ul.appendChild(li);
-                                // ul.children[1].innerHTML = 'message.text';
-                                break;
-
                             case 'showPile':
-                                ul = document.getElementById('pileExecution');
-                                let pile = message.pile;
-                                pile.forEach(num => {
-                                    let li = document.createElement('li');
-                                    li.innerHTML = item.toString();
-                                    if(document.getElementById('pileExecution').hasChildNodes()){
-                                         ul.insertBefore(li, ul.firstChild);
-                                         document.getElementById('debug').innerHTML = 'children';
-                                    }
-                                    // }else{
-                                    //     ul.appendChild(li);
-                                    // }
-                                }
+                                table = document.getElementById('pileExecution');
+                                tablebody = document.getElementById('pileBody');
+                                message.pile.forEach(element => {
+                                    let tr = document.createElement('tr');
+                                    let num = document.createElement('td');
+                                    num.innerHTML = table.rows.length;
+                                    tr.appendChild(num);
+                                    let content = document.createElement('td');
+                                    content.innerHTML = element;
+                                    tr.appendChild(content);
+                                    tablebody.insertBefore(tr, table.firstChild);
+                                })
                                 break;
                         }
 
@@ -68,4 +48,4 @@
 
             </body>
 
-        </html> -->
+        </html>

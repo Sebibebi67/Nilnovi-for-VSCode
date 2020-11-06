@@ -25,12 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
     let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
-    panel.webview.postMessage({command:"showPile", pile:[0,1,2,3,4,5,6,7,8,9,10]})
-  });
-
-  let test = vscode.commands.registerCommand("nilnovi-for-vscode.test", () => {
-    let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
-    panel.webview.postMessage({command: "test", args: [0], text: 'texte'})
+    panel.webview.postMessage({command:"showPile", pile:[51,23,987,654,98,7654,21]})
   });
 
   context.subscriptions.push(autoCompletion(), hovers());

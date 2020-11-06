@@ -13,7 +13,6 @@
 		"onLanguage:nilnovi",
 		"onCommand:nilnovi-for-vscode.run",
 		"onCommand:nilnovi-for-vscode.showPile",
-		"onCommand:nilnovi-for-vscode.test",
 		"onLanguage:nilnovi",
 		"*"
 	],
@@ -27,10 +26,6 @@
 			{
 				"command": "nilnovi-for-vscode.showPile",
 				"title": "Afficher Pile Nilnovi"
-			},
-			{
-				"command": "nilnovi-for-vscode.test",
-				"title": "Test Nilnovi"
 			}
 		],
 		"languages": [

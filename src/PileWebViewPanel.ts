@@ -73,7 +73,11 @@ export class PileWebViewPanel {
             <body>
 
                 <div>
-                    <ul id='pileExecution'></ul>
+                    <h1>Pile d'exécution</h1>
+                    <table id='pileExecution'>
+                        <thead><tr><td>Indice pile</td><td>Pile d'exécution</td></tr></thead>
+                        <tbody  id='pileBody'></tbody>
+                    </table>
                 </div>
                 <p id='debug'>debug</p>
 
@@ -87,11 +91,17 @@ export class PileWebViewPanel {
                         switch (message.command) {
 
                             case 'showPile':
-                                ul = document.getElementById('pileExecution');
+                                table = document.getElementById('pileExecution');
+                                tablebody = document.getElementById('pileBody');
                                 message.pile.forEach(element => {
-                                    let li = document.createElement('li');
-                                    li.innerHTML = element;
-                                    ul.insertBefore(li, ul.firstChild);
+                                    let tr = document.createElement('tr');
+                                    let num = document.createElement('td');
+                                    num.innerHTML = table.rows.length - 1;
+                                    tr.appendChild(num);
+                                    let content = document.createElement('td');
+                                    content.innerHTML = element;
+                                    tr.appendChild(content);
+                                    tablebody.insertBefore(tr, tablebody.firstChild);
                                 })
                                 break;
                         }
