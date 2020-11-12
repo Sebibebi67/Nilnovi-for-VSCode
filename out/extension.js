@@ -7,15 +7,17 @@ const vscode = require("vscode");
 const path = require("path");
 const fs_1 = require("fs");
 const Executor_1 = require("./Executor");
+const syntaxError = require("./syntax/SyntaxError");
 let executor = new Executor_1.Executor();
-// let output = vscode.window.createOutputChannel("Nilnovi - Output");
+let output = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./syntax/providers");
 const providers_2 = require("./syntax/providers");
+const Compiler_1 = require("./compiler/Compiler");
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-        console.log(vscode.window.activeTextEditor);
+        // console.log(vscode.window.activeTextEditor);
         runNilnovi();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
@@ -61,10 +63,16 @@ function runNilnovi() {
     if (vscode.window.activeTextEditor) {
         var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
         if (fileNamePath.endsWith(".nn")) {
-            executor.output.clear();
-            executor.output.appendLine("Running " + path.basename(fileNamePath) + "\n");
-            executor.loadingFile(fs_1.readFileSync(fileNamePath, "utf-8"));
-            executor.run();
+            if (!syntaxError.isError) {
+                var compiler = new Compiler_1.Compiler(fs_1.readFileSync(fileNamePath, "utf-8"));
+            }
+            else {
+                console.log("errors");
+            }
+            // executor.output.clear();
+            // executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
+            // executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+            // executor.run();
             //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
             //   output.appendLine("Hello there");
             //   console.log(executor.currentLineCpt);

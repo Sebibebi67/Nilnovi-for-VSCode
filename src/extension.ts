@@ -6,18 +6,20 @@ import path = require("path");
 import { readFileSync } from "fs";
 import { Executor } from "./Executor";
 import { exec } from "child_process";
+import * as syntaxError from "./syntax/SyntaxError";
 
 let executor = new Executor();
-// let output = vscode.window.createOutputChannel("Nilnovi - Output");
+let output = vscode.window.createOutputChannel("Nilnovi - Output");
 import {autoCompletion, errors, setErrors, updateDiags} from "./syntax/providers";
 import {hovers} from "./syntax/providers";
+import { Compiler } from "./compiler/Compiler";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
   let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-    console.log(vscode.window.activeTextEditor);
+    // console.log(vscode.window.activeTextEditor);
     runNilnovi();
   });
 
@@ -76,10 +78,17 @@ function runNilnovi() {
   if (vscode.window.activeTextEditor) {
     var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
     if (fileNamePath.endsWith(".nn")) {
-    executor.output.clear();
-    executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
-		executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
-    executor.run();
+      if (!syntaxError.isError) {
+        var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"));
+      }else{
+        console.log("errors");
+      }
+
+
+    // executor.output.clear();
+    // executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
+		// executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+    // executor.run();
 
       //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
       //   output.appendLine("Hello there");

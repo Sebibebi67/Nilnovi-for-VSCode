@@ -35,25 +35,25 @@ import { SyntaxError } from "./syntax/SyntaxError";
  */
 export function splittingLine(line: string) {
     // $ is used to indicate the line number
-    var splitedLine = line.trim().split("$");
+    var splitLine = line.trim().split("$");
 
     // if there is more than one "$"
-    if (splitedLine.length > 2) {
+    if (splitLine.length > 2) {
 
         // the line number is at this end of the line
-        var nbLine = parseInt(splitedLine[splitedLine.length - 1])
+        var nbLine = parseInt(splitLine[splitLine.length - 1])
 
-        // and we need to merge each part of the splited line (except the last one) in order to look for more errors
+        // and we need to merge each part of the split line (except the last one) in order to look for more errors
         var currentLine = "";
-        for (let i = 0; i < splitedLine.length - 2; i++) { currentLine += splitedLine[i].trim(); }
+        for (let i = 0; i < splitLine.length - 2; i++) { currentLine += splitLine[i].trim(); }
         // And don't forget to raise an error
         errors.push(new SyntaxError(402, "Unexpected character", nbLine));
     }
 
     // else everything is right
     else {
-        var nbLine = parseInt(splitedLine[1]);
-        var currentLine = splitedLine[0].trim();
+        var nbLine = parseInt(splitLine[1]);
+        var currentLine = splitLine[0].trim();
     }
     return { content: currentLine, index: nbLine }
 }
