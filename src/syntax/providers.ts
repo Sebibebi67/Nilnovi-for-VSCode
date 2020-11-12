@@ -18,7 +18,7 @@
 import path = require("path");
 import * as vscode from "vscode";
 import { SyntaxError } from "./SyntaxError";
-import * as tools from "./tools";
+import * as tools from "../tools";
 
 //--------------------------------------------------------------------------------//
 
@@ -30,6 +30,7 @@ var variablesTable: { [id: string]: { name: string, type: string, group:string }
 var declarationOk = false;
 var mainDeclarationFlag = false;
 var blockScope = 0;
+var knownWords = ["put","get"];
 
 //--------------------------------------------------------------------------------//
 
@@ -164,10 +165,6 @@ export function setErrors(file: string) {
 
         const regexSemiColon = new RegExp(/^(?!begin|end|if|elif|else|while|for|procedure|function).*(?<!\;)$/);
         const regexUnexpectedChar = new RegExp(/^[a-zA-Z0-9\+\*\-\/<>=:\(\)_ ;,]*$/);
-        // const regexAffectation = new RegExp(/.*:=.*$/);
-        // const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
-        // const regexTwoPoints = new RegExp(/.*:.*/);
-        // const regexKeyWord = new RegExp(/^(begin|end|if|elif|else|while|for|procedure|function|return|loop|to|from|then|is|true|false|integer|boolean|or|and|not)(?!(_|[a-zA-Z0-9]))/);
 
         if (currentLine.length != 0) {
 
@@ -215,11 +212,15 @@ export function setErrors(file: string) {
             else if (new RegExp(/^end/).test(currentLine)){
                 blockScope --;
                 if (blockScope == 1){removeFromTables(getLastMethod().name);}
-                // if (blockScope == 0){mainDeclarationFlag = false;}
             }
+            checkingError_UnknownWord(currentLine, nbLine);
+            checkingError_MissingParenthesis(currentLine, nbLine);
         }
 
-    };
+    }
+    if (blockScope != 0){
+        errors.push(new SyntaxError(413, "End of file read", lines.length-1));
+    }
 }
 
 /**
@@ -245,7 +246,6 @@ function resetTables() {
  * @author Adam RIVIÈRE
  */
 function expressionIsBoolean(expression : string, nbLine : number){
-    // console.log("expression is boolean ?");
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
     if (regexContainsBooleanInstructions.test(expression)){return true}
     const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_])*\(.*\);$/);
@@ -256,13 +256,12 @@ function expressionIsBoolean(expression : string, nbLine : number){
             errors.push(new SyntaxError(404, "Method "+methodName+" not found", nbLine))
             return false
         }
-        // console.log(methodDef.returnType == "boolean");
         return methodDef.returnType == "boolean";
     }
     const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]);$/);
     if(regexIsVariable.test(expression)){
         const variableName = expression.split(";")[0].trim();
-        const variableDef = variablesTable[getLastMethod.name+"."+variableName];
+        const variableDef = variablesTable[getLastMethod().name+"."+variableName];
         if(!variableExists(variableName)){
             errors.push(new SyntaxError(414, "Variable "+variableName+" not found", nbLine))
             return false;
@@ -279,7 +278,7 @@ function expressionIsBoolean(expression : string, nbLine : number){
  * @author Sébastien HERT
  * @author Adam RIVIÈRE
  */
-function variableExists(variable : string){return (variablesTable[getLastMethod.name+"."+variable] !== undefined);}
+function variableExists(variable : string){return (variablesTable[getLastMethod().name+"."+variable] !== undefined);}
 
 
 /**
@@ -343,6 +342,16 @@ function removeFromTables(methodName : string){
 }
 
 
+/**
+ * @description Checks if a word has already been seen
+ * @param string the word to test
+ * @returns true | false
+ * @author Sébastien HERT
+ */
+function isKnownWord(word : string){
+    return (knownWords.includes(word) || word == "" || (new RegExp(/^[0-9]+$/).test(word)));
+}
+
 //--------------------------------------------------------------------------------//
 
 
@@ -385,6 +394,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
                 if (!regexDefinition.test(params)) { errors.push(new SyntaxError(403, "Undefined type", nbLine)); }
                 else {
                     methodsTable[methodName] = { name: methodName, nbParams: params.split(",").length, returnType: "void" };
+                    knownWords.push(methodName);
                     declarationOk = true;
                     blockScope ++;
                     checkingError_Parameters(nbLine,params,methodName);
@@ -398,7 +408,11 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
                 if (params.length != 0) { errors.push(new SyntaxError(408, "Wrong procedure block format", nbLine)); }
 
                 // else add it to our table
-                else { methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: "void" }; declarationOk = true; blockScope ++; }
+                else { 
+                    methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: "void" };
+                    declarationOk = true; blockScope ++;
+                    knownWords.push(methodName);
+                }
             }
         }
     }
@@ -444,6 +458,7 @@ function checkingError_Function(currentLine: string, nbLine: number) {
                     else {
                         let nbParamsMethod = params.split(",").length;
                         methodsTable[methodName] = { name: methodName, nbParams: nbParamsMethod, returnType: outputs };
+                        knownWords.push(methodName);
                         declarationOk = true;
                         blockScope ++;
                         checkingError_Parameters(nbLine,params,methodName);
@@ -462,7 +477,11 @@ function checkingError_Function(currentLine: string, nbLine: number) {
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) {errors.push(new SyntaxError(403, "Undefined type", nbLine));}
 
                     // If everything is right, we register the function
-                    else {methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: outputs }; declarationOk = true; blockScope ++;}
+                    else {
+                        methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: outputs };
+                        declarationOk = true; blockScope ++;
+                        knownWords.push(methodName);
+                    }
                 }
             }
         }
@@ -550,19 +569,39 @@ function checkingError_For(currentLine : string, nbLine : number){
  * @author Adam RIVIERE
  */
 function checkingError_VariableDeclaration(currentLine : string, nbLine : number){
+    // If variable declaration is not ok and if we are in the main procedure
     if(!declarationOk && (blockScope != 1)){errors.push(new SyntaxError(419,"variables must be defined before the 'begin' statement of the method",nbLine))}
+    
+    // If variable declaration is ok
     else{
+        
+        // If the declared type is not valid
         const regexDefinition = new RegExp(/.*:\s*(integer|boolean)\s*;$/);
         if(!regexDefinition.test(currentLine)){errors.push(new SyntaxError(403, "Undefined type", nbLine));}
+        
+        // If it is valid
         else{
+
+            // We get the variable list and their type
             let variables = currentLine.split(":")[0].split(",");
             let type = currentLine.split(":")[1].trim();
+            
+            // For each variable declaration
             for(let i = 0;i < variables.length;i++){
                 let variable = variables[i].trim();
+                
+                // If the variable name is already used
                 if(variableExists(variable)){errors.push(new SyntaxError(416, variable+" is already defined", nbLine));}
+                
+                // If that is not a valid variable name
                 else if (!variableHasCorrectName(variable)){errors.push(new SyntaxError(417, variable+"is not a valid variable name", nbLine));}
                 else{
-                    variablesTable[getLastMethod.name+"."+variable] = {name:variable, type:type.split(";")[0], group:getLastMethod.name};
+                    
+                    // Else we register the variable
+                    variablesTable[getLastMethod().name+"."+variable] = {name:variable, type:type.split(";")[0], group:getLastMethod().name};
+                    knownWords.push(variable);
+
+                    // We check if we are begining the main procedure
                     if(blockScope == 1){mainDeclarationFlag = true;}
                 }
             }
@@ -570,40 +609,156 @@ function checkingError_VariableDeclaration(currentLine : string, nbLine : number
     }
 }
 
+/**
+ * @description checks errors in affectation
+ * @param string the line
+ * @param number the line number
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
 function checkingError_Affectation(currentLine : string, nbLine : number){
-    // vérfier pour a := := := 5;
 
-    // console.log("checking affectation error")
+    // First we need the variable
     let variable = currentLine.split(":=")[0].trim();
+
+    // Then if it doesnt exist
     if(!variableExists(variable)){errors.push(new SyntaxError(414, variable+" is not defined", nbLine));}
+    
+    // else it exists
     else{
-        let type = variablesTable[getLastMethod.name+"."+variable].type;
+        // Get the type of the variable and the expression
+        let type = variablesTable[getLastMethod().name+"."+variable].type;
         let exp = currentLine.split(":=")[1].trim();
-        // console.log(type, exp);
-        // console.log(type == "boolean");
-        // console.log(type == "boolean" && !expressionIsBoolean(exp,nbLine));
-        if(type == "boolean" && !expressionIsBoolean(exp,nbLine)){errors.push(new SyntaxError(418, "wrong expression type", nbLine));
-        }else if (type == "integer" && expressionIsBoolean(exp,nbLine)){errors.push(new SyntaxError(418, "wrong expression type", nbLine));}
+
+        // if the variable is supposed to be a boolean but the expression cannot be a boolean
+        if(type == "boolean" && !expressionIsBoolean(exp,nbLine)){errors.push(new SyntaxError(406, "Expression is not boolean", nbLine));}
+
+        // if the variable is supposed to be an integer but the expression cannot be an integer
+        else if (type == "integer" && expressionIsBoolean(exp,nbLine)){errors.push(new SyntaxError(405, "Expression is not a number", nbLine));}
     }
 }
 
+/**
+ * @description loads the parameters given in a method delaration into our table of variable
+ * @param number nbLine
+ * @param string all the parameters as a string
+ * @param string the name of the method
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
 function checkingError_Parameters(nbLine : number, params : string, methodName : string){
+
+    // First we need to create a list of parameters
     const listParams = params.split(/(:|,)/);
-    // ["x", ",", " y ", ":", " integer", ",", " a", ",", " b", ":", " boolean"]
+
+    // We also need a list of current variables, which stores the name of the current variables read for a corresponding type
     var currentVarList : string[] = []
+
+    //For each element in the created list
     listParams.forEach(element => {
         element = element.trim();
+
+        // If it's a type
         if (element == "boolean" || element == "integer"){
+
+            // We need to loads all the variables stored in our local list into our global list
             currentVarList.forEach(param => {
                 variablesTable[methodName+"."+param] = {name : param, group : methodName, type : element}
             });
+
+            // And then resets it
+            currentVarList = []
         }
+        // If the element is ':' or ',' we do nothing
         else if (element == ":" || element == ","){}
+
+        // Else the element is a parameter's name
         else{
+
+            // If the name given is not a valid parameter name
             if(!variableHasCorrectName(element)){errors.push(new SyntaxError(417,element+" is not a valid parameter name",nbLine));}
-            else{currentVarList.push(element);}
+            
+            // Else we keep the name
+            else{
+                currentVarList.push(element);
+                knownWords.push(element);
+            }
         }
     });
+}
+
+
+// /**
+//  * @description checks the number of parameters when calling a method
+//  * @param number the number of line
+//  * @param string the method and all its params
+//  * @author Sébastien HERT
+//  * @author Adam RIVIÈRE
+//  */
+// function checkingError_CallingMethod(nbLine : number, expression:string){
+//     const methodName = expression.split("(")[0].trim();
+
+//     // Checks if the the method is defined 
+//     if (!methodExists(methodName)){
+//         errors.push(new SyntaxError(404,"Method "+methodName+" not found", nbLine));
+//     }
+//     else{
+
+//         // Let's check if there et least one parameter
+//         const regexNoParamater = new RegExp(/\(\)/);
+//         if (!regexNoParamater.test(expression)){
+
+//             // We need to be sure there are even parameters in description in our table
+//             const nbParam = expression.split(',').length;
+//             const realNbParam = methodsTable[methodName].nbParams;
+//             if (realNbParam != nbParam){
+//                 errors.push(new SyntaxError(413, "Wrong number of parameters", nbLine));
+//             }
+//         }
+//     }
+// }
+
+
+/**
+ * @description Checks if the word has already been seen
+ * @param string the line
+ * @param number the nb of the line
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
+function checkingError_UnknownWord(currentLine : string, nbLine : number){
+
+    // We need to define all the potential parsers and all the keywords known
+    const regexParser = new RegExp(/ |,|\+|\-|\/|\*|>|<|=|:|;|\(|\)/);
+    const keyWordList = ["begin","end","if","elif","else","while","for","procedure","function","then","from","to","loop","is","or","not","and","true","false","return","integer","boolean"];
+
+    // We also need to split our currentLine
+    var wordsList = currentLine.split(regexParser);
+
+    // For each word
+    wordsList.forEach(word => {
+
+        // if it is not known
+        if (!(keyWordList.includes(word) || isKnownWord(word))){ errors.push(new SyntaxError(418, word+" is an unknown word", nbLine));}
+    });
+}
+
+/**
+ * @description Checks if there is no missing parenthesis
+ * @param string the line
+ * @param number the nb of the line
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
+function checkingError_MissingParenthesis(currentLine : string, nbLine : number){
+    
+    // We check the number of open and closed parenthesis
+    const openParenthesisNb = currentLine.split("(").length;
+    const closedParenthesisNb = currentLine.split(")").length;
+
+    if (openParenthesisNb != closedParenthesisNb){
+        errors.push(new SyntaxError (412, "a parenthesis is missing", nbLine));
+    }
 }
 
 //--------------------------------------------------------------------------------//

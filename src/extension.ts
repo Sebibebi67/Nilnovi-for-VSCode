@@ -9,8 +9,8 @@ import { exec } from "child_process";
 
 let executor = new Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
-import {autoCompletion, errors, setErrors, updateDiags} from "./providers";
-import {hovers} from "./providers";
+import {autoCompletion, errors, setErrors, updateDiags} from "./syntax/providers";
+import {hovers} from "./syntax/providers";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed

@@ -2,6 +2,7 @@ procedure pp(parameter :  integer) is
         # toto : integer;
         function test() return  boolean is
                 # toto : boolean;
+                titi : integer;
         begin
                 #statement;
                 return 0;
@@ -9,12 +10,17 @@ procedure pp(parameter :  integer) is
 
         #variable1 :  Type;
         toto : boolean;
-        tata:integer;
+        tata :integer;
 begin
 
         toto := true;
+        # toto := 2;
+        # titi := toto;
+        tata := 2;
+        test();
+        titi();
+
 
 end
-
 
 
