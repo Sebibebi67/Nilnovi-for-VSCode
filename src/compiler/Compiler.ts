@@ -144,7 +144,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private eval(currentLine: string) {
-		//Scope? nb Param? type Param? validExpression?
+		//Scope? nb Param? type Param? validExpression? 
 		if (currentLine.length != 0) {
 
 			// if procedure or function
