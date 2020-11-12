@@ -38,7 +38,7 @@ var knownWords = ["put","get"];
 //----------------------------------- Functions ----------------------------------//
 
 /**
-   * Description : Provides auto-compltion for the Nilnovi language
+   * Description : Provides auto-completion for the Nilnovi language
    * @returns The provider to push
    * @author Adam RIVIERE
 */
@@ -111,7 +111,7 @@ export function hovers() {
 
 
 /**
- * @description updates the diagnostic ollection of a document with the errors spotted in it
+ * @description updates the diagnostic collection of a document with the errors spotted in it
  * @param document document to analyze
  * @param collection collection to update
  * @author Sébastien HERT
@@ -147,7 +147,7 @@ export function updateDiags(document: vscode.TextDocument, collection: vscode.Di
  */
 export function setErrors(file: string) {
 
-    // Reseting our tables
+    // Resetting our tables
     errors = [];
     resetTables();
     
@@ -370,7 +370,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
     const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
     const regexTwoPoints = new RegExp(/.*:.*/);
 
-    // If the procedure format isnt right
+    // If the procedure format isn't right
     if (!regexProcedureFormat.test(currentLine)) { errors.push(new SyntaxError(408, "Wrong procedure block format", nbLine)); }
 
     // it is supposed to be exact
@@ -389,7 +389,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
             // If there is at least one valid parameter
             if (regexTwoPoints.test(params)) {
 
-                // Cheking if it has the correct format -> x : integer
+                // Checking if it has the correct format -> x : integer
                 // if not, raise an error, else add it to our methodsTable
                 if (!regexDefinition.test(params)) { errors.push(new SyntaxError(403, "Undefined type", nbLine)); }
                 else {
@@ -404,7 +404,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
             // If there is no valid parameters
             else {
 
-                // If the parameter(s) isn't empty, raise an error besause it's not valid
+                // If the parameter(s) isn't empty, raise an error because it's not valid
                 if (params.length != 0) { errors.push(new SyntaxError(408, "Wrong procedure block format", nbLine)); }
 
                 // else add it to our table
@@ -601,7 +601,7 @@ function checkingError_VariableDeclaration(currentLine : string, nbLine : number
                     variablesTable[getLastMethod().name+"."+variable] = {name:variable, type:type.split(";")[0], group:getLastMethod().name};
                     knownWords.push(variable);
 
-                    // We check if we are begining the main procedure
+                    // We check if we are beginning the main procedure
                     if(blockScope == 1){mainDeclarationFlag = true;}
                 }
             }
@@ -621,7 +621,7 @@ function checkingError_Affectation(currentLine : string, nbLine : number){
     // First we need the variable
     let variable = currentLine.split(":=")[0].trim();
 
-    // Then if it doesnt exist
+    // Then if it doesn't exist
     if(!variableExists(variable)){errors.push(new SyntaxError(414, variable+" is not defined", nbLine));}
     
     // else it exists
@@ -639,7 +639,7 @@ function checkingError_Affectation(currentLine : string, nbLine : number){
 }
 
 /**
- * @description loads the parameters given in a method delaration into our table of variable
+ * @description loads the parameters given in a method declaration into our table of variable
  * @param number nbLine
  * @param string all the parameters as a string
  * @param string the name of the method
@@ -705,8 +705,8 @@ function checkingError_Parameters(nbLine : number, params : string, methodName :
 //     else{
 
 //         // Let's check if there et least one parameter
-//         const regexNoParamater = new RegExp(/\(\)/);
-//         if (!regexNoParamater.test(expression)){
+//         const regexNoParameter = new RegExp(/\(\)/);
+//         if (!regexNoParameter.test(expression)){
 
 //             // We need to be sure there are even parameters in description in our table
 //             const nbParam = expression.split(',').length;
