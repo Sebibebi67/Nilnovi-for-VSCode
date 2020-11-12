@@ -1,6 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "nilnovi",
+	"fileTypes": [".nn"],
 	"patterns": [
 		{
 			"include": "#keywords"
@@ -45,11 +46,11 @@
 		"comment":{
 			"patterns": [
 				{
-					"name": "comment.line.number-sign",
+					"name": "comment.line.number-sign.nilnovi",
 					"match": "\\#.*"
 				},
 				{
-					"name": "comment.block.documentation",
+					"name": "comment.block.documentation.nilnovi",
 					"begin": "\\/\\*",
 					"end": "\\*\\/"
 				}
@@ -58,20 +59,27 @@
 		"constant":{
 			"patterns":[
 				{
-					"name": "constant.numeric",
+					"name": "constant.numeric.nilnovi",
 					"match": "[0-9]"
 				}
 			]
 		},
 		"entity":{
 			"patterns": [
+
 				{
-					"name": "entity.name.function",
-					"match": "\\b(get|put)\\b"
+					"match": "([a-zA-Z][a-zA-Z0-9_]*)(\\()",
+					"captures":{
+						"1": {"name": "entity.name.function.nilnovi"}
+					}
+				  },
+				{
+					"name": "entity.name.type.nilnovi",
+					"match": "\\b(integer|boolean)\\b"
 				},
 				{
-					"name": "entity.name.type",
-					"match": "\\b(integer|boolean)\\b"
+					"name" : "entity.name.variable.nilnovi",
+					"match": "[a-zA-Z][a-zA-Z0-9_]*"
 				}
 			]
 		}

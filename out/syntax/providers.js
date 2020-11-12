@@ -17,7 +17,7 @@ exports.setErrors = exports.updateDiags = exports.hovers = exports.autoCompletio
 const path = require("path");
 const vscode = require("vscode");
 const SyntaxError_1 = require("./SyntaxError");
-const tools = require("./tools");
+const tools = require("../tools");
 //--------------------------------------------------------------------------------//
 //------------------------------- Global Variables -------------------------------//
 exports.errors = [];
