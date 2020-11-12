@@ -17,6 +17,7 @@ exports.setErrors = exports.updateDiags = exports.hovers = exports.autoCompletio
 const path = require("path");
 const vscode = require("vscode");
 const SyntaxError_1 = require("./SyntaxError");
+const syntaxError = require("./SyntaxError");
 const tools = require("../tools");
 //--------------------------------------------------------------------------------//
 //------------------------------- Global Variables -------------------------------//
@@ -30,7 +31,7 @@ var knownWords = ["put", "get"];
 //--------------------------------------------------------------------------------//
 //----------------------------------- Functions ----------------------------------//
 /**
-   * Description : Provides auto-compltion for the Nilnovi language
+   * Description : Provides auto-completion for the Nilnovi language
    * @returns The provider to push
    * @author Adam RIVIERE
 */
@@ -99,7 +100,7 @@ function hovers() {
 }
 exports.hovers = hovers;
 /**
- * @description updates the diagnostic ollection of a document with the errors spotted in it
+ * @description updates the diagnostic collection of a document with the errors spotted in it
  * @param document document to analyze
  * @param collection collection to update
  * @author Sébastien HERT
@@ -134,9 +135,10 @@ exports.updateDiags = updateDiags;
  * @author Adam RIVIERE
  */
 function setErrors(file) {
-    // Reseting our tables
+    // Resetting our tables
     exports.errors = [];
     resetTables();
+    syntaxError.setError(false);
     // We should now remove the comments from the indexed file, which is a single-line string
     let lines = [];
     file = tools.removeComments(tools.indexingFile(file));
@@ -223,6 +225,7 @@ function setErrors(file) {
     if (blockScope != 0) {
         exports.errors.push(new SyntaxError_1.SyntaxError(413, "End of file read", lines.length - 1));
     }
+    console.log(syntaxError.isError);
 }
 exports.setErrors = setErrors;
 /**
@@ -364,7 +367,7 @@ function checkingError_Procedure(currentLine, nbLine) {
     const regexProcedureFormat = new RegExp(/^procedure\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*is\s*$/);
     const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
     const regexTwoPoints = new RegExp(/.*:.*/);
-    // If the procedure format isnt right
+    // If the procedure format isn't right
     if (!regexProcedureFormat.test(currentLine)) {
         exports.errors.push(new SyntaxError_1.SyntaxError(408, "Wrong procedure block format", nbLine));
     }
@@ -382,7 +385,7 @@ function checkingError_Procedure(currentLine, nbLine) {
             let methodName = currentLine.split("procedure")[1].split("(")[0].trim();
             // If there is at least one valid parameter
             if (regexTwoPoints.test(params)) {
-                // Cheking if it has the correct format -> x : integer
+                // Checking if it has the correct format -> x : integer
                 // if not, raise an error, else add it to our methodsTable
                 if (!regexDefinition.test(params)) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
@@ -397,7 +400,7 @@ function checkingError_Procedure(currentLine, nbLine) {
             }
             // If there is no valid parameters
             else {
-                // If the parameter(s) isn't empty, raise an error besause it's not valid
+                // If the parameter(s) isn't empty, raise an error because it's not valid
                 if (params.length != 0) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(408, "Wrong procedure block format", nbLine));
                 }
@@ -612,7 +615,7 @@ function checkingError_VariableDeclaration(currentLine, nbLine) {
                     // Else we register the variable
                     variablesTable[getLastMethod().name + "." + variable] = { name: variable, type: type.split(";")[0], group: getLastMethod().name };
                     knownWords.push(variable);
-                    // We check if we are begining the main procedure
+                    // We check if we are beginning the main procedure
                     if (blockScope == 1) {
                         mainDeclarationFlag = true;
                     }
@@ -631,7 +634,7 @@ function checkingError_VariableDeclaration(currentLine, nbLine) {
 function checkingError_Affectation(currentLine, nbLine) {
     // First we need the variable
     let variable = currentLine.split(":=")[0].trim();
-    // Then if it doesnt exist
+    // Then if it doesn't exist
     if (!variableExists(variable)) {
         exports.errors.push(new SyntaxError_1.SyntaxError(414, variable + " is not defined", nbLine));
     }
@@ -651,7 +654,7 @@ function checkingError_Affectation(currentLine, nbLine) {
     }
 }
 /**
- * @description loads the parameters given in a method delaration into our table of variable
+ * @description loads the parameters given in a method declaration into our table of variable
  * @param number nbLine
  * @param string all the parameters as a string
  * @param string the name of the method
@@ -706,8 +709,8 @@ function checkingError_Parameters(nbLine, params, methodName) {
 //     }
 //     else{
 //         // Let's check if there et least one parameter
-//         const regexNoParamater = new RegExp(/\(\)/);
-//         if (!regexNoParamater.test(expression)){
+//         const regexNoParameter = new RegExp(/\(\)/);
+//         if (!regexNoParameter.test(expression)){
 //             // We need to be sure there are even parameters in description in our table
 //             const nbParam = expression.split(',').length;
 //             const realNbParam = methodsTable[methodName].nbParams;

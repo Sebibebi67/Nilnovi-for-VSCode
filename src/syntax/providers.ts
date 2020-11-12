@@ -18,6 +18,7 @@
 import path = require("path");
 import * as vscode from "vscode";
 import { SyntaxError } from "./SyntaxError";
+import * as syntaxError from "./SyntaxError";
 import * as tools from "../tools";
 
 //--------------------------------------------------------------------------------//
@@ -150,6 +151,7 @@ export function setErrors(file: string) {
     // Resetting our tables
     errors = [];
     resetTables();
+    syntaxError.setError(false);
     
 
     // We should now remove the comments from the indexed file, which is a single-line string
@@ -221,6 +223,7 @@ export function setErrors(file: string) {
     if (blockScope != 0){
         errors.push(new SyntaxError(413, "End of file read", lines.length-1));
     }
+    console.log(syntaxError.isError);
 }
 
 /**

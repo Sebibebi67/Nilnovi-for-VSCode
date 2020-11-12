@@ -20,6 +20,10 @@
 
 export var isError: boolean = false;
 
+export function setError(bool : boolean){
+    isError = bool;
+}
+
 //--------------------------------------------------------------------------------//
 
 
@@ -39,8 +43,9 @@ export class SyntaxError {
 
     constructor(code: number, message: string, line: number) {
         this.code = code;
-        this.message = "SyntaxError at line " + line + " : " + message
+        this.message = "SyntaxError at line " + line + " : " + message;
         this.line = line;
+        isError = true;
     }
 //--------------------------------------------------------------------------------//
 
