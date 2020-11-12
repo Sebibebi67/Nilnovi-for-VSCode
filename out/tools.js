@@ -38,7 +38,7 @@ function splittingLine(line) {
         // and we need to merge each part of the splited line (except the last one) in order to look for more errors
         var currentLine = "";
         for (let i = 0; i < splitedLine.length - 2; i++) {
-            currentLine += splitedLine[i];
+            currentLine += splitedLine[i].trim();
         }
         // And don't forget to raise an error
         providers_1.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
@@ -46,7 +46,7 @@ function splittingLine(line) {
     // else everything is right
     else {
         var nbLine = parseInt(splitedLine[1]);
-        var currentLine = splitedLine[0];
+        var currentLine = splitedLine[0].trim();
     }
     return { content: currentLine, index: nbLine };
 }
