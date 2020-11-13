@@ -1,7 +1,7 @@
 "use strict";
 //=================================== tools.ts ===================================//
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeComments = exports.indexingFile = exports.splittingLine = void 0;
+exports.lineToWordsList = exports.removeEmptyLines = exports.removeComments = exports.indexingFile = exports.splittingLine = void 0;
 //--------------------------------- Description ----------------------------------//
 //
 // The files gives some tools used in different files
@@ -45,7 +45,7 @@ function splittingLine(line) {
         var nbLine = parseInt(splitLine[1]);
         var currentLine = splitLine[0].trim();
     }
-    return { content: currentLine, index: nbLine };
+    return { content: currentLine.trim(), index: nbLine };
 }
 exports.splittingLine = splittingLine;
 /**
@@ -80,6 +80,23 @@ function removeComments(file) {
     return file.replace(regexpComment, "");
 }
 exports.removeComments = removeComments;
+function removeEmptyLines(lines) {
+    lines = lines.filter(function emptyLine(line) {
+        line = line.trim();
+        return !(new RegExp(/^\$[0-9]+$/).test(line)) && line.length != 0;
+    });
+    return lines;
+}
+exports.removeEmptyLines = removeEmptyLines;
+function lineToWordsList(line) {
+    const regexParser = new RegExp(/( |,|\+|\-|\/|\*|>|<|=|:|;|\(|\))/);
+    var words = line.split(regexParser);
+    words = words.filter(function checkEmpty(word) {
+        return (word != "" && word != " ");
+    });
+    return words;
+}
+exports.lineToWordsList = lineToWordsList;
 //--------------------------------------------------------------------------------//
 //================================================================================//
 //# sourceMappingURL=tools.js.map

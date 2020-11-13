@@ -55,7 +55,7 @@ export function splittingLine(line: string) {
         var nbLine = parseInt(splitLine[1]);
         var currentLine = splitLine[0].trim();
     }
-    return { content: currentLine, index: nbLine }
+    return { content: currentLine.trim(), index: nbLine }
 }
 
 /**
@@ -89,6 +89,23 @@ export function indexingFile(file: string) {
 export function removeComments(file: string) {
     var regexpComment = /(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(\#.*)/gm;
     return file.replace(regexpComment, "");
+}
+
+export function removeEmptyLines(lines : string[]){
+    lines = lines.filter(function emptyLine(line){
+        line = line.trim();
+        return !(new RegExp(/^\$[0-9]+$/).test(line)) && line.length != 0;
+    });
+    return lines;
+}
+
+export function lineToWordsList(line: string) {
+    const regexParser = new RegExp(/( |,|\+|\-|\/|\*|>|<|=|:|;|\(|\))/);
+    var words = line.split(regexParser);
+    words = words.filter(function checkEmpty(word) {
+        return (word != "" && word != " ");
+    })
+    return words;
 }
 
 //--------------------------------------------------------------------------------//

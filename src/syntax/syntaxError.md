@@ -21,12 +21,14 @@ Here are all the syntax errors catch in our syntax analyzer.
 * **413** : EOF 
 * **414** : the variable is undefined
 * **415** : the given value/variable is not a valid bound
-* **416** : the varaibale is already defined
+* **416** : the variable is already defined
 * **417** : the name given to a variable isn't valid
 * **418** : unknown word
 * **419** : variables must be defined before the 'begin' statement
 * **420** : can't define a method in another method
 * **421** : can't define a method after main variable declaration
+* **422** : wrongs first line
+* **423** : the method is already defined
 
 
 ## **Authors**

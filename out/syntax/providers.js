@@ -87,13 +87,11 @@ function hovers() {
                         language: "NilNovi",
                         value: "Description : Prints the given value\nInput : Value to print\nOutput : None"
                     });
-                    break;
                 case "get":
                     return new vscode.Hover({
                         language: "NilNovi",
                         value: "Description : Gets the value given by the user and affect it to the given variable\nInput : Variable to affect\nOutput : None"
                     });
-                    break;
             }
         }
     });
@@ -142,7 +140,7 @@ function setErrors(file) {
     // We should now remove the comments from the indexed file, which is a single-line string
     let lines = [];
     file = tools.removeComments(tools.indexingFile(file));
-    lines = file.split(/\r?\n/);
+    lines = tools.removeEmptyLines(file.split(/\r?\n/));
     // Now, for each line, we need to check for errors
     for (let i = 0; i < lines.length; i++) {
         let lineFeatures = tools.splittingLine(lines[i]);
@@ -150,82 +148,82 @@ function setErrors(file) {
         let nbLine = lineFeatures["index"];
         const regexSemiColon = new RegExp(/^(?!begin|end|if|elif|else|while|for|procedure|function).*(?<!\;)$/);
         const regexUnexpectedChar = new RegExp(/^[a-zA-Z0-9\+\*\-\/<>=:\(\)_ ;,]*$/);
-        if (currentLine.length != 0) {
-            // ';' is missing
-            if (regexSemiColon.test(currentLine)) {
-                exports.errors.push(new SyntaxError_1.SyntaxError(401, "; expected", nbLine));
-            }
-            // Unknown character is spotted
-            if (!regexUnexpectedChar.test(currentLine)) {
-                exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
-            }
-            // if procedure or function
-            if (new RegExp(/^(procedure|function)/).test(currentLine)) {
-                if (mainDeclarationFlag == true) {
-                    exports.errors.push(new SyntaxError_1.SyntaxError(419, "Cannot define a method after main variable declaration", nbLine));
-                }
-                else {
-                    // it's a procedure
-                    if (new RegExp(/^procedure/).test(currentLine)) {
-                        if (blockScope > 1) {
-                            exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
-                        }
-                        else {
-                            checkingError_Procedure(currentLine, nbLine);
-                        }
-                    }
-                    // it's a function
-                    else {
-                        if (blockScope > 1) {
-                            exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
-                        }
-                        else {
-                            checkingError_Function(currentLine, nbLine);
-                        }
-                    }
-                }
-            }
-            else if (new RegExp(/^(if|for|while|elif|else)/).test(currentLine)) {
-                // "if" or "elif" read
-                if (new RegExp(/^(if|elif)/).test(currentLine)) {
-                    checkingError_If(currentLine, nbLine);
-                }
-                // "while" read
-                else if (new RegExp(/^while/).test(currentLine)) {
-                    checkingError_While(currentLine, nbLine);
-                }
-                // "for" read
-                else if (new RegExp(/^for/).test(currentLine)) {
-                    checkingError_For(currentLine, nbLine);
-                }
-                // "else" read
-                else {
-                    checkingError_Else(currentLine, nbLine);
-                }
-            }
-            else if (new RegExp(/.*:=.*/).test(currentLine)) {
-                checkingError_Affectation(currentLine, nbLine);
-            }
-            else if (new RegExp(/.*:.*/).test(currentLine)) {
-                checkingError_VariableDeclaration(currentLine, nbLine);
-            }
-            else if (new RegExp(/^begin/).test(currentLine)) {
-                declarationOk = false;
-            }
-            else if (new RegExp(/^end/).test(currentLine)) {
-                blockScope--;
-                if (blockScope == 1) {
-                    removeFromTables(getLastMethod().name);
-                }
-            }
-            checkingError_UnknownWord(currentLine, nbLine);
-            checkingError_MissingParenthesis(currentLine, nbLine);
+        if (i == 0 && !(new RegExp(/^procedure\s+pp\(\s*\)\s+is$/).test(currentLine))) {
+            exports.errors.push(new SyntaxError_1.SyntaxError(422, "first line format error (use format 'procedure pp() is'", nbLine));
         }
+        // ';' is missing
+        if (regexSemiColon.test(currentLine)) {
+            exports.errors.push(new SyntaxError_1.SyntaxError(401, "; expected", nbLine));
+        }
+        // Unknown character is spotted
+        if (!regexUnexpectedChar.test(currentLine)) {
+            exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
+        }
+        // if procedure or function
+        if (new RegExp(/^(procedure|function)/).test(currentLine)) {
+            if (mainDeclarationFlag == true) {
+                exports.errors.push(new SyntaxError_1.SyntaxError(419, "Cannot define a method after main variable declaration", nbLine));
+            }
+            else {
+                // it's a procedure
+                if (new RegExp(/^procedure/).test(currentLine)) {
+                    if (blockScope > 1) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
+                    }
+                    else {
+                        checkingError_Procedure(currentLine, nbLine);
+                    }
+                }
+                // it's a function
+                else {
+                    if (blockScope > 1) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
+                    }
+                    else {
+                        checkingError_Function(currentLine, nbLine);
+                    }
+                }
+            }
+        }
+        else if (new RegExp(/^(if|for|while|elif|else)/).test(currentLine)) {
+            // "if" or "elif" read
+            if (new RegExp(/^(if|elif)/).test(currentLine)) {
+                checkingError_If(currentLine, nbLine);
+            }
+            // "while" read
+            else if (new RegExp(/^while/).test(currentLine)) {
+                checkingError_While(currentLine, nbLine);
+            }
+            // "for" read
+            else if (new RegExp(/^for/).test(currentLine)) {
+                checkingError_For(currentLine, nbLine);
+            }
+            // "else" read
+            else {
+                checkingError_Else(currentLine, nbLine);
+            }
+        }
+        else if (new RegExp(/.*:=.*/).test(currentLine)) {
+            checkingError_Affectation(currentLine, nbLine);
+        }
+        else if (new RegExp(/.*:.*/).test(currentLine)) {
+            checkingError_VariableDeclaration(currentLine, nbLine);
+        }
+        else if (new RegExp(/^begin/).test(currentLine)) {
+            declarationOk = false;
+        }
+        else if (new RegExp(/^end/).test(currentLine)) {
+            blockScope--;
+            if (blockScope == 1) {
+                removeFromTables(getLastMethod().name);
+            }
+        }
+        checkingError_UnknownWord(currentLine, nbLine);
+        checkingError_MissingParenthesis(currentLine, nbLine);
     }
     if (blockScope != 0) {
         exports.errors.push(new SyntaxError_1.SyntaxError(413, "End of file read", lines.length - 1));
     }
-    console.log(syntaxError.isError);
 }
 exports.setErrors = setErrors;
 /**
@@ -240,6 +238,7 @@ function resetTables() {
     methodsTable["put"] = { name: "put", nbParams: 1, returnType: "void" };
     methodsTable["get"] = { name: "get", nbParams: 1, returnType: "void" };
     variablesTable = {};
+    knownWords = ["put", "get"];
 }
 /**
  * @description checks if it a potential boolean expression. It doesn't check if it is correct
@@ -290,9 +289,9 @@ function variableExists(variable) { return (variablesTable[getLastMethod().name 
  * @returns true | false
  * @author Sébastien HERT
  */
-function variableHasCorrectName(variable) {
+function hasCorrectName(variable) {
     const regexCorrectName = new RegExp(/^[a-zA-Z][a-zA-Z0-9_]*$/);
-    return regexCorrectName.test(variable);
+    return (regexCorrectName.test(variable) && !isKeyWord(variable));
 }
 /**
  * @description checks if the method given exists
@@ -354,6 +353,10 @@ function removeFromTables(methodName) {
 function isKnownWord(word) {
     return (knownWords.includes(word) || word == "" || (new RegExp(/^[0-9]+$/).test(word)));
 }
+function isKeyWord(word) {
+    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean"];
+    return keyWordList.includes(word);
+}
 //--------------------------------------------------------------------------------//
 //-------------------------------- Error Methods --------------------------------//
 /**
@@ -390,11 +393,14 @@ function checkingError_Procedure(currentLine, nbLine) {
                 if (!regexDefinition.test(params)) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
                 }
+                else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                    exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
+                }
                 else {
                     methodsTable[methodName] = { name: methodName, nbParams: params.split(",").length, returnType: "void" };
-                    knownWords.push(methodName);
                     declarationOk = true;
                     blockScope++;
+                    knownWords.push(methodName);
                     checkingError_Parameters(nbLine, params, methodName);
                 }
             }
@@ -403,6 +409,9 @@ function checkingError_Procedure(currentLine, nbLine) {
                 // If the parameter(s) isn't empty, raise an error because it's not valid
                 if (params.length != 0) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(408, "Wrong procedure block format", nbLine));
+                }
+                else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                    exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
                 }
                 // else add it to our table
                 else {
@@ -451,6 +460,9 @@ function checkingError_Function(currentLine, nbLine) {
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) {
                         exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
                     }
+                    else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
+                    }
                     // If everything is right, we register the function
                     else {
                         let nbParamsMethod = params.split(",").length;
@@ -473,6 +485,9 @@ function checkingError_Function(currentLine, nbLine) {
                     let outputs = currentLine.split("return")[1].split("is")[0].trim();
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) {
                         exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
+                    }
+                    else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
                     }
                     // If everything is right, we register the function
                     else {
@@ -608,7 +623,7 @@ function checkingError_VariableDeclaration(currentLine, nbLine) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(416, variable + " is already defined", nbLine));
                 }
                 // If that is not a valid variable name
-                else if (!variableHasCorrectName(variable)) {
+                else if (!hasCorrectName(variable)) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(417, variable + "is not a valid variable name", nbLine));
                 }
                 else {
@@ -683,7 +698,7 @@ function checkingError_Parameters(nbLine, params, methodName) {
         // Else the element is a parameter's name
         else {
             // If the name given is not a valid parameter name
-            if (!variableHasCorrectName(element)) {
+            if (!hasCorrectName(element)) {
                 exports.errors.push(new SyntaxError_1.SyntaxError(417, element + " is not a valid parameter name", nbLine));
             }
             // Else we keep the name

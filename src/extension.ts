@@ -45,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
     // console.log("done opening")
   }
 
+
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(
     (e: vscode.TextDocumentChangeEvent | undefined) => {
       if (e !== undefined) {

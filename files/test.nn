@@ -1,26 +1,57 @@
-procedure pp(parameter :  integer) is
-        # toto : integer;
-        function test() return  boolean is
-                # toto : boolean;
-                titi : integer;
+
+procedure pp() is
+        procedure name(var0 : boolean) is
+                 variable1 : boolean;
         begin
-                #statement;
-                return 0;
+                 put(variable1);
+        end
+        procedure toto() is
+                 variable1 :  boolean;
+                 variable2 : integer;
+        begin
+                 put(5);
         end
 
-        #variable1 :  Type;
-        toto : boolean;
-        tata :integer;
+        toto : integer;
+        # toto : integer;
+        
 begin
 
-        toto := true;
-        # toto := 2;
-        # titi := toto;
-        tata := 2;
-        test();
-        titi();
+        toto := 4;
+        put(toto);
 
 
 end
 
+
+/*
+
+debutProg();
+tra(43)
+
+reserver(1)
+empilerAd(0)
+ValeurPile()
+put()
+retourProc()
+
+reserver(2)
+empiler(5)
+put()
+retourProc()
+
+reserver(1)
+empiler(0)
+empiler(4)
+affectation();
+enpiler(0)
+valeurPile();
+put();
+
+
+finProg();
+
+
+
+*/
 

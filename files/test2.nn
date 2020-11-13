@@ -1,24 +1,6 @@
-
+procedure pp() is
+      toto, titi, tutu : boolean;
+      tata : integer;
 begin
-if condition then
-     if condition then
-          #statement;
-     elif condition then
-          #statement;
-     else
-          #statement;
-     end
-elif condition then
-     #statement;
-else
-     #statement;
-end
-end
-
-for i from bottomBound to upperBound loop
-      #statement;
-end
-
-while condition loop
       #statement;
 end
