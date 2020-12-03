@@ -77,7 +77,7 @@ All variables have to be declared at the top of the method, before the key-word 
 * **\#** : commented line
 * **/\* [...] \*/** : comments block
 
-## **Procedural blocks**
+## **Blocks**
 
 ### **If**
 
