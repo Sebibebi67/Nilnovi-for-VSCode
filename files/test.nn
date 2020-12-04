@@ -1,57 +1,22 @@
-
 procedure pp() is
-        procedure name(var0 : boolean) is
-                 variable1 : boolean;
+
+        procedure toto(x : integer) is
+                 y : boolean;
         begin
-                 put(variable1);
-        end
-        procedure toto() is
-                 variable1 :  boolean;
-                 variable2 : integer;
-        begin
-                 put(5);
+                 x := 6;
+                 y := x > 69;
         end
 
-        toto : integer;
-        # toto : integer;
+        k, i : integer;
         
 begin
-
-        toto := 4;
-        put(toto);
-
-
+        k := 5;
+        toto(k);
+        # tata(tata(tata(tata(tata(tata(5))))));
+        # toto(5, 60+13);
+        # k := 4*(1+3);
+        # j := 3;
+        # while (i < 5) loop
+        #         put(i);
+        # end
 end
-
-
-/*
-
-debutProg();
-tra(43)
-
-reserver(1)
-empilerAd(0)
-ValeurPile()
-put()
-retourProc()
-
-reserver(2)
-empiler(5)
-put()
-retourProc()
-
-reserver(1)
-empiler(0)
-empiler(4)
-affectation();
-enpiler(0)
-valeurPile();
-put();
-
-
-finProg();
-
-
-
-*/
-
