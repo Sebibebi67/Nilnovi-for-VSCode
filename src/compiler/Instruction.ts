@@ -1,10 +1,13 @@
-//================================ Class Variable=== =============================//
+//== Class Instruction ==//
+
 
 //--------------------------------- Description ----------------------------------//
 //
-// This is a structures which describes the fields of a variable
+// This object contains both the machine code and the type of the potential value
+// on the top of the pile
 //
 //--------------------------------------------------------------------------------//
+
 
 //----------------------------------- Authors ------------------------------------//
 //
@@ -13,42 +16,43 @@
 //
 //--------------------------------------------------------------------------------//
 
+
 //----------------------------------- Imports ------------------------------------//
 //
 //--------------------------------------------------------------------------------//
 
-export class Variable {
+
+export class Instruction {
+
+
 	//------------------------------- Class Variables --------------------------------//
 
-	public name: string;
-	public addPile: number;
-	public methodName : string
-	// public scope: number = -1;
-	public type: string;
-	public isParameter: boolean;
-	public parameterIndex: number = -1;
-	public hasBeenAffected : boolean = false;
+	public machineCode: string;
+	public type: string | undefined = undefined;
+
 
 	//--------------------------------------------------------------------------------//
 
+
 	//--------------------------------- Constructor ----------------------------------//
 
-	constructor(name: string, methodName : string, type: string, isParameter: boolean, addPile: number, parameterIndex?:number) {
-		this.name = name;
-		this.type = type;
-		this.methodName = methodName;
-		if (!(parameterIndex === undefined)) { this.parameterIndex = parameterIndex; }
-		this.addPile = addPile;
-		// if (!(scope === undefined)) { this.scope = scope; }
-		this.isParameter = isParameter;
-
-		if (isParameter){}
+	constructor(machineCode: string, type?: string) {
+		this.machineCode = machineCode;
+		if (type !== undefined) { this.type = type }
 	}
 
 	//--------------------------------------------------------------------------------//
 
+
 	//----------------------------------- Methods ------------------------------------//
-	//
+
+	public toString(): string {
+		if (this.type === undefined){return this.machineCode}
+		else{return this.machineCode + ' -> ' + this.type;}
+	}
+
 	//--------------------------------------------------------------------------------//
+
+
 }
-  //================================================================================//
+//================================================================================//

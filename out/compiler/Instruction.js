@@ -1,10 +1,11 @@
 "use strict";
-//================================ Class Variable=== =============================//
+//== Class Instruction ==//
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Variable = void 0;
+exports.Instruction = void 0;
 //--------------------------------- Description ----------------------------------//
 //
-// This is a structures which describes the fields of a variable
+// This object contains both the machine code and the type of the potential value
+// on the top of the pile
 //
 //--------------------------------------------------------------------------------//
 //----------------------------------- Authors ------------------------------------//
@@ -16,24 +17,27 @@ exports.Variable = void 0;
 //----------------------------------- Imports ------------------------------------//
 //
 //--------------------------------------------------------------------------------//
-class Variable {
+class Instruction {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
-    constructor(name, methodName, type, isParameter, addPile, parameterIndex) {
-        this.parameterIndex = -1;
-        this.hasBeenAffected = false;
-        this.name = name;
-        this.type = type;
-        this.methodName = methodName;
-        if (!(parameterIndex === undefined)) {
-            this.parameterIndex = parameterIndex;
+    constructor(machineCode, type) {
+        this.type = undefined;
+        this.machineCode = machineCode;
+        if (type !== undefined) {
+            this.type = type;
         }
-        this.addPile = addPile;
-        // if (!(scope === undefined)) { this.scope = scope; }
-        this.isParameter = isParameter;
-        if (isParameter) { }
+    }
+    //--------------------------------------------------------------------------------//
+    //----------------------------------- Methods ------------------------------------//
+    toString() {
+        if (this.type === undefined) {
+            return this.machineCode;
+        }
+        else {
+            return this.machineCode + ' -> ' + this.type;
+        }
     }
 }
-exports.Variable = Variable;
+exports.Instruction = Instruction;
 //================================================================================//
-//# sourceMappingURL=Variable.js.map
+//# sourceMappingURL=Instruction.js.map
