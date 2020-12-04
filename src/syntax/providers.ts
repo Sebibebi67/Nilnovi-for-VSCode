@@ -173,7 +173,7 @@ export function setErrors(file: string) {
         const regexUnexpectedChar = new RegExp(/^[a-zA-Z0-9\+\*\-\/<>=:\(\)_ ;,]*$/);
 
 
-        if (i == 0 && !(new RegExp(/^procedure\s+pp\(\s*\)\s+is$/).test(currentLine))) {
+        if (i == 0 && !(new RegExp(/^procedure\s+([a-zA-Z][a-zA-Z0-9_]*)\(\s*\)\s+is$/).test(currentLine))) {
             errors.push(new SyntaxError(422, "first line format error (use format 'procedure pp() is'", nbLine));
         }
 

@@ -184,6 +184,51 @@ export class Compiler {
 			return 0;
 		}
 
+		else if(words[0] == "put") {
+			words.pop();
+			words.pop();
+			words.shift();
+			words.shift();
+			let returnValue = this.analyzer(this.concatWords(words));
+			if (returnValue != 0) {
+				console.error("analyzer error");
+				return returnValue;
+			}
+
+			returnValue = this.syntaxAnalyzer(this.currentExpressionList);
+
+			if (returnValue != 0) {
+				console.error("syntaxAnalyzer");
+				return returnValue;
+			}
+
+			this.generateInstructions(this.currentExpressionList, false);
+			this.instructions.push(new Instruction("put();"));
+			return 0;
+			
+		}
+		else if(words[0] == "get"){
+
+			if (words.length != 5){
+				console.error("get : wrong nb parameters");
+				return 1;
+			}
+
+			let variable = words[2];
+
+			if (!this.isVar(this.fullVariableName(variable))){
+				console.error("get : not a var");
+				return 1;
+			}
+
+			let address = this.variableList.get(this.fullVariableName(variable)).addPile;
+			this.instructions.push(new Instruction("empiler("+address+");", "address"));
+			this.instructions.push(new Instruction("get();"));
+
+			this.variableList.get(this.fullVariableName(variable)).hasBeenAffected = true;
+			return 0;
+		}
+
 		// else :
 		else {
 			words.pop();

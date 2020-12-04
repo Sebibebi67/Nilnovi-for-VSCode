@@ -1,4 +1,4 @@
-procedure pp() is
+procedure main() is
 
         function double(x : in integer) return integer is
                 y : boolean;
@@ -7,15 +7,11 @@ procedure pp() is
         
         end
 
-        # procedure double(x : in out integer) is
-        #         #variable1 : Type;
-        # begin
-        #         #statement;
-        # end
 
         k, i : integer;        
         
 begin
-        k := 5;
-        i := double(k);
+        get(k);
+        put(double(k));
+        
 end
