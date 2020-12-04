@@ -136,7 +136,7 @@ class Compiler {
                 console.error("syntaxAnalyzer");
                 return returnValue;
             }
-            this.generateInstructions(this.currentExpressionList);
+            this.generateInstructions(this.currentExpressionList, false);
             // this.nbLine++;
             return 0;
         }
@@ -203,9 +203,23 @@ class Compiler {
             console.error("syntaxAnalyzer");
             return 1;
         }
-        // TODO (upgrade)
-        this.instructions.push(new Instruction_1.Instruction("empiler(" + this.variableList.get(this.fullVariableName(variable)).addPile + ");", "address"));
-        this.generateInstructions(this.currentExpressionList);
+        let fullVariableName = this.variableList.get(this.fullVariableName(variable));
+        // if it's a parameter
+        if (fullVariableName.isParameter) {
+            // in out parameter
+            if (fullVariableName.isOut) {
+                this.instructions.push(new Instruction_1.Instruction("empilerParam(" + fullVariableName.addPile + ");", "address"));
+            }
+            // in parameter
+            else {
+                this.instructions.push(new Instruction_1.Instruction("empilerAd(" + fullVariableName.addPile + ");", "address"));
+            }
+        }
+        // else if not
+        else {
+            this.instructions.push(new Instruction_1.Instruction("empiler(" + fullVariableName.addPile + ");", "address"));
+        }
+        this.generateInstructions(this.currentExpressionList, false);
         this.instructions.push(new Instruction_1.Instruction("affectation();"));
         // Let's inform the compiler that the variable has been affected
         this.variableList.get(this.fullVariableName(variable)).hasBeenAffected = true;
@@ -243,7 +257,6 @@ class Compiler {
         });
         return 0;
     }
-    //TODO
     /**
      * @description loads all parameters in the lists
      * @param string[] the list of words
@@ -253,19 +266,24 @@ class Compiler {
      */
     parameterLoading(words) {
         // this function is pretty similar to variableDeclaration defined just above
-        var nameList = [];
+        let nameList = [];
+        let isOut = false;
         // This time, we need a list of know words
-        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return"];
+        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"];
         words.forEach(word => {
-            var indexParam = 0;
+            let indexParam = 0;
             // If the word is a type
             if (word == "integer" || word == "boolean") {
                 nameList.forEach(name => {
-                    this.variableList.add(new Variable_1.Variable(name, this.currentMethodName, word, true, this.methodList.get(this.currentMethodName).fakePileLength, indexParam));
+                    this.variableList.add(new Variable_1.Variable(name, this.currentMethodName, word, true, this.methodList.get(this.currentMethodName).fakePileLength, indexParam, isOut));
                     this.methodList.get(this.currentMethodName).fakePileLength++;
                     indexParam++;
                 });
                 nameList = [];
+                isOut = false;
+            }
+            if (word == "out") {
+                isOut = true;
             }
             // else if it's a not a known word
             else if (!notParamList.includes(word) && word != words[1]) {
@@ -282,7 +300,7 @@ class Compiler {
      */
     getParamNames(words) {
         let names = [];
-        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return"];
+        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"];
         // for each word
         words.forEach(word => {
             // if the word isn't a key word or a separator
@@ -679,11 +697,12 @@ class Compiler {
     /**
      * @description generates the instructions to translate the given expression
      * @param string[] expression to translate
+     * @param boolean is it a block from reserverBloc ?
      * @returns the output status
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    generateInstructions(expression) {
+    generateInstructions(expression, isBlock) {
         // for each word in the expression
         for (let i = 0; i < expression.length; i++) {
             let word = expression[i];
@@ -697,8 +716,26 @@ class Compiler {
             }
             // if the word is a known variable
             else if (this.isVar(this.fullVariableName(word))) {
-                this.instructions.push(new Instruction_1.Instruction("empiler(" + this.variableList.get(this.fullVariableName(word)).addPile + ");", "address"));
-                this.instructions.push(new Instruction_1.Instruction("valeurPile();"));
+                let variable = this.variableList.get(this.fullVariableName(word));
+                // if it's a parameter
+                if (variable.isParameter) {
+                    // in out parameter
+                    if (variable.isOut) {
+                        this.instructions.push(new Instruction_1.Instruction("empilerParam(" + variable.addPile + ");", "address"));
+                    }
+                    // in parameter
+                    else {
+                        this.instructions.push(new Instruction_1.Instruction("empilerAd(" + variable.addPile + ");", "address"));
+                    }
+                }
+                // else if not
+                else {
+                    this.instructions.push(new Instruction_1.Instruction("empiler(" + variable.addPile + ");", "address"));
+                }
+                // If we are waiting for valeurPile();
+                if (!isBlock) {
+                    this.instructions.push(new Instruction_1.Instruction("valeurPile();"));
+                }
             }
             // if the word is a boolean
             else if (word == "true") {
@@ -766,7 +803,7 @@ class Compiler {
                     return returnValue;
                 }
                 // finally we generate the instructions to get this parameter
-                this.generateInstructions(this.currentExpressionList);
+                this.generateInstructions(this.currentExpressionList, false);
                 tmpWordsList = [];
             }
             // else the word is a part of a parameter
@@ -797,7 +834,7 @@ class Compiler {
         // we create the instruction to reserve a block in the pile before calling the method
         this.instructions.push(new Instruction_1.Instruction("reserverBloc();", "bloc"));
         // we generate the instructions for the method's parameters
-        this.generateInstructions(this.currentExpressionList);
+        this.generateInstructions(this.currentExpressionList, true);
         tmpWordsList = [];
         // finally we create the instruction to call the method with its beginning line and the number of parameters to get
         let methodLine = this.methodList.get(methodName).refLine + 1;
