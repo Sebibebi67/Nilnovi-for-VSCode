@@ -1,13 +1,38 @@
 procedure pp() is
 
-        procedure toto(x : integer) is
+        # procedure toto(x : integer) is
+        #         y : boolean;
+        # begin
+        #         x := 6;
+        #         y := x > 69;
+        # end
+
+        procedure toto(x : in integer) is
                 y : boolean;
         begin
-                x := 6;
+                x := ((((3+5))));
+
+                
                 y := x > 69;
+
+
+
+
+
+
+                
+                
         end
 
         k, i : integer;
+
+        
+
+        j:integer;
+
+
+
+        
         
 begin
         k := 5;

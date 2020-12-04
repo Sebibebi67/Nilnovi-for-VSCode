@@ -35,10 +35,10 @@
     "procedure" : {
         "prefix" : ["procedure [p] is..."],
         "body" : [
-            "procedure ${1:name}(${2:parameter} : ${3: Type}) is",
-                "\t${4:#variable1} : ${5: Type};",
+            "procedure ${1:name}(${2:parameter} : ${3|in,in out|} ${4:Type}) is",
+                "\t${5:#variable1} : ${6:Type};",
             "begin",
-                "\t${6:#statement};",
+                "\t${7:#statement};",
             "end"
         ],
         "description" : "Generates a new procedure in Nilnovi"
@@ -47,11 +47,11 @@
     "function" : {
         "prefix" : ["function [p] is..."],
         "body" : [
-            "function ${1:name}(${2:parameter} : ${3: Type}) return ${4: Type} is",
-                "\t${5:#variable1} : ${6: Type};",
+            "function ${1:name}(${2:parameter} : ${3|in,in out|} ${4:Type}) return ${5:Type} is",
+                "\t${6:#variable1} : ${7:Type};",
             "begin",
-                "\t${7:#statement};",
-                "return ${8:0};",
+                "\t${8:#statement};",
+                "return ${9:0};",
             "end"
         ],
         "description" : "Generates a new function in Nilnovi"

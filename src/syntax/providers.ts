@@ -20,6 +20,7 @@ import * as vscode from "vscode";
 import { SyntaxError } from "./SyntaxError";
 import * as syntaxError from "./SyntaxError";
 import * as tools from "../tools";
+import { VariableList } from "../compiler/VariableList";
 
 //--------------------------------------------------------------------------------//
 
@@ -64,6 +65,8 @@ export function autoCompletion() {
             completions.push(new vscode.CompletionItem('is', vscode.CompletionItemKind.Keyword));
             completions.push(new vscode.CompletionItem('procedure', vscode.CompletionItemKind.Keyword));
             completions.push(new vscode.CompletionItem('function', vscode.CompletionItemKind.Keyword));
+            completions.push(new vscode.CompletionItem('in', vscode.CompletionItemKind.Keyword));
+            completions.push(new vscode.CompletionItem('out', vscode.CompletionItemKind.Keyword));
             completions.push(new vscode.CompletionItem('or', vscode.CompletionItemKind.Operator));
             completions.push(new vscode.CompletionItem('and', vscode.CompletionItemKind.Operator));
             completions.push(new vscode.CompletionItem('not', vscode.CompletionItemKind.Operator));
@@ -252,8 +255,9 @@ function resetTables() {
 function expressionIsBoolean(expression: string, nbLine: number) {
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
     if (regexContainsBooleanInstructions.test(expression)) { return true }
-    const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_])*\(.*\);$/);
+    const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*)\(.*\);$/);
     if (regexIsFunction.test(expression)) {
+        console.log(expression);
         const methodName = expression.split("(")[0].trim();
         const methodDef = methodsTable[methodName];
         if (!methodExists(methodName)) {
@@ -262,7 +266,7 @@ function expressionIsBoolean(expression: string, nbLine: number) {
         }
         return methodDef.returnType == "boolean";
     }
-    const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]);$/);
+    const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*);$/);
     if (regexIsVariable.test(expression)) {
         const variableName = expression.split(";")[0].trim();
         const variableDef = variablesTable[getLastMethod().name + "." + variableName];
@@ -282,7 +286,7 @@ function expressionIsBoolean(expression: string, nbLine: number) {
  * @author Sébastien HERT
  * @author Adam RIVIÈRE
  */
-function variableExists(variable: string) { return (variablesTable[getLastMethod().name + "." + variable] !== undefined)}
+function variableExists(variable: string) { return (variablesTable[getLastMethod().name + "." + variable] !== undefined) }
 
 
 /**
@@ -356,8 +360,8 @@ function isKnownWord(word: string) {
     return (knownWords.includes(word) || word == "" || (new RegExp(/^[0-9]+$/).test(word)));
 }
 
-function isKeyWord(word : string){
-    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean"];
+function isKeyWord(word: string) {
+    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean", "in", "out"];
     return keyWordList.includes(word);
 }
 
@@ -376,7 +380,7 @@ function isKeyWord(word : string){
  */
 function checkingError_Procedure(currentLine: string, nbLine: number) {
     const regexProcedureFormat = new RegExp(/^procedure\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*is\s*$/);
-    const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
+    const regexDefinition = new RegExp(/.*:\s*(in|in\s+out)\s+(integer|boolean)$/);
     const regexTwoPoints = new RegExp(/.*:.*/);
 
     // If the procedure format isn't right
@@ -401,7 +405,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
                 // Checking if it has the correct format -> x : integer
                 // if not, raise an error, else add it to our methodsTable
                 if (!regexDefinition.test(params)) { errors.push(new SyntaxError(403, "Undefined type", nbLine)); }
-                else if(!hasCorrectName(methodName) || isKnownWord(methodName)){errors.push(new SyntaxError(423, "Method "+methodName+" is already defined", nbLine));}
+                else if (!hasCorrectName(methodName) || isKnownWord(methodName)) { errors.push(new SyntaxError(423, "Method " + methodName + " is already defined", nbLine)); }
                 else {
                     methodsTable[methodName] = { name: methodName, nbParams: params.split(",").length, returnType: "void" };
                     declarationOk = true;
@@ -416,7 +420,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
 
                 // If the parameter(s) isn't empty, raise an error because it's not valid
                 if (params.length != 0) { errors.push(new SyntaxError(408, "Wrong procedure block format", nbLine)); }
-                else if(!hasCorrectName(methodName) || isKnownWord(methodName)){errors.push(new SyntaxError(423, "Method "+methodName+" is already defined", nbLine));}
+                else if (!hasCorrectName(methodName) || isKnownWord(methodName)) { errors.push(new SyntaxError(423, "Method " + methodName + " is already defined", nbLine)); }
                 // else add it to our table
                 else {
                     methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: "void" };
@@ -438,7 +442,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
  */
 function checkingError_Function(currentLine: string, nbLine: number) {
     const regexFunctionFormat = new RegExp(/^function\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*return\s*.*\s*is\s*$/);
-    const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
+    const regexDefinition = new RegExp(/.*:\s*(in|in\s+out)\s+(integer|boolean)$/);
     const regexTwoPoints = new RegExp(/.*:.*/);
 
     // if the function format isn't right
@@ -466,7 +470,7 @@ function checkingError_Function(currentLine: string, nbLine: number) {
                     let outputs = currentLine.split("return")[1].split("is")[0].trim();
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) { errors.push(new SyntaxError(403, "Undefined type", nbLine)); }
 
-                    else if(!hasCorrectName(methodName) || isKnownWord(methodName)){errors.push(new SyntaxError(423, "Method "+methodName+" is already defined", nbLine));}
+                    else if (!hasCorrectName(methodName) || isKnownWord(methodName)) { errors.push(new SyntaxError(423, "Method " + methodName + " is already defined", nbLine)); }
                     // If everything is right, we register the function
                     else {
                         let nbParamsMethod = params.split(",").length;
@@ -488,7 +492,7 @@ function checkingError_Function(currentLine: string, nbLine: number) {
                     // Here we check if the return type is valid
                     let outputs = currentLine.split("return")[1].split("is")[0].trim();
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) { errors.push(new SyntaxError(403, "Undefined type", nbLine)); }
-                    else if(!hasCorrectName(methodName) || isKnownWord(methodName)){errors.push(new SyntaxError(423, "Method "+methodName+" is already defined", nbLine));}
+                    else if (!hasCorrectName(methodName) || isKnownWord(methodName)) { errors.push(new SyntaxError(423, "Method " + methodName + " is already defined", nbLine)); }
                     // If everything is right, we register the function
                     else {
                         methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: outputs };
@@ -672,18 +676,20 @@ function checkingError_Parameters(nbLine: number, params: string, methodName: st
         element = element.trim();
 
         // If it's a type
-        if (element == "boolean" || element == "integer") {
+        if (new RegExp(/^in\s*(out)?\s*(integer|boolean)$/).test(element)) {
+            // if (element == "boolean" || element == "integer") {
 
             // We need to loads all the variables stored in our local list into our global list
             currentVarList.forEach(param => {
-                variablesTable[methodName + "." + param] = { name: param, group: methodName, type: element }
+                let elementInWords = element.split(" ");
+                variablesTable[methodName + "." + param] = { name: param, group: methodName, type: elementInWords[elementInWords.length - 1] }
             });
 
             // And then resets it
             currentVarList = []
         }
-        // If the element is ':' or ',' we do nothing
-        else if (element == ":" || element == ",") { }
+        // If the element is ':'/','/"in"/"out" we do nothing
+        else if (element == ":" || element == "," || element == "in" || element == "out") { }
 
         // Else the element is a parameter's name
         else {
@@ -743,7 +749,7 @@ function checkingError_UnknownWord(currentLine: string, nbLine: number) {
 
     // We need to define all the potential parsers and all the keywords known
     const regexParser = new RegExp(/ |,|\+|\-|\/|\*|>|<|=|:|;|\(|\)/);
-    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean"];
+    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean", "in", "out"];
 
     // We also need to split our currentLine
     var wordsList = currentLine.split(regexParser);
