@@ -58,13 +58,13 @@ class PileWebViewPanel {
                         <tbody  id='pileBody'></tbody>
                     </table>
                 </div>
-                <table><tbody>
+                <table id='legende'><tbody>
                     <tr>
                         <td>Couleurs:</td>
-                        <td id='int'>Entier</td>
-                        <td id='bool'>Booléen</td>
-                        <td id='link'>Adresse</td>
-                        <td id='block'>Bloc de liaison</td>
+                        <td class='int'>Entier</td>
+                        <td class='bool'>Booléen</td>
+                        <td class='link'>Adresse</td>
+                        <td class='block'>Bloc de liaison</td>
                     </tr>
                 </tbody></table>
 
@@ -72,9 +72,11 @@ class PileWebViewPanel {
 
                     const vscode = acquireVsCodeApi();
                     // Handle the message inside the webview
+
                     window.addEventListener('message', event => {
+
                         const message = event.data; // The JSON data our extension sent
-                        // document.getElementById('debug').innerHTML = message.command;
+
                         switch (message.command) {
 
                             case 'showPile':
@@ -89,8 +91,14 @@ class PileWebViewPanel {
                                     }
                                     tr.appendChild(num);
                                     let content = document.createElement('td');
-                                    content.innerHTML = element.value;
-                                    content.id = element.type;
+                                    if(element.type != 'link'){
+                                        content.innerHTML = "<span class=" + element.type + ">" + element.value + "</span>";
+                                    }else{
+                                        content.innerHTML = 
+                                            "<span class=" + element.type + ">" + element.value + "</span>" + 
+                                            " -> (" +
+                                            "<span class=" + message.pile[element.value]['type'] +">" + message.pile[element.value]['value'] + "</span>)";
+                                    }
                                     tr.appendChild(content);
                                     tablebody.insertBefore(tr, tablebody.firstChild);
                                 })

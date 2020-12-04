@@ -14,7 +14,7 @@ import {autoCompletion} from "./providers";
 import {hovers} from "./providers";
 import { debug } from "console";
 
-var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'link' }, { value: 23, type: 'int' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'block' }, { value: 6, type: 'block' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
+var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomblock' }, { value: 6, type: 'topblock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
 let pointeurPile = 0;
 
 // this method is called when your extension is activated

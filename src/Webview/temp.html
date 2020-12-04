@@ -37,7 +37,8 @@
                                     tr.appendChild(num);
                                     let content = document.createElement('td');
                                     content.innerHTML = element.value;
-                                    content.id = element.type;
+                                    content.className = element.type;
+                                    document.createTextNode(64)
                                     tr.appendChild(content);
                                     tablebody.insertBefore(tr, table.firstChild);
                                 })
