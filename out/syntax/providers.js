@@ -28,6 +28,7 @@ var declarationOk = false;
 var mainDeclarationFlag = false;
 var blockScope = 0;
 var knownWords = ["put", "get"];
+let currentMethod = "pp";
 //--------------------------------------------------------------------------------//
 //----------------------------------- Functions ----------------------------------//
 /**
@@ -217,7 +218,8 @@ function setErrors(file) {
         else if (new RegExp(/^end/).test(currentLine)) {
             blockScope--;
             if (blockScope == 1) {
-                removeFromTables(getLastMethod().name);
+                removeFromTables(currentMethod);
+                currentMethod = "pp";
             }
         }
         checkingError_UnknownWord(currentLine, nbLine);
@@ -257,7 +259,6 @@ function expressionIsBoolean(expression, nbLine) {
     }
     const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*)\(.*\);$/);
     if (regexIsFunction.test(expression)) {
-        console.log(expression);
         const methodName = expression.split("(")[0].trim();
         const methodDef = methodsTable[methodName];
         if (!methodExists(methodName)) {
@@ -269,7 +270,7 @@ function expressionIsBoolean(expression, nbLine) {
     const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*);$/);
     if (regexIsVariable.test(expression)) {
         const variableName = expression.split(";")[0].trim();
-        const variableDef = variablesTable[getLastMethod().name + "." + variableName];
+        const variableDef = variablesTable[currentMethod + "." + variableName];
         if (!variableExists(variableName)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(414, "Variable " + variableName + " not found", nbLine));
             return false;
@@ -285,7 +286,7 @@ function expressionIsBoolean(expression, nbLine) {
  * @author Sébastien HERT
  * @author Adam RIVIÈRE
  */
-function variableExists(variable) { return (variablesTable[getLastMethod().name + "." + variable] !== undefined); }
+function variableExists(variable) { return (variablesTable[currentMethod + "." + variable] !== undefined); }
 /**
  * @description checks if a variable has a correct name
  * @param string variable
@@ -326,21 +327,20 @@ function validBound(bound) {
         }
     }
 }
-/**
- * @description get the last element of method table
- * @returns the object method : { name: string, nbParams: number, returnType : string } }
- * @author Sébastien HERT
- */
-function getLastMethod() {
-    return methodsTable[Object.keys(methodsTable)[Object.keys(methodsTable).length - 1]];
-}
+// /**
+//  * @description get the last element of method table
+//  * @returns the object method : { name: string, nbParams: number, returnType : string } }
+//  * @author Sébastien HERT
+//  */
+// function getLastMethod() {
+//     return methodsTable[Object.keys(methodsTable)[Object.keys(methodsTable).length - 1]]
+// }
 /**
  * @description remove the method and its list of variables from the tables
  * @param String the method name
  * @author Sébastien HERT
  */
 function removeFromTables(methodName) {
-    delete methodsTable[methodName];
     for (var key in variablesTable) {
         if (variablesTable[key].group == methodName) {
             delete variablesTable[key];
@@ -405,6 +405,7 @@ function checkingError_Procedure(currentLine, nbLine) {
                     blockScope++;
                     knownWords.push(methodName);
                     checkingError_Parameters(nbLine, params, methodName);
+                    currentMethod = methodName;
                 }
             }
             // If there is no valid parameters
@@ -422,6 +423,7 @@ function checkingError_Procedure(currentLine, nbLine) {
                     declarationOk = true;
                     blockScope++;
                     knownWords.push(methodName);
+                    currentMethod = methodName;
                 }
             }
         }
@@ -474,6 +476,7 @@ function checkingError_Function(currentLine, nbLine) {
                         declarationOk = true;
                         blockScope++;
                         checkingError_Parameters(nbLine, params, methodName);
+                        currentMethod = methodName;
                     }
                 }
             }
@@ -498,6 +501,7 @@ function checkingError_Function(currentLine, nbLine) {
                         declarationOk = true;
                         blockScope++;
                         knownWords.push(methodName);
+                        currentMethod = methodName;
                     }
                 }
             }
@@ -631,7 +635,7 @@ function checkingError_VariableDeclaration(currentLine, nbLine) {
                 }
                 else {
                     // Else we register the variable
-                    variablesTable[getLastMethod().name + "." + variable] = { name: variable, type: type.split(";")[0], group: getLastMethod().name };
+                    variablesTable[currentMethod + "." + variable] = { name: variable, type: type.split(";")[0], group: currentMethod };
                     knownWords.push(variable);
                     // We check if we are beginning the main procedure
                     if (blockScope == 1) {
@@ -659,7 +663,7 @@ function checkingError_Affectation(currentLine, nbLine) {
     // else it exists
     else {
         // Get the type of the variable and the expression
-        let type = variablesTable[getLastMethod().name + "." + variable].type;
+        let type = variablesTable[currentMethod + "." + variable].type;
         let exp = currentLine.split(":=")[1].trim();
         // if the variable is supposed to be a boolean but the expression cannot be a boolean
         if (type == "boolean" && !expressionIsBoolean(exp, nbLine)) {

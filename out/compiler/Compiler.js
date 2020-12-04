@@ -121,6 +121,19 @@ class Compiler {
         }
         // if "return" is read
         else if (new RegExp(/^return/).test(currentLine)) {
+            words.shift();
+            words.pop();
+            let returnValue = this.analyzer(this.concatWords(words));
+            if (returnValue != 0) {
+                console.error("analyzer error");
+                return returnValue;
+            }
+            returnValue = this.syntaxAnalyzer(this.currentExpressionList);
+            if (returnValue != 0) {
+                console.error("syntaxAnalyzer");
+                return returnValue;
+            }
+            this.generateInstructions(this.currentExpressionList, false);
             return 0;
         }
         // else :
