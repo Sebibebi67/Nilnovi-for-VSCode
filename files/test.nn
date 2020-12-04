@@ -4,14 +4,10 @@ procedure main() is
                 y : boolean;
         begin
                 return 2*x;
-        
         end
 
-
-        k, i : integer;        
-        
+        k, i : integer;
 begin
         get(k);
         put(double(k));
-        
 end
