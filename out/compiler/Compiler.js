@@ -75,7 +75,6 @@ class Compiler {
      * @author Adam RIVIÈRE
      */
     eval(currentLine) {
-        console.log(currentLine);
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
         currentLine = lineFeatures["content"];
@@ -128,10 +127,8 @@ class Compiler {
             this.generateInstructions(this.currentExpressionList, false);
             this.instructions.push(new Instruction_1.Instruction("tze(x);"));
             let tzeLine = this.instructions.length - 1;
-            // console.log(words);
             let blockScopeBeforeWhile = this.blockScope;
             while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
-                console.log(blockScopeBeforeWhile, this.blockScope);
                 // recursive calling
                 this.nbLine++;
                 let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -160,6 +157,90 @@ class Compiler {
             }
             return 0;
         }
+        else if (words[0] == "while") {
+            words.pop();
+            words.shift();
+            let returnValue = this.analyzer(this.concatWords(words));
+            if (returnValue != 0) {
+                console.error("analyzer error");
+                return returnValue;
+            }
+            returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+            if (returnValue != 0) {
+                console.error("syntaxAnalyzer");
+                return returnValue;
+            }
+            let whileLine = this.instructions.length + 1;
+            this.generateInstructions(this.currentExpressionList, false);
+            this.instructions.push(new Instruction_1.Instruction("tze(x);"));
+            let tzeLine = this.instructions.length - 1;
+            let blockScopeBeforeWhile = this.blockScope;
+            while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+                // recursive calling
+                this.nbLine++;
+                let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+                // Something got wrong
+                if (returnValue != 0) {
+                    return 1;
+                }
+            }
+            this.instructions.push(new Instruction_1.Instruction("tra(" + whileLine + ");"));
+            this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
+            return 0;
+        }
+        else if (words[0] == "for") {
+            // words.pop();
+            // words.shift();
+            // console.log(words);
+            let variable = words[1];
+            // words.shift();
+            let spliceIndex = words.indexOf("to");
+            let lowerBound = words.splice(3, spliceIndex - 3);
+            let upperBound = words.splice(4, words.length - 5);
+            let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
+            console.log(affectationToLowerBoundLine);
+            let condition = [variable, "<"].concat(upperBound);
+            let returnValue = this.eval(affectationToLowerBoundLine);
+            // Something got wrong
+            if (returnValue != 0) {
+                return 1;
+            }
+            returnValue = this.analyzer(this.concatWords(condition));
+            if (returnValue != 0) {
+                console.error("analyzer error");
+                return returnValue;
+            }
+            returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+            if (returnValue != 0) {
+                console.error("syntaxAnalyzer");
+                return returnValue;
+            }
+            let forLine = this.instructions.length + 1;
+            this.generateInstructions(this.currentExpressionList, false);
+            this.instructions.push(new Instruction_1.Instruction("tze(x);"));
+            let tzeLine = this.instructions.length - 1;
+            let blockScopeBeforeWhile = this.blockScope;
+            while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+                // recursive calling
+                this.nbLine++;
+                let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+                // Something got wrong
+                if (returnValue != 0) {
+                    return 1;
+                }
+            }
+            let finalIncrementLine = variable + ":=" + variable + "+" + "1;";
+            returnValue = this.eval(finalIncrementLine);
+            // Something got wrong
+            if (returnValue != 0) {
+                return 1;
+            }
+            // this.instructions.push(new Instruction("tze(x);"));
+            // let tzeLine = this.instructions.length - 1;
+            this.instructions.push(new Instruction_1.Instruction("tra(" + forLine + ");"));
+            this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
+            return 0;
+        }
         // else if it is an affectation
         else if (new RegExp(/.*:=.*/).test(currentLine)) {
             let returnValue = this.affectation(words);
@@ -177,7 +258,6 @@ class Compiler {
         else if (words[0] == "end") {
             for (const i in this.ifTraList) {
                 let [tra, blockScope] = this.ifTraList[i];
-                // console.log(tra, blockScope, this.blockScope);
                 if (blockScope == this.blockScope) {
                     if (tra + 1 != this.instructions.length) {
                         this.instructions[tra] = new Instruction_1.Instruction("tra(" + (this.instructions.length + 1) + ");");
@@ -189,7 +269,6 @@ class Compiler {
                 }
             }
             this.blockScope--;
-            // console.log("\n\n\n")
             // this.ifTraList.forEach(tra, blockScope => {
             // 	if (tra +1 != this.instructions.length){
             // 		this.instructions[tra] = new Instruction("tra("+(this.instructions.length+1)+");");

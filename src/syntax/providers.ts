@@ -34,7 +34,8 @@ var mainDeclarationFlag = false;
 var blockScope = 0;
 var knownWords = ["put", "get"];
 
-let currentMethod : string = "pp";
+let currentMethod : string = "";
+let mainMethod  :string = "";
 
 //--------------------------------------------------------------------------------//
 
@@ -217,10 +218,12 @@ export function setErrors(file: string) {
         }
         else if (new RegExp(/.*:=.*/).test(currentLine)) { checkingError_Affectation(currentLine, nbLine) }
         else if (new RegExp(/.*:.*/).test(currentLine)) { checkingError_VariableDeclaration(currentLine, nbLine) }
-        else if (new RegExp(/^begin/).test(currentLine)) { declarationOk = false }
+        else if (new RegExp(/^begin/).test(currentLine)) {
+            declarationOk = false;
+        }
         else if (new RegExp(/^end/).test(currentLine)) {
             blockScope--;
-            if (blockScope == 1) { removeFromTables(currentMethod); currentMethod = "pp" }
+            if (blockScope == 1) { removeFromTables(currentMethod); currentMethod = mainMethod }
         }
         checkingError_UnknownWord(currentLine, nbLine);
         checkingError_MissingParenthesis(currentLine, nbLine);
@@ -349,7 +352,8 @@ function validBound(bound: string) {
  */
 function removeFromTables(methodName: string) {
     for (var key in variablesTable) {
-        if (variablesTable[key].group == methodName) { delete variablesTable[key] }
+        
+        if (variablesTable[key].group == methodName && methodName != mainMethod) {delete variablesTable[key] }
     }
 }
 
@@ -402,6 +406,7 @@ function checkingError_Procedure(currentLine: string, nbLine: number) {
             // Getting the parameters between parentheses and the name of the procedure
             let params = currentLine.split("(")[1].split(")")[0].trim();
             let methodName = currentLine.split("procedure")[1].split("(")[0].trim();
+            if( mainMethod == ""){mainMethod = methodName;}
 
             // If there is at least one valid parameter
             if (regexTwoPoints.test(params)) {
@@ -580,6 +585,7 @@ function checkingError_For(currentLine: string, nbLine: number) {
         let variable = currentLine.split("for")[1].split("from")[0].trim();
         let upperBound = currentLine.split("from")[1].split("to")[0].trim();
         let lowerBound = currentLine.split("to")[1].trim();
+
         if (!variableExists(variable)) { errors.push(new SyntaxError(414, variable + " is not defined", nbLine)); }
         else if (!validBound(upperBound)) { errors.push(new SyntaxError(415, upperBound + " is not a valid bound", nbLine)) }
         else if (!validBound(lowerBound)) { errors.push(new SyntaxError(415, lowerBound + " is not a valid bound", nbLine)) }

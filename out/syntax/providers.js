@@ -28,7 +28,8 @@ var declarationOk = false;
 var mainDeclarationFlag = false;
 var blockScope = 0;
 var knownWords = ["put", "get"];
-let currentMethod = "pp";
+let currentMethod = "";
+let mainMethod = "";
 //--------------------------------------------------------------------------------//
 //----------------------------------- Functions ----------------------------------//
 /**
@@ -219,7 +220,7 @@ function setErrors(file) {
             blockScope--;
             if (blockScope == 1) {
                 removeFromTables(currentMethod);
-                currentMethod = "pp";
+                currentMethod = mainMethod;
             }
         }
         checkingError_UnknownWord(currentLine, nbLine);
@@ -348,7 +349,7 @@ function validBound(bound) {
  */
 function removeFromTables(methodName) {
     for (var key in variablesTable) {
-        if (variablesTable[key].group == methodName) {
+        if (variablesTable[key].group == methodName && methodName != mainMethod) {
             delete variablesTable[key];
         }
     }
@@ -395,6 +396,9 @@ function checkingError_Procedure(currentLine, nbLine) {
             // Getting the parameters between parentheses and the name of the procedure
             let params = currentLine.split("(")[1].split(")")[0].trim();
             let methodName = currentLine.split("procedure")[1].split("(")[0].trim();
+            if (mainMethod == "") {
+                mainMethod = methodName;
+            }
             // If there is at least one valid parameter
             if (regexTwoPoints.test(params)) {
                 // Checking if it has the correct format -> x : integer
