@@ -51,6 +51,9 @@ export class Compiler {
 	private opDict: { [id: string]: { machineCode: string, inType: string, outType: string } } = {}
 	private currentExpressionList: string[] = [];
 
+	private ifTraList: [number, number][] = [];
+	private ifScope: number = 0;
+
 	//--------------------------------------------------------------------------------//
 
 
@@ -85,8 +88,8 @@ export class Compiler {
 
 		// Printing part
 
-		for(let i = 0; i< this.instructions.length; i++){
-			console.log(i+1, this.instructions[i].toString());
+		for (let i = 0; i < this.instructions.length; i++) {
+			console.log(i + 1, this.instructions[i].toString());
 		}
 
 		this.methodList.display();
@@ -108,6 +111,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private eval(currentLine: string) {
+		console.log(currentLine);
 
 		// Let's prepare the effective content
 		let lineFeatures = tools.splittingLine(currentLine);
@@ -123,7 +127,10 @@ export class Compiler {
 		// We need to link our first "tra()" 
 		if (this.blockScope == 1 && !this.traCompleted && words[0] != "function" && words[0] != "procedure") {
 			let traLine = this.instructions.length + 1;
-			this.instructions[1] = new Instruction("tra(" + traLine + ");");
+
+			if (traLine != 3) { this.instructions[1] = new Instruction("tra(" + traLine + ");"); }
+			else { this.instructions.pop(); }
+
 			this.traCompleted = true;
 		}
 
@@ -143,28 +150,105 @@ export class Compiler {
 			}
 		}
 
+		else if (words[0] == "if" || words[0] == "elif") {
+			if (words[0] == "if"){this.blockScope++;}
+			words.shift();
+			words.pop();
+
+			let returnValue = this.analyzer(this.concatWords(words));
+			if (returnValue != 0) {
+				console.error("analyzer error");
+				return returnValue;
+			}
+
+			returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+
+			if (returnValue != 0) {
+				console.error("syntaxAnalyzer");
+				return returnValue;
+			}
+
+			this.generateInstructions(this.currentExpressionList, false);
+			this.instructions.push(new Instruction("tze(x);"));
+			let tzeLine = this.instructions.length - 1;
+			// console.log(words);
+			let blockScopeBeforeWhile = this.blockScope;
+
+
+			while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+				console.log(blockScopeBeforeWhile, this.blockScope)
+				// recursive calling
+				this.nbLine++;
+				let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+
+				// Something got wrong
+				if (returnValue != 0) { return 1; }
+			}
+			this.instructions.push(new Instruction("tra(X);"));
+			this.ifTraList.push([this.instructions.length - 1, this.blockScope]);
+			this.instructions[tzeLine] = new Instruction("tze(" + (this.instructions.length + 1) + ");");
+			// this.blockScope--;
+			return 0;
+		}
+
+		else if (words[0] == "else") {
+			// this.blockScope++;
+			let blockScopeBeforeWhile = this.blockScope;
+			while (!(new RegExp(/^(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
+				// recursive calling
+				this.nbLine++;
+				let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+
+				// Something got wrong
+				if (returnValue != 0) { return 1; }
+			}
+			return 0;
+		}
+
 		// else if it is an affectation
 		else if (new RegExp(/.*:=.*/).test(currentLine)) {
 			let returnValue = this.affectation(words);
 			return returnValue;
 		}
 
-		if (words.includes(":")) {
+		else if (words.includes(":")) {
 			let returnValue = this.variableDeclaration(words);
 			return returnValue;
 		}
 
 		// if "begin" is read
-		else if (new RegExp(/^begin/).test(currentLine)) { return 0; }
+		else if (words[0] == "begin") { return 0; }
 
 		// if "end" is read
-		else if (new RegExp(/^end/).test(currentLine)) {
+		else if (words[0] == "end") {
+			for (const i in this.ifTraList) {
+				let [tra, blockScope] = this.ifTraList[i]
+				// console.log(tra, blockScope, this.blockScope);
+				if (blockScope == this.blockScope){
+					if (tra + 1 != this.instructions.length) {
+						this.instructions[tra] = new Instruction("tra(" + (this.instructions.length + 1) + ");");
+					} else {
+						this.instructions.pop();
+					}
+					delete this.ifTraList[i];
+				}
+			}
 			this.blockScope--;
+			// console.log("\n\n\n")
+			// this.ifTraList.forEach(tra, blockScope => {
+			// 	if (tra +1 != this.instructions.length){
+			// 		this.instructions[tra] = new Instruction("tra("+(this.instructions.length+1)+");");
+			// 	}else{
+			// 		this.instructions.pop();
+			// 	}
+			// });
+			// this.ifTraList = [];
+
 			return 0;
 		}
 
 		// if "return" is read
-		else if (new RegExp(/^return/).test(currentLine)) {
+		else if (words[0] == "return") {
 			words.shift();
 			words.pop();
 			let returnValue = this.analyzer(this.concatWords(words));
@@ -184,7 +268,7 @@ export class Compiler {
 			return 0;
 		}
 
-		else if(words[0] == "put") {
+		else if (words[0] == "put") {
 			words.pop();
 			words.pop();
 			words.shift();
@@ -205,24 +289,24 @@ export class Compiler {
 			this.generateInstructions(this.currentExpressionList, false);
 			this.instructions.push(new Instruction("put();"));
 			return 0;
-			
-		}
-		else if(words[0] == "get"){
 
-			if (words.length != 5){
+		}
+		else if (words[0] == "get") {
+
+			if (words.length != 5) {
 				console.error("get : wrong nb parameters");
 				return 1;
 			}
 
 			let variable = words[2];
 
-			if (!this.isVar(this.fullVariableName(variable))){
+			if (!this.isVar(this.fullVariableName(variable))) {
 				console.error("get : not a var");
 				return 1;
 			}
 
 			let address = this.variableList.get(this.fullVariableName(variable)).addPile;
-			this.instructions.push(new Instruction("empiler("+address+");", "address"));
+			this.instructions.push(new Instruction("empiler(" + address + ");", "address"));
 			this.instructions.push(new Instruction("get();"));
 
 			this.variableList.get(this.fullVariableName(variable)).hasBeenAffected = true;
@@ -313,10 +397,10 @@ export class Compiler {
 		words.pop();
 
 		let returnValue = this.analyzer(this.concatWords(words));
-			if (returnValue != 0) {
-				console.error("analyzer error");
-				return returnValue;
-			}
+		if (returnValue != 0) {
+			console.error("analyzer error");
+			return returnValue;
+		}
 
 		// Now let's analyze the line and compare it to the corresponding type of our variable
 		returnValue = this.syntaxAnalyzer(this.currentExpressionList, this.variableList.get(this.fullVariableName(variable)).type);
@@ -330,16 +414,16 @@ export class Compiler {
 		let fullVariableName = this.variableList.get(this.fullVariableName(variable));
 
 		// if it's a parameter
-		if (fullVariableName.isParameter){
+		if (fullVariableName.isParameter) {
 			// in out parameter
-			if (fullVariableName.isOut){this.instructions.push(new Instruction("empilerParam(" + fullVariableName.addPile + ");", "address"));}
-			
+			if (fullVariableName.isOut) { this.instructions.push(new Instruction("empilerParam(" + fullVariableName.addPile + ");", "address")); }
+
 			// in parameter
-			else{this.instructions.push(new Instruction("empilerAd(" + fullVariableName.addPile + ");", "address"));}
+			else { this.instructions.push(new Instruction("empilerAd(" + fullVariableName.addPile + ");", "address")); }
 		}
-		
+
 		// else if not
-		else{this.instructions.push(new Instruction("empiler(" + fullVariableName.addPile + ");", "address"));}
+		else { this.instructions.push(new Instruction("empiler(" + fullVariableName.addPile + ");", "address")); }
 
 
 		this.generateInstructions(this.currentExpressionList, false);
@@ -372,7 +456,7 @@ export class Compiler {
 
 				// for each saved names
 				nameList.forEach(name => {
-					
+
 					// we will need to add the variable to the list
 					this.variableList.add(new Variable(name, this.currentMethodName, word, false, this.methodList.get(this.currentMethodName).fakePileLength));
 					this.methodList.get(this.currentMethodName).fakePileLength++;
@@ -381,11 +465,11 @@ export class Compiler {
 				// Then we need to save as much slots as variables 
 				this.instructions.push(new Instruction("reserver(" + nameList.length + ");", "empty"));
 			}
-			
+
 			// else it's a variable
 			else { nameList.push(word) }
 		});
-		
+
 		return 0;
 	}
 
@@ -402,7 +486,7 @@ export class Compiler {
 
 
 		let nameList: string[] = []
-		let isOut:boolean = false;
+		let isOut: boolean = false;
 
 		// This time, we need a list of know words
 		const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"]
@@ -420,7 +504,7 @@ export class Compiler {
 				nameList = [];
 				isOut = false;
 			}
-			if (word == "out"){isOut = true;}
+			if (word == "out") { isOut = true; }
 			// else if it's a not a known word
 			else if (!notParamList.includes(word) && word != words[1]) { nameList.push(word) }
 		});
@@ -458,7 +542,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private createProcedure(words: string[]) {
-		
+
 		// we update the global variables with the new procedure
 		const name = words[1];
 		this.blockScope++;
@@ -500,7 +584,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private createFunction(words: string[]) {
-		
+
 		// we update the global variables with the new function
 		const name = words[1];
 		const returnType = words[words.length - 2];
@@ -550,8 +634,9 @@ export class Compiler {
 		this.opDict["<="] = { inType: "integer", outType: "boolean", machineCode: "infeg();" };
 		this.opDict[">"] = { inType: "integer", outType: "boolean", machineCode: "sup();" };
 		this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();" };
-		this.opDict["="] = { inType: "integer", outType: "boolean", machineCode: "egal();" };
-		this.opDict["/="] = { inType: "integer", outType: "boolean", machineCode: "diff();" };
+
+		this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();" };
+		this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();" };
 
 		this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();" };
 		this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();" };
@@ -623,7 +708,7 @@ export class Compiler {
 
 			// If it's not the name of a method and if we aren't in one
 			if (!this.isMethod(word) && !inMethod) {
-				
+
 				// if it forms an operator with the next word
 				if ((word == "<" || word == ">" || word == "/") && words[i + 1] == "=") {
 					line.push(word + "=");
@@ -850,14 +935,17 @@ export class Compiler {
 				let typeB = expressionCopy[i - 1];
 				let typeOp = this.opDict[element].inType
 
-				// if teh types match
-				if (typeA == typeB && typeA == typeOp) {
+				// if the types match
+				// if (typeOp == "both" || (typeA == typeB && typeA == typeOp)) {
+				if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
 					expressionCopy[i] = this.opDict[element].outType;
 				}
 
 				// else there is an error
 				else {
-					console.error("wrong type : operator " + element + " requires 2 " + typeOp + "s");
+					if (typeOp == "both") { typeOp = "2 integers or 2 booleans"; }
+					else { typeOp = "2 " + typeOp + "s" }
+					console.error("wrong type : operator " + element + " requires " + typeOp);
 					return 1;
 				}
 			}
@@ -883,7 +971,7 @@ export class Compiler {
 	 * @author Sébastien HERT
 	 * @author Adam RIVIÈRE
 	 */
-	private generateInstructions(expression: string[], isBlock:boolean) {
+	private generateInstructions(expression: string[], isBlock: boolean) {
 
 		// for each word in the expression
 		for (let i = 0; i < expression.length; i++) {
@@ -902,19 +990,19 @@ export class Compiler {
 				let variable = this.variableList.get(this.fullVariableName(word));
 
 				// if it's a parameter
-				if (variable.isParameter){
+				if (variable.isParameter) {
 					// in out parameter
-					if (variable.isOut){this.instructions.push(new Instruction("empilerParam(" + variable.addPile + ");", "address"));}
-					
+					if (variable.isOut) { this.instructions.push(new Instruction("empilerParam(" + variable.addPile + ");", "address")); }
+
 					// in parameter
-					else{this.instructions.push(new Instruction("empilerAd(" + variable.addPile + ");", "address"));}
+					else { this.instructions.push(new Instruction("empilerAd(" + variable.addPile + ");", "address")); }
 				}
-				
+
 				// else if not
-				else{this.instructions.push(new Instruction("empiler(" + variable.addPile + ");", "address"));}
+				else { this.instructions.push(new Instruction("empiler(" + variable.addPile + ");", "address")); }
 
 				// If we are waiting for valeurPile();
-				if (!isBlock){this.instructions.push(new Instruction("valeurPile();"));}
+				if (!isBlock) { this.instructions.push(new Instruction("valeurPile();")); }
 			}
 
 			// if the word is a boolean
@@ -1043,6 +1131,10 @@ export class Compiler {
 		this.instructions.push(new Instruction("traStat(" + methodLine + "," + nbParamsExpected + ");"));
 
 		return 0;
+
+	}
+
+	private ifBlock() {
 
 	}
 

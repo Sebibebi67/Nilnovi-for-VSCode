@@ -1,13 +1,29 @@
 procedure main() is
 
-        function double(x : in integer) return integer is
-                y : boolean;
-        begin
-                return 2*x;
-        end
+        # function double(x : in integer) return integer is
+        #         y : boolean;
+        # begin
+        #         return 2*x;
+        # end
 
-        k, i : integer;
+        a,b : integer;
 begin
-        get(k);
-        put(double(k));
+        # get(k);
+        # put(double(k));
+        a := 5;
+        b := 234567;
+
+        if a = b then
+                if true = false then
+                        put(3);
+                elif true = false then
+                        put(1);
+                else
+                        put(4);
+                end
+        elif a = b then
+                put(5);
+        else
+                put(6);
+        end
 end

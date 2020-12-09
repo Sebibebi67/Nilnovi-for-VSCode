@@ -41,6 +41,8 @@ class Compiler {
         this.currentMethodName = "pp";
         this.opDict = {};
         this.currentExpressionList = [];
+        this.ifTraList = [];
+        this.ifScope = 0;
         // Initializing the lists of Methods and Variables
         this.methodList = new MethodList_1.MethodList();
         this.variableList = new VariableList_1.VariableList();
@@ -73,6 +75,7 @@ class Compiler {
      * @author Adam RIVIÈRE
      */
     eval(currentLine) {
+        console.log(currentLine);
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
         currentLine = lineFeatures["content"];
@@ -85,7 +88,12 @@ class Compiler {
         // We need to link our first "tra()" 
         if (this.blockScope == 1 && !this.traCompleted && words[0] != "function" && words[0] != "procedure") {
             let traLine = this.instructions.length + 1;
-            this.instructions[1] = new Instruction_1.Instruction("tra(" + traLine + ");");
+            if (traLine != 3) {
+                this.instructions[1] = new Instruction_1.Instruction("tra(" + traLine + ");");
+            }
+            else {
+                this.instructions.pop();
+            }
             this.traCompleted = true;
         }
         // if it's a "procedure" or "function"
@@ -101,26 +109,99 @@ class Compiler {
                 return returnValue;
             }
         }
+        else if (words[0] == "if" || words[0] == "elif") {
+            if (words[0] == "if") {
+                this.blockScope++;
+            }
+            words.shift();
+            words.pop();
+            let returnValue = this.analyzer(this.concatWords(words));
+            if (returnValue != 0) {
+                console.error("analyzer error");
+                return returnValue;
+            }
+            returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+            if (returnValue != 0) {
+                console.error("syntaxAnalyzer");
+                return returnValue;
+            }
+            this.generateInstructions(this.currentExpressionList, false);
+            this.instructions.push(new Instruction_1.Instruction("tze(x);"));
+            let tzeLine = this.instructions.length - 1;
+            // console.log(words);
+            let blockScopeBeforeWhile = this.blockScope;
+            while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+                console.log(blockScopeBeforeWhile, this.blockScope);
+                // recursive calling
+                this.nbLine++;
+                let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+                // Something got wrong
+                if (returnValue != 0) {
+                    return 1;
+                }
+            }
+            this.instructions.push(new Instruction_1.Instruction("tra(X);"));
+            this.ifTraList.push([this.instructions.length - 1, this.blockScope]);
+            this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
+            // this.blockScope--;
+            return 0;
+        }
+        else if (words[0] == "else") {
+            // this.blockScope++;
+            let blockScopeBeforeWhile = this.blockScope;
+            while (!(new RegExp(/^(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
+                // recursive calling
+                this.nbLine++;
+                let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+                // Something got wrong
+                if (returnValue != 0) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
         // else if it is an affectation
         else if (new RegExp(/.*:=.*/).test(currentLine)) {
             let returnValue = this.affectation(words);
             return returnValue;
         }
-        if (words.includes(":")) {
+        else if (words.includes(":")) {
             let returnValue = this.variableDeclaration(words);
             return returnValue;
         }
         // if "begin" is read
-        else if (new RegExp(/^begin/).test(currentLine)) {
+        else if (words[0] == "begin") {
             return 0;
         }
         // if "end" is read
-        else if (new RegExp(/^end/).test(currentLine)) {
+        else if (words[0] == "end") {
+            for (const i in this.ifTraList) {
+                let [tra, blockScope] = this.ifTraList[i];
+                // console.log(tra, blockScope, this.blockScope);
+                if (blockScope == this.blockScope) {
+                    if (tra + 1 != this.instructions.length) {
+                        this.instructions[tra] = new Instruction_1.Instruction("tra(" + (this.instructions.length + 1) + ");");
+                    }
+                    else {
+                        this.instructions.pop();
+                    }
+                    delete this.ifTraList[i];
+                }
+            }
             this.blockScope--;
+            // console.log("\n\n\n")
+            // this.ifTraList.forEach(tra, blockScope => {
+            // 	if (tra +1 != this.instructions.length){
+            // 		this.instructions[tra] = new Instruction("tra("+(this.instructions.length+1)+");");
+            // 	}else{
+            // 		this.instructions.pop();
+            // 	}
+            // });
+            // this.ifTraList = [];
             return 0;
         }
         // if "return" is read
-        else if (new RegExp(/^return/).test(currentLine)) {
+        else if (words[0] == "return") {
             words.shift();
             words.pop();
             let returnValue = this.analyzer(this.concatWords(words));
@@ -444,8 +525,8 @@ class Compiler {
         this.opDict["<="] = { inType: "integer", outType: "boolean", machineCode: "infeg();" };
         this.opDict[">"] = { inType: "integer", outType: "boolean", machineCode: "sup();" };
         this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();" };
-        this.opDict["="] = { inType: "integer", outType: "boolean", machineCode: "egal();" };
-        this.opDict["/="] = { inType: "integer", outType: "boolean", machineCode: "diff();" };
+        this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();" };
+        this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();" };
         this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();" };
         this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();" };
         this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "not();" };
@@ -722,13 +803,20 @@ class Compiler {
                 let typeA = expressionCopy[i - 2];
                 let typeB = expressionCopy[i - 1];
                 let typeOp = this.opDict[element].inType;
-                // if teh types match
-                if (typeA == typeB && typeA == typeOp) {
+                // if the types match
+                // if (typeOp == "both" || (typeA == typeB && typeA == typeOp)) {
+                if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
                     expressionCopy[i] = this.opDict[element].outType;
                 }
                 // else there is an error
                 else {
-                    console.error("wrong type : operator " + element + " requires 2 " + typeOp + "s");
+                    if (typeOp == "both") {
+                        typeOp = "2 integers or 2 booleans";
+                    }
+                    else {
+                        typeOp = "2 " + typeOp + "s";
+                    }
+                    console.error("wrong type : operator " + element + " requires " + typeOp);
                     return 1;
                 }
             }
@@ -888,6 +976,8 @@ class Compiler {
         let methodLine = this.methodList.get(methodName).refLine + 1;
         this.instructions.push(new Instruction_1.Instruction("traStat(" + methodLine + "," + nbParamsExpected + ");"));
         return 0;
+    }
+    ifBlock() {
     }
 }
 exports.Compiler = Compiler;
