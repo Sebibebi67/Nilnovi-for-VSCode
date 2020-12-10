@@ -261,7 +261,8 @@ function expressionIsBoolean(expression: string, nbLine: number) {
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
     if (regexContainsBooleanInstructions.test(expression)) { return true }
     if (variableExists(expression)){
-        if (variablesTable[expression].type == "boolean"){ return true }
+        // console.log(variablesTable[currentMethod +"."+ expression], expression, variablesTable);
+        if (variablesTable[currentMethod +"."+ expression].type == "boolean"){ return true }
         return false;
     }
     const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*)\(.*\);$/);

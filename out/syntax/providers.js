@@ -259,7 +259,8 @@ function expressionIsBoolean(expression, nbLine) {
         return true;
     }
     if (variableExists(expression)) {
-        if (variablesTable[expression].type == "boolean") {
+        // console.log(variablesTable[currentMethod +"."+ expression], expression, variablesTable);
+        if (variablesTable[currentMethod + "." + expression].type == "boolean") {
             return true;
         }
         return false;
