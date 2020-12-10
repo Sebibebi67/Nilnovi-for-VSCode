@@ -64,14 +64,40 @@ class Compiler {
         this.variableList.display();
     }
     //--------------------------------------------------------------------------------//
-    //----------------------------------- Methods ------------------------------------//
+    //--------------------------------- Compilation ----------------------------------//
     /**
-     * @description evaluates the current line
-     * @param string the current line
-     * @returns the output status
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
+ * @description evaluates and compiles all the lines
+ * @returns the output status
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
+    compile() {
+        // Adding the begin and the "tra" at the beginning of the instructions
+        this.instructions.push(new Instruction_1.Instruction("debutProg();"));
+        this.instructions.push(new Instruction_1.Instruction("tra(x);"));
+        // define the method name
+        this.methodList.add(new Method_1.Method("pp", "none", -1, []));
+        this.blockScope++;
+        while (this.nbLine < this.nilnoviProgram.length - 1) {
+            // recursive calling
+            this.nbLine++;
+            var returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            // Something got wrong
+            if (returnValue != 0) {
+                return 1;
+            }
+        }
+        // End of the program
+        this.instructions.push(new Instruction_1.Instruction("finProg();"));
+        return 0;
+    }
+    /**
+ * @description evaluates the current line
+ * @param string the current line
+ * @returns the output status
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
     eval(currentLine) {
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
@@ -165,30 +191,317 @@ class Compiler {
             return 0;
         }
     }
+    //--------------------------------------------------------------------------------//
+    //------------------------------ Structure Blocks --------------------------------//
     /**
-     * @description evaluates and compiles all the lines
+     * @description creates a procedure and registers it
+     * @param string[] the line to consider
      * @returns the output status
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    compile() {
-        // Adding the begin and the "tra" at the beginning of the instructions
-        this.instructions.push(new Instruction_1.Instruction("debutProg();"));
-        this.instructions.push(new Instruction_1.Instruction("tra(x);"));
-        // define the method name
-        this.methodList.add(new Method_1.Method("pp", "none", -1, []));
+    createProcedure(words) {
+        // we update the global variables with the new procedure
+        const name = words[1];
         this.blockScope++;
-        while (this.nbLine < this.nilnoviProgram.length - 1) {
+        this.currentMethodName = name;
+        // we get the names of the eventual parameters of the procedure
+        let params = this.getParamNames(words);
+        // we register the procedure in the method's list
+        this.methodList.add(new Method_1.Method(name, "none", this.instructions.length, params)),
+            this.parameterLoading(words);
+        // then we pass to the next line
+        this.nbLine++;
+        // while the procedure is not terminated
+        while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
+            // we evaluate each line and checks the eventual errors
+            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            if (returnValue != 0) {
+                return 1;
+            }
+            this.nbLine++;
+        }
+        // then we update the blockScope
+        this.blockScope--;
+        // and we create the procedure ending instruction and we update the current method's name
+        this.instructions.push(new Instruction_1.Instruction("retourProc();"));
+        this.currentMethodName = "pp";
+        return 0;
+    }
+    /**
+     * @description creates a function and registers it
+     * @param string[] the line to consider
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    createFunction(words) {
+        // we update the global variables with the new function
+        const name = words[1];
+        const returnType = words[words.length - 2];
+        this.blockScope++;
+        this.currentMethodName = name;
+        // we get the names of the eventual parameters of the function
+        var params = this.getParamNames(words);
+        // we register the function in the method's list
+        this.methodList.add(new Method_1.Method(name, returnType, this.instructions.length, params));
+        this.parameterLoading(words);
+        // then we pass to the next line
+        this.nbLine++;
+        // while the function is not terminated
+        while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
+            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            if (returnValue != 0) {
+                return 1;
+            }
+            this.nbLine++;
+        }
+        // then we update the blockScope
+        this.blockScope--;
+        // and we create the function ending instruction and we update the current method's name
+        this.instructions.push(new Instruction_1.Instruction("retourFonct();"));
+        this.currentMethodName = "pp";
+        return 0;
+    }
+    /**
+     * @description checks for errors and generates the instructions for a block "while"
+     * @param string[] the words
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    generateWhile(words) {
+        // we keep the while condition
+        words = tools.removeFromWords(words, 1, 1);
+        // we analyze it
+        let returnValue = this.analyzer(this.concatWords(words));
+        if (returnValue != 0) {
+            console.error("analyzer error");
+            return returnValue;
+        }
+        // we check its type
+        returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+        if (returnValue != 0) {
+            console.error("syntaxAnalyzer");
+            return returnValue;
+        }
+        // then we generate the corresponding instructions
+        let whileLine = this.instructions.length + 1;
+        this.generateInstructions(this.currentExpressionList, false);
+        // then we create the jump instruction
+        this.instructions.push(new Instruction_1.Instruction("tze(x);"));
+        // and we keep the current line number for the callback
+        let tzeLine = this.instructions.length - 1;
+        // we keep the current blockScope
+        let blockScopeBeforeWhile = this.blockScope;
+        while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
-            var returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
             // Something got wrong
             if (returnValue != 0) {
                 return 1;
             }
         }
-        // End of the program
-        this.instructions.push(new Instruction_1.Instruction("finProg();"));
+        // we create the callback instruction with the line of the beginning of the block
+        this.instructions.push(new Instruction_1.Instruction("tra(" + whileLine + ");"));
+        // finally we update the jump instruction with the current line number
+        this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
+        return 0;
+    }
+    /**
+     * @description checks for errors and generates the instructions for a block "for"
+     * @param string[] the words
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    generateFor(words) {
+        // we keep the name or the increment
+        let variable = words[1];
+        let spliceIndex = words.indexOf("to");
+        // we keep that the two bounds
+        let lowerBound = words.splice(3, spliceIndex - 3);
+        let upperBound = words.splice(4, words.length - 5);
+        // we create a fake affectation line to initialize the increment with the lower bound
+        let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
+        // we keep the stopping condition
+        let condition = [variable, "<"].concat(upperBound);
+        // then we evaluate it
+        let returnValue = this.eval(affectationToLowerBoundLine);
+        // Something got wrong
+        if (returnValue != 0) {
+            return 1;
+        }
+        // then we analyze the stopping condition
+        returnValue = this.analyzer(this.concatWords(condition));
+        if (returnValue != 0) {
+            console.error("analyzer error");
+            return returnValue;
+        }
+        // we check that the condition is a boolean
+        returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+        if (returnValue != 0) {
+            console.error("syntaxAnalyzer");
+            return returnValue;
+        }
+        let forLine = this.instructions.length + 1;
+        // then we generate the instructions corresponding to the condition
+        this.generateInstructions(this.currentExpressionList, false);
+        // then we create the jump instruction
+        this.instructions.push(new Instruction_1.Instruction("tze(x);"));
+        // and we keep the current line number for the callback
+        let tzeLine = this.instructions.length - 1;
+        // we keep the current blockScope
+        let blockScopeBeforeWhile = this.blockScope;
+        while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+            // recursive calling
+            this.nbLine++;
+            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            // Something got wrong
+            if (returnValue != 0) {
+                return 1;
+            }
+        }
+        // then we add 1 to the increment variable
+        let finalIncrementLine = variable + ":=" + variable + "+" + "1;";
+        returnValue = this.eval(finalIncrementLine);
+        // Something got wrong
+        if (returnValue != 0) {
+            return 1;
+        }
+        // we create the callback instruction with the line of the beginning of the block
+        this.instructions.push(new Instruction_1.Instruction("tra(" + forLine + ");"));
+        // finally we update the jump instruction with the current line number
+        this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
+        return 0;
+    }
+    /**
+     * @description checks for errors and generates the instructions for a block "if"
+     * @param string[] the words
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    generateIf(words) {
+        // If it's the beginning of the block
+        if (words[0] == "if") {
+            this.blockScope++;
+        }
+        // Let's remove "if" or "elif" and "loop" from the list of words. it should only remain the condition
+        words = tools.removeFromWords(words, 1, 1);
+        // Let's analyze the condition
+        let returnValue = this.analyzer(this.concatWords(words));
+        if (returnValue != 0) {
+            console.error("analyzer error");
+            return returnValue;
+        }
+        returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
+        if (returnValue != 0) {
+            console.error("syntaxAnalyzer");
+            return returnValue;
+        }
+        // Then generate the instructions
+        this.generateInstructions(this.currentExpressionList, false);
+        // We need to add the "tze" method, which is a jump if the condition on top of pile is false, and store the ref to the corresponding line
+        this.instructions.push(new Instruction_1.Instruction("tze(x);"));
+        let tzeLine = this.instructions.length - 1;
+        // We also need to store the current Block scope before the recursive calls 
+        let blockScopeBeforeWhile = this.blockScope;
+        // While it's not the end of the current "if"/"elif"
+        while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+            // recursive calling
+            this.nbLine++;
+            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            // Something got wrong
+            if (returnValue != 0) {
+                return 1;
+            }
+        }
+        // Now we jump to the end of the whole block, store the reference and change the value of the "tze"
+        this.instructions.push(new Instruction_1.Instruction("tra(X);"));
+        this.ifTraList.push([this.instructions.length - 1, this.blockScope]);
+        this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
+        return 0;
+    }
+    /**
+     * @description generate instructions in the block "else"
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    generateElse() {
+        // we keep the current blockScope
+        let blockScopeBeforeWhile = this.blockScope;
+        while (!(new RegExp(/^(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
+            // recursive calling
+            this.nbLine++;
+            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
+            // Something got wrong
+            if (returnValue != 0) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    //--------------------------------------------------------------------------------//
+    //----------------------------- Expression Handling ------------------------------//
+    /**
+     * @description checks for errors and generates the instructions for a "get" line
+     * @param string[] the words
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    generateGet(words) {
+        // we check that there's one and only one parameter
+        if (words.length != 5) {
+            console.error("get : wrong nb parameters");
+            return 1;
+        }
+        // we keep the variable to affect
+        let variable = words[2];
+        // we check that the given variable is defined
+        if (!this.isVar(this.fullVariableName(variable))) {
+            console.error("get : not a var");
+            return 1;
+        }
+        // we get the variable pile address
+        let address = this.variableList.get(this.fullVariableName(variable)).addPile;
+        // then we create the instruction to stack the address
+        this.instructions.push(new Instruction_1.Instruction("empiler(" + address + ");", "address"));
+        // then we generate the "get" instruction
+        this.instructions.push(new Instruction_1.Instruction("get();"));
+        // finally we update the variable with the fact that it has been affected
+        this.variableList.get(this.fullVariableName(variable)).hasBeenAffected = true;
+        return 0;
+    }
+    /**
+     * @description checks for errors and generates the instructions for a "put" line
+     * @param string[] the words
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    generatePut(words) {
+        // we only keep the value to display
+        words = tools.removeFromWords(words, 2, 2);
+        // we analyze it
+        let returnValue = this.analyzer(this.concatWords(words));
+        if (returnValue != 0) {
+            console.error("analyzer error");
+            return returnValue;
+        }
+        // we check if there's any type error
+        returnValue = this.syntaxAnalyzer(this.currentExpressionList);
+        if (returnValue != 0) {
+            console.error("syntaxAnalyzer");
+            return returnValue;
+        }
+        // we generate the corresponding instructions
+        this.generateInstructions(this.currentExpressionList, false);
+        // finally we create the "put" instruction
+        this.instructions.push(new Instruction_1.Instruction("put();"));
         return 0;
     }
     /**
@@ -282,251 +595,78 @@ class Compiler {
         return 0;
     }
     /**
-     * @description loads all parameters in the lists
-     * @param string[] the list of words
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     * @see variableDeclaration
-     */
-    parameterLoading(words) {
-        // this function is pretty similar to variableDeclaration defined just above
-        let nameList = [];
-        let isOut = false;
-        // This time, we need a list of know words
-        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"];
-        words.forEach(word => {
-            let indexParam = 0;
-            // If the word is a type
-            if (word == "integer" || word == "boolean") {
-                nameList.forEach(name => {
-                    this.variableList.add(new Variable_1.Variable(name, this.currentMethodName, word, true, this.methodList.get(this.currentMethodName).fakePileLength, indexParam, isOut));
-                    this.methodList.get(this.currentMethodName).fakePileLength++;
-                    indexParam++;
-                });
-                nameList = [];
-                isOut = false;
-            }
-            if (word == "out") {
-                isOut = true;
-            }
-            // else if it's a not a known word
-            else if (!notParamList.includes(word) && word != words[1]) {
-                nameList.push(word);
-            }
-        });
-    }
-    /**
-     * @description gets the parameters names
-     * @param string[] the line to consider
-     * @returns the names of the parameters
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    getParamNames(words) {
-        let names = [];
-        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"];
-        // for each word
-        words.forEach(word => {
-            // if the word isn't a key word or a separator
-            if (!notParamList.includes(word) && word != words[1]) {
-                // then it's a parameter
-                names.push(word);
-            }
-        });
-        return names;
-    }
-    /**
-     * @description creates a procedure and registers it
-     * @param string[] the line to consider
+     * @description checks for errors and generates the instructions for an "end" line
+     * @param string[] the words
      * @returns the output status
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    createProcedure(words) {
-        // we update the global variables with the new procedure
-        const name = words[1];
-        this.blockScope++;
-        this.currentMethodName = name;
-        // we get the names of the eventual parameters of the procedure
-        let params = this.getParamNames(words);
-        // we register the procedure in the method's list
-        this.methodList.add(new Method_1.Method(name, "none", this.instructions.length, params)),
-            this.parameterLoading(words);
-        // then we pass to the next line
-        this.nbLine++;
-        // while the procedure is not terminated
-        while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
-            // we evaluate each line and checks the eventual errors
-            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-            if (returnValue != 0) {
-                return 1;
-            }
-            this.nbLine++;
-        }
-        // then we update the blockScope
-        this.blockScope--;
-        // and we create the procedure ending instruction and we update the current method's name
-        this.instructions.push(new Instruction_1.Instruction("retourProc();"));
-        this.currentMethodName = "pp";
-        return 0;
-    }
-    /**
-     * @description creates a function and registers it
-     * @param string[] the line to consider
-     * @returns the output status
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    createFunction(words) {
-        // we update the global variables with the new function
-        const name = words[1];
-        const returnType = words[words.length - 2];
-        this.blockScope++;
-        this.currentMethodName = name;
-        // we get the names of the eventual parameters of the function
-        var params = this.getParamNames(words);
-        // we register the function in the method's list
-        this.methodList.add(new Method_1.Method(name, returnType, this.instructions.length, params));
-        this.parameterLoading(words);
-        // then we pass to the next line
-        this.nbLine++;
-        // while the function is not terminated
-        while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
-            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-            if (returnValue != 0) {
-                return 1;
-            }
-            this.nbLine++;
-        }
-        // then we update the blockScope
-        this.blockScope--;
-        // and we create the function ending instruction and we update the current method's name
-        this.instructions.push(new Instruction_1.Instruction("retourFonct();"));
-        this.currentMethodName = "pp";
-        return 0;
-    }
-    /**
-     * @description inits the dictionary of operators
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    initDict() {
-        // we define every possible operator (boolean or integer)
-        this.opDict["+"] = { inType: "integer", outType: "integer", machineCode: "add();" };
-        this.opDict["-"] = { inType: "integer", outType: "integer", machineCode: "sous();" };
-        this.opDict["*"] = { inType: "integer", outType: "integer", machineCode: "mult();" };
-        this.opDict["/"] = { inType: "integer", outType: "integer", machineCode: "div();" };
-        this.opDict["<"] = { inType: "integer", outType: "boolean", machineCode: "inf();" };
-        this.opDict["<="] = { inType: "integer", outType: "boolean", machineCode: "infeg();" };
-        this.opDict[">"] = { inType: "integer", outType: "boolean", machineCode: "sup();" };
-        this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();" };
-        this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();" };
-        this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();" };
-        this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();" };
-        this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();" };
-        this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "not();" };
-    }
-    /**
-     * @description checks if an expression is a valid number
-     * @param string the expression to consider
-     * @returns a boolean
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    isValidNumber(str) { return new RegExp(/^[0-9]+$/).test(str); }
-    /**
-     * @description checks if an expression is a known variable
-     * @param string the expression to consider
-     * @returns a boolean
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    isVar(str) { return (this.variableList.get(str) !== undefined); }
-    /**
-     * @description checks if an expression is a known method
-     * @param string the expression to consider
-     * @returns a boolean
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    isMethod(str) { return (this.methodList.get(str) !== undefined); }
-    /**
-     * @description checks if a variable already has a value
-     * @param string the variable to check
-     * @returns a boolean
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    isAffected(str) { return (this.variableList.get(str).hasBeenAffected); }
-    /**
-     * @description gets the full name of a variable (method.variable)
-     * @param string the variable name
-     * @returns a boolean
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    fullVariableName(str) { return this.currentMethodName + "." + str; }
-    /**
-     * @description groups the words meant to be together (methods with their parameters or two-characters operators)
-     * @param string the words to analyze
-     * @returns the new line
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    concatWords(words) {
-        let line = [];
-        let method = "";
-        let inMethod = false;
-        let openParenthesesNb = 0;
-        // for each word
-        for (let i = 0; i < words.length; i++) {
-            let word = words[i];
-            // If it's not the name of a method and if we aren't in one
-            if (!this.isMethod(word) && !inMethod) {
-                // if it forms an operator with the next word
-                if ((word == "<" || word == ">" || word == "/") && words[i + 1] == "=") {
-                    line.push(word + "=");
-                    i++;
+    generateEnd(words) {
+        // for each "tra(x)" created before
+        for (const i in this.ifTraList) {
+            let [tra, blockScope] = this.ifTraList[i];
+            // if the instruction's scope is equal to the current blockScope
+            if (blockScope == this.blockScope) {
+                // if the jump is useful we update the "tra" with the right line number
+                if (tra + 1 != this.instructions.length) {
+                    this.instructions[tra] = new Instruction_1.Instruction("tra(" + (this.instructions.length + 1) + ");");
+                    // if it's not we remove the useless instruction
                 }
                 else {
-                    line.push(word);
-                }
-            }
-            // else if it's a method
-            else if (this.isMethod(word)) {
-                inMethod = true;
-                method += word;
-            }
-            // else we are in a method
-            else {
-                // we count the number of parentheses to catch the end of the method
-                if (word == '(') {
-                    openParenthesesNb++;
-                    method += '(';
-                }
-                else if (word == ')') {
-                    openParenthesesNb--;
-                    method += ')';
-                    if (openParenthesesNb == 0) {
-                        line.push(method);
-                        method = "";
-                        inMethod = false;
+                    this.instructions.pop();
+                    //get the last tze
+                    let lastIndexTze = 0;
+                    for (let j = 0; j < this.instructions.length; j++) {
+                        let instruction = this.instructions[j];
+                        if (new RegExp(/tze\([0-9]+\)\;/).test(instruction.machineCode)) {
+                            lastIndexTze = j;
+                        }
                     }
+                    // finally if an instruction was removed, we update the last "tze" to jump to the right line
+                    let nbLineTze = +this.instructions[lastIndexTze].machineCode.split("(")[1].split(")")[0];
+                    this.instructions[lastIndexTze].machineCode = "tze(" + (nbLineTze - 1) + ");";
                 }
-                else {
-                    method += word;
-                }
+                delete this.ifTraList[i];
             }
         }
-        return line;
+        this.blockScope--;
+        return 0;
     }
     /**
-     * @description converts a list of ordered word into a list (left-right travelling of a binary tree) : [8,-,(,1,+,3,),*,4] => [8,1,3, +, 4,*,-]
-     * @param string the expression to consider
+     * @description checks for errors and generates the instructions for a "return" line
+     * @param string[] the words
      * @returns the output status
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
+    generateReturn(words) {
+        // we keep only the return value
+        words = tools.removeFromWords(words, 1, 1);
+        // then we analyse it
+        let returnValue = this.analyzer(this.concatWords(words));
+        if (returnValue != 0) {
+            console.error("analyzer error");
+            return returnValue;
+        }
+        // we check if there's any type error
+        returnValue = this.syntaxAnalyzer(this.currentExpressionList);
+        if (returnValue != 0) {
+            console.error("syntaxAnalyzer");
+            return returnValue;
+        }
+        // finally we generate the corresponding instructions
+        this.generateInstructions(this.currentExpressionList, false);
+        return 0;
+    }
+    //--------------------------------------------------------------------------------//
+    //------------------------------- Syntax Analyzer --------------------------------//
+    /**
+         * @description converts a list of ordered word into a list (left-right travelling of a binary tree) : [8,-,(,1,+,3,),*,4] => [8,1,3, +, 4,*,-]
+         * @param string the expression to consider
+         * @returns the output status
+         * @author Sébastien HERT
+         * @author Adam RIVIÈRE
+         */
     analyzer(words) {
         // if the expression is composed of a single word
         if (words.length == 1) {
@@ -727,14 +867,16 @@ class Compiler {
         }
         return 0;
     }
+    //--------------------------------------------------------------------------------//
+    //--------------------------- Instructions Generation ----------------------------//
     /**
-     * @description generates the instructions to translate the given expression
-     * @param string[] expression to translate
-     * @param boolean is it a block from reserverBloc ?
-     * @returns the output status
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
+         * @description generates the instructions to translate the given expression
+         * @param string[] expression to translate
+         * @param boolean is it a block from reserverBloc ?
+         * @returns the output status
+         * @author Sébastien HERT
+         * @author Adam RIVIÈRE
+         */
     generateInstructions(expression, isBlock) {
         // for each word in the expression
         for (let i = 0; i < expression.length; i++) {
@@ -872,308 +1014,176 @@ class Compiler {
         this.instructions.push(new Instruction_1.Instruction("traStat(" + methodLine + "," + nbParamsExpected + ");"));
         return 0;
     }
+    //--------------------------------------------------------------------------------//
+    //------------------------------------ Tools -------------------------------------//
     /**
-     * @description checks for errors and generates the instructions for a block "if"
-     * @param string[] the words
-     * @returns the output status
+     * @description inits the dictionary of operators
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    generateIf(words) {
-        // If it's the beginning of the block
-        if (words[0] == "if") {
-            this.blockScope++;
-        }
-        // Let's remove "if" or "elif" and "loop" from the list of words. it should only remain the condition
-        words = tools.removeFromWords(words, 1, 1);
-        // Let's analyze the condition
-        let returnValue = this.analyzer(this.concatWords(words));
-        if (returnValue != 0) {
-            console.error("analyzer error");
-            return returnValue;
-        }
-        returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
-        if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
-            return returnValue;
-        }
-        // Then generate the instructions
-        this.generateInstructions(this.currentExpressionList, false);
-        // We need to add the "tze" method, which is a jump if the condition on top of pile is false, and store the ref to the corresponding line
-        this.instructions.push(new Instruction_1.Instruction("tze(x);"));
-        let tzeLine = this.instructions.length - 1;
-        // We also need to store the current Block scope before the recursive calls 
-        let blockScopeBeforeWhile = this.blockScope;
-        // While it's not the end of the current "if"/"elif"
-        while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
-            // recursive calling
-            this.nbLine++;
-            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-            // Something got wrong
-            if (returnValue != 0) {
-                return 1;
+    initDict() {
+        // we define every possible operator (boolean or integer)
+        this.opDict["+"] = { inType: "integer", outType: "integer", machineCode: "add();" };
+        this.opDict["-"] = { inType: "integer", outType: "integer", machineCode: "sous();" };
+        this.opDict["*"] = { inType: "integer", outType: "integer", machineCode: "mult();" };
+        this.opDict["/"] = { inType: "integer", outType: "integer", machineCode: "div();" };
+        this.opDict["<"] = { inType: "integer", outType: "boolean", machineCode: "inf();" };
+        this.opDict["<="] = { inType: "integer", outType: "boolean", machineCode: "infeg();" };
+        this.opDict[">"] = { inType: "integer", outType: "boolean", machineCode: "sup();" };
+        this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();" };
+        this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();" };
+        this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();" };
+        this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();" };
+        this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();" };
+        this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "not();" };
+    }
+    /**
+     * @description loads all parameters in the lists
+     * @param string[] the list of words
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     * @see variableDeclaration
+     */
+    parameterLoading(words) {
+        // this function is pretty similar to variableDeclaration defined just above
+        let nameList = [];
+        let isOut = false;
+        // This time, we need a list of know words
+        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"];
+        words.forEach(word => {
+            let indexParam = 0;
+            // If the word is a type
+            if (word == "integer" || word == "boolean") {
+                nameList.forEach(name => {
+                    this.variableList.add(new Variable_1.Variable(name, this.currentMethodName, word, true, this.methodList.get(this.currentMethodName).fakePileLength, indexParam, isOut));
+                    this.methodList.get(this.currentMethodName).fakePileLength++;
+                    indexParam++;
+                });
+                nameList = [];
+                isOut = false;
             }
-        }
-        // Now we jump to the end of the whole block, store the reference and change the value of the "tze"
-        this.instructions.push(new Instruction_1.Instruction("tra(X);"));
-        this.ifTraList.push([this.instructions.length - 1, this.blockScope]);
-        this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
-        return 0;
-    }
-    /**
-     * @description generate instructions in the block "else"
-     * @returns the output status
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    generateElse() {
-        // we keep the current blockScope
-        let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
-            // recursive calling
-            this.nbLine++;
-            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-            // Something got wrong
-            if (returnValue != 0) {
-                return 1;
+            if (word == "out") {
+                isOut = true;
             }
-        }
-        return 0;
+            // else if it's a not a known word
+            else if (!notParamList.includes(word) && word != words[1]) {
+                nameList.push(word);
+            }
+        });
     }
     /**
-     * @description checks for errors and generates the instructions for a "get" line
-     * @param string[] the words
-     * @returns the output status
+     * @description gets the parameters names
+     * @param string[] the line to consider
+     * @returns the names of the parameters
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    generateGet(words) {
-        // we check that there's one and only one parameter
-        if (words.length != 5) {
-            console.error("get : wrong nb parameters");
-            return 1;
-        }
-        // we keep the variable to affect
-        let variable = words[2];
-        // we check that the given variable is defined
-        if (!this.isVar(this.fullVariableName(variable))) {
-            console.error("get : not a var");
-            return 1;
-        }
-        // we get the variable pile address
-        let address = this.variableList.get(this.fullVariableName(variable)).addPile;
-        // then we create the instruction to stack the address
-        this.instructions.push(new Instruction_1.Instruction("empiler(" + address + ");", "address"));
-        // then we generate the "get" instruction
-        this.instructions.push(new Instruction_1.Instruction("get();"));
-        // finally we update the variable with the fact that it has been affected
-        this.variableList.get(this.fullVariableName(variable)).hasBeenAffected = true;
-        return 0;
+    getParamNames(words) {
+        let names = [];
+        const notParamList = [",", ":", "integer", "boolean", "procedure", "function", "is", "(", ")", "return", "in", "out"];
+        // for each word
+        words.forEach(word => {
+            // if the word isn't a key word or a separator
+            if (!notParamList.includes(word) && word != words[1]) {
+                // then it's a parameter
+                names.push(word);
+            }
+        });
+        return names;
     }
     /**
-     * @description checks for errors and generates the instructions for a "put" line
-     * @param string[] the words
-     * @returns the output status
+     * @description checks if an expression is a valid number
+     * @param string the expression to consider
+     * @returns a boolean
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    generatePut(words) {
-        // we only keep the value to display
-        words = tools.removeFromWords(words, 2, 2);
-        // we analyze it
-        let returnValue = this.analyzer(this.concatWords(words));
-        if (returnValue != 0) {
-            console.error("analyzer error");
-            return returnValue;
-        }
-        // we check if there's any type error
-        returnValue = this.syntaxAnalyzer(this.currentExpressionList);
-        if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
-            return returnValue;
-        }
-        // we generate the corresponding instructions
-        this.generateInstructions(this.currentExpressionList, false);
-        // finally we create the "put" instruction
-        this.instructions.push(new Instruction_1.Instruction("put();"));
-        return 0;
-    }
+    isValidNumber(str) { return new RegExp(/^[0-9]+$/).test(str); }
     /**
-     * @description checks for errors and generates the instructions for a "return" line
-     * @param string[] the words
-     * @returns the output status
+     * @description checks if an expression is a known variable
+     * @param string the expression to consider
+     * @returns a boolean
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    generateReturn(words) {
-        // we keep only the return value
-        words = tools.removeFromWords(words, 1, 1);
-        // then we analyse it
-        let returnValue = this.analyzer(this.concatWords(words));
-        if (returnValue != 0) {
-            console.error("analyzer error");
-            return returnValue;
-        }
-        // we check if there's any type error
-        returnValue = this.syntaxAnalyzer(this.currentExpressionList);
-        if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
-            return returnValue;
-        }
-        // finally we generate the corresponding instructions
-        this.generateInstructions(this.currentExpressionList, false);
-        return 0;
-    }
+    isVar(str) { return (this.variableList.get(str) !== undefined); }
     /**
-     * @description checks for errors and generates the instructions for an "end" line
-     * @param string[] the words
-     * @returns the output status
+     * @description checks if an expression is a known method
+     * @param string the expression to consider
+     * @returns a boolean
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    generateEnd(words) {
-        // for each "tra(x)" created before
-        for (const i in this.ifTraList) {
-            let [tra, blockScope] = this.ifTraList[i];
-            // if the instruction's scope is equal to the current blockScope
-            if (blockScope == this.blockScope) {
-                // if the jump is useful we update the "tra" with the right line number
-                if (tra + 1 != this.instructions.length) {
-                    this.instructions[tra] = new Instruction_1.Instruction("tra(" + (this.instructions.length + 1) + ");");
-                    // if it's not we remove the useless instruction
+    isMethod(str) { return (this.methodList.get(str) !== undefined); }
+    /**
+     * @description checks if a variable already has a value
+     * @param string the variable to check
+     * @returns a boolean
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    isAffected(str) { return (this.variableList.get(str).hasBeenAffected); }
+    /**
+     * @description gets the full name of a variable (method.variable)
+     * @param string the variable name
+     * @returns a boolean
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    fullVariableName(str) { return this.currentMethodName + "." + str; }
+    /**
+     * @description groups the words meant to be together (methods with their parameters or two-characters operators)
+     * @param string the words to analyze
+     * @returns the new line
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
+    concatWords(words) {
+        let line = [];
+        let method = "";
+        let inMethod = false;
+        let openParenthesesNb = 0;
+        // for each word
+        for (let i = 0; i < words.length; i++) {
+            let word = words[i];
+            // If it's not the name of a method and if we aren't in one
+            if (!this.isMethod(word) && !inMethod) {
+                // if it forms an operator with the next word
+                if ((word == "<" || word == ">" || word == "/") && words[i + 1] == "=") {
+                    line.push(word + "=");
+                    i++;
                 }
                 else {
-                    this.instructions.pop();
-                    //get the last tze
-                    let lastIndexTze = 0;
-                    for (let j = 0; j < this.instructions.length; j++) {
-                        let instruction = this.instructions[j];
-                        if (new RegExp(/tze\([0-9]+\)\;/).test(instruction.machineCode)) {
-                            lastIndexTze = j;
-                        }
-                    }
-                    // finally if an instruction was removed, we update the last "tze" to jump to the right line
-                    let nbLineTze = +this.instructions[lastIndexTze].machineCode.split("(")[1].split(")")[0];
-                    this.instructions[lastIndexTze].machineCode = "tze(" + (nbLineTze - 1) + ");";
+                    line.push(word);
                 }
-                delete this.ifTraList[i];
+            }
+            // else if it's a method
+            else if (this.isMethod(word)) {
+                inMethod = true;
+                method += word;
+            }
+            // else we are in a method
+            else {
+                // we count the number of parentheses to catch the end of the method
+                if (word == '(') {
+                    openParenthesesNb++;
+                    method += '(';
+                }
+                else if (word == ')') {
+                    openParenthesesNb--;
+                    method += ')';
+                    if (openParenthesesNb == 0) {
+                        line.push(method);
+                        method = "";
+                        inMethod = false;
+                    }
+                }
+                else {
+                    method += word;
+                }
             }
         }
-        this.blockScope--;
-        return 0;
-    }
-    /**
-     * @description checks for errors and generates the instructions for a block "for"
-     * @param string[] the words
-     * @returns the output status
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    generateFor(words) {
-        // we keep the name or the increment
-        let variable = words[1];
-        let spliceIndex = words.indexOf("to");
-        // we keep that the two bounds
-        let lowerBound = words.splice(3, spliceIndex - 3);
-        let upperBound = words.splice(4, words.length - 5);
-        // we create a fake affectation line to initialize the increment with the lower bound
-        let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
-        // we keep the stopping condition
-        let condition = [variable, "<"].concat(upperBound);
-        // then we evaluate it
-        let returnValue = this.eval(affectationToLowerBoundLine);
-        // Something got wrong
-        if (returnValue != 0) {
-            return 1;
-        }
-        // then we analyze the stopping condition
-        returnValue = this.analyzer(this.concatWords(condition));
-        if (returnValue != 0) {
-            console.error("analyzer error");
-            return returnValue;
-        }
-        // we check that the condition is a boolean
-        returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
-        if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
-            return returnValue;
-        }
-        let forLine = this.instructions.length + 1;
-        // then we generate the instructions corresponding to the condition
-        this.generateInstructions(this.currentExpressionList, false);
-        // then we create the jump instruction
-        this.instructions.push(new Instruction_1.Instruction("tze(x);"));
-        // and we keep the current line number for the callback
-        let tzeLine = this.instructions.length - 1;
-        // we keep the current blockScope
-        let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
-            // recursive calling
-            this.nbLine++;
-            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-            // Something got wrong
-            if (returnValue != 0) {
-                return 1;
-            }
-        }
-        // then we add 1 to the increment variable
-        let finalIncrementLine = variable + ":=" + variable + "+" + "1;";
-        returnValue = this.eval(finalIncrementLine);
-        // Something got wrong
-        if (returnValue != 0) {
-            return 1;
-        }
-        // we create the callback instruction with the line of the beginning of the block
-        this.instructions.push(new Instruction_1.Instruction("tra(" + forLine + ");"));
-        // finally we update the jump instruction with the current line number
-        this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
-        return 0;
-    }
-    /**
-     * @description checks for errors and generates the instructions for a block "while"
-     * @param string[] the words
-     * @returns the output status
-     * @author Sébastien HERT
-     * @author Adam RIVIÈRE
-     */
-    generateWhile(words) {
-        // we keep the while condition
-        words = tools.removeFromWords(words, 1, 1);
-        // we analyze it
-        let returnValue = this.analyzer(this.concatWords(words));
-        if (returnValue != 0) {
-            console.error("analyzer error");
-            return returnValue;
-        }
-        // we check its type
-        returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
-        if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
-            return returnValue;
-        }
-        // then we generate the corresponding instructions
-        let whileLine = this.instructions.length + 1;
-        this.generateInstructions(this.currentExpressionList, false);
-        // then we create the jump instruction
-        this.instructions.push(new Instruction_1.Instruction("tze(x);"));
-        // and we keep the current line number for the callback
-        let tzeLine = this.instructions.length - 1;
-        // we keep the current blockScope
-        let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
-            // recursive calling
-            this.nbLine++;
-            let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-            // Something got wrong
-            if (returnValue != 0) {
-                return 1;
-            }
-        }
-        // we create the callback instruction with the line of the beginning of the block
-        this.instructions.push(new Instruction_1.Instruction("tra(" + whileLine + ");"));
-        // finally we update the jump instruction with the current line number
-        this.instructions[tzeLine] = new Instruction_1.Instruction("tze(" + (this.instructions.length + 1) + ");");
-        return 0;
+        return line;
     }
 }
 exports.Compiler = Compiler;
