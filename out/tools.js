@@ -1,7 +1,7 @@
 "use strict";
 //=================================== tools.ts ===================================//
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.lineToWordsList = exports.removeEmptyLines = exports.removeComments = exports.indexingFile = exports.splittingLine = void 0;
+exports.removeFromWords = exports.lineToWordsList = exports.removeEmptyLines = exports.removeComments = exports.indexingFile = exports.splittingLine = void 0;
 //--------------------------------- Description ----------------------------------//
 //
 // The files gives some tools used in different files
@@ -80,7 +80,14 @@ function removeComments(file) {
     return file.replace(regexpComment, "");
 }
 exports.removeComments = removeComments;
+/**
+ * @description returns a list of string without empty ones
+ * @param string[] the output lines
+ * @returns the lines modified
+ * @author Sébastien HERT
+ */
 function removeEmptyLines(lines) {
+    // we need to remove all the lines which are empty or only containing its number
     lines = lines.filter(function emptyLine(line) {
         line = line.trim();
         return !(new RegExp(/^\$[0-9]+$/).test(line)) && line.length != 0;
@@ -88,15 +95,42 @@ function removeEmptyLines(lines) {
     return lines;
 }
 exports.removeEmptyLines = removeEmptyLines;
+/**
+ * @description split a string into a list of words
+ * @param string the line to parse
+ * @returns a list of words
+ * @author Sébastien HERT
+ */
 function lineToWordsList(line) {
+    // Let's define all the words separator
     const regexParser = new RegExp(/( |,|\+|\-|\/|\*|>|<|=|:|;|\(|\))/);
+    // Then split the line
     var words = line.split(regexParser);
+    // And remove the empty lines
     words = words.filter(function checkEmpty(word) {
         return (word != "" && word != " ");
     });
     return words;
 }
 exports.lineToWordsList = lineToWordsList;
+/**
+ * @description removes [nbWordsBegin] elements from the begin and [nbWordsEnd] from the end of a list
+ * @param string[] the list of words
+ * @param nbWordsBegin the number of words to remove at the beginning
+ * @param nbWordsEnd the number of words to remove at the end
+ * @returns the new list of words
+ * @author Sébastien HERT
+ */
+function removeFromWords(words, nbWordsBegin, nbWordsEnd) {
+    for (let i = 0; i < nbWordsBegin; i++) {
+        words.shift();
+    }
+    for (let i = 0; i < nbWordsEnd; i++) {
+        words.pop();
+    }
+    return words;
+}
+exports.removeFromWords = removeFromWords;
 //--------------------------------------------------------------------------------//
-//================================================================================//
+//================================================================================//r
 //# sourceMappingURL=tools.js.map
