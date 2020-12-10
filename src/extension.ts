@@ -8,10 +8,10 @@ import { Executor } from "./Executor";
 import { exec } from "child_process";
 import * as syntaxError from "./syntax/SyntaxError";
 
-let executor = new Executor();
-let output = vscode.window.createOutputChannel("Nilnovi - Output");
-import {autoCompletion, errors, setErrors, updateDiags} from "./syntax/providers";
-import {hovers} from "./syntax/providers";
+// let executor = new Executor();
+let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
+import { autoCompletion, errors, setErrors, updateDiags } from "./syntax/providers";
+import { hovers } from "./syntax/providers";
 import { Compiler } from "./compiler/Compiler";
 
 // this method is called when your extension is activated
@@ -37,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
   // var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');
   // var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
   var editor = vscode.window.activeTextEditor;
-  if(editor !== undefined) {
+  if (editor !== undefined) {
     // updateDiags(editor.document, diag_coll);
     setErrors(editor.document.getText());
     // diag_coll = updateDiags(editor.document, diag_coll);
@@ -60,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 
-//fonction webviewcontent
+//Function webViewContent
 function getWebviewContent() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -79,17 +79,18 @@ function runNilnovi() {
   if (vscode.window.activeTextEditor) {
     var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
     if (fileNamePath.endsWith(".nn")) {
-      if (!syntaxError.isError) {
-        var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"));
-      }else{
-        console.log("errors");
+      if (syntaxError.isError) {
+        vscode.window.showErrorMessage("An error occurred before compilation. Please correct the syntax before trying again");
+      } else {
+        vscode.window.showInformationMessage("Compilation in progress");
+        var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"), outputChannel);
       }
 
 
-    // executor.output.clear();
-    // executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
-		// executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
-    // executor.run();
+      // executor.output.clear();
+      // executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
+      // executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+      // executor.run();
 
       //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
       //   output.appendLine("Hello there");
@@ -115,7 +116,7 @@ function runNilnovi() {
     } else {
       vscode.window.showErrorMessage(
         path.basename(fileNamePath) +
-          ' is not a Nilnovi file, please use the".nn" extension'
+        ' is not a Nilnovi file, please use the".nn" extension'
       );
     }
   } else {
@@ -124,4 +125,4 @@ function runNilnovi() {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

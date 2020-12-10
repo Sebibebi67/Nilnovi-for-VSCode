@@ -20,6 +20,8 @@ const VariableList_1 = require("./VariableList");
 const Method_1 = require("./Method");
 const Variable_1 = require("./Variable");
 const Instruction_1 = require("./Instruction");
+const CompilationError_1 = require("./CompilationError");
+const vscode = require("vscode");
 //--------------------------------------------------------------------------------//
 class Compiler {
     //--------------------------------------------------------------------------------//
@@ -30,7 +32,7 @@ class Compiler {
      * @author Sébastien HERT
      * @author Adam RIVIÈRE
      */
-    constructor(file) {
+    constructor(file, output) {
         //------------------------------- Class Variables --------------------------------//
         this.nilnoviProgram = [];
         this.nbLine = 0;
@@ -41,6 +43,10 @@ class Compiler {
         this.opDict = {};
         this.currentExpressionList = [];
         this.ifTraList = [];
+        this.currentLineNb = 0;
+        this.outputChannel = output;
+        this.outputChannel.clear();
+        this.outputChannel.show(true);
         // Initializing the lists of Methods and Variables
         this.methodList = new MethodList_1.MethodList();
         this.variableList = new VariableList_1.VariableList();
@@ -54,7 +60,11 @@ class Compiler {
         let returnValue = this.compile();
         // If something get wrong
         if (returnValue != 0) {
-            console.error("something got wrong");
+            vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information");
+        }
+        else {
+            console.log(returnValue);
+            vscode.window.showInformationMessage("Compilation ran successfully");
         }
         // Printing part
         for (let i = 0; i < this.instructions.length; i++) {
@@ -102,6 +112,7 @@ class Compiler {
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
         currentLine = lineFeatures["content"];
+        this.currentLineNb = lineFeatures["index"];
         // The line shouldn't be empty, but to be sure
         if (currentLine === undefined) {
             return 0;
@@ -179,15 +190,16 @@ class Compiler {
             words = tools.removeFromWords(words, 0, 1);
             let returnValue = this.analyzer(this.concatWords(words));
             if (returnValue != 0) {
-                console.error("analyzer error");
                 return returnValue;
             }
             returnValue = this.syntaxAnalyzer(this.currentExpressionList);
             if (returnValue != 0) {
-                console.error("syntaxAnalyzer");
                 return returnValue;
             }
-            this.generateInstructions(this.currentExpressionList, false);
+            returnValue = this.generateInstructions(this.currentExpressionList, false);
+            if (returnValue != 0) {
+                return returnValue;
+            }
             return 0;
         }
     }
@@ -276,18 +288,19 @@ class Compiler {
         // we analyze it
         let returnValue = this.analyzer(this.concatWords(words));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         // we check its type
         returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
         if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
             return returnValue;
         }
         // then we generate the corresponding instructions
         let whileLine = this.instructions.length + 1;
-        this.generateInstructions(this.currentExpressionList, false);
+        returnValue = this.generateInstructions(this.currentExpressionList, false);
+        if (returnValue != 0) {
+            return returnValue;
+        }
         // then we create the jump instruction
         this.instructions.push(new Instruction_1.Instruction("tze(x);"));
         // and we keep the current line number for the callback
@@ -336,18 +349,19 @@ class Compiler {
         // then we analyze the stopping condition
         returnValue = this.analyzer(this.concatWords(condition));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         // we check that the condition is a boolean
         returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
         if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
             return returnValue;
         }
         let forLine = this.instructions.length + 1;
         // then we generate the instructions corresponding to the condition
-        this.generateInstructions(this.currentExpressionList, false);
+        returnValue = this.generateInstructions(this.currentExpressionList, false);
+        if (returnValue != 0) {
+            return returnValue;
+        }
         // then we create the jump instruction
         this.instructions.push(new Instruction_1.Instruction("tze(x);"));
         // and we keep the current line number for the callback
@@ -393,16 +407,17 @@ class Compiler {
         // Let's analyze the condition
         let returnValue = this.analyzer(this.concatWords(words));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
         if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
             return returnValue;
         }
         // Then generate the instructions
-        this.generateInstructions(this.currentExpressionList, false);
+        returnValue = this.generateInstructions(this.currentExpressionList, false);
+        if (returnValue != 0) {
+            return returnValue;
+        }
         // We need to add the "tze" method, which is a jump if the condition on top of pile is false, and store the ref to the corresponding line
         this.instructions.push(new Instruction_1.Instruction("tze(x);"));
         let tzeLine = this.instructions.length - 1;
@@ -456,14 +471,14 @@ class Compiler {
     generateGet(words) {
         // we check that there's one and only one parameter
         if (words.length != 5) {
-            console.error("get : wrong nb parameters");
+            this.displayError(new CompilationError_1.CompilationError(508, "The method 'get' needs a unique parameter which is a variable", this.currentLineNb));
             return 1;
         }
         // we keep the variable to affect
         let variable = words[2];
         // we check that the given variable is defined
         if (!this.isVar(this.fullVariableName(variable))) {
-            console.error("get : not a var");
+            this.displayError(new CompilationError_1.CompilationError(508, "The method 'get' needs a unique parameter which is a variable", this.currentLineNb));
             return 1;
         }
         // we get the variable pile address
@@ -489,17 +504,18 @@ class Compiler {
         // we analyze it
         let returnValue = this.analyzer(this.concatWords(words));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         // we check if there's any type error
         returnValue = this.syntaxAnalyzer(this.currentExpressionList);
         if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
             return returnValue;
         }
         // we generate the corresponding instructions
-        this.generateInstructions(this.currentExpressionList, false);
+        returnValue = this.generateInstructions(this.currentExpressionList, false);
+        if (returnValue != 0) {
+            return returnValue;
+        }
         // finally we create the "put" instruction
         this.instructions.push(new Instruction_1.Instruction("put();"));
         return 0;
@@ -516,13 +532,13 @@ class Compiler {
         let variable = words[0];
         // Does it exist ?
         if (!this.isVar(this.fullVariableName(variable))) {
-            console.error(variable + " is not defined", this.currentMethodName);
+            this.displayError(new CompilationError_1.CompilationError(503, variable + " is not defined", this.currentLineNb));
             return 1;
         }
         // Does it have the correct format ? (x := 4)
         let affectation = words[1] + words[2];
         if (affectation != ":=") {
-            console.error(":= expected");
+            this.displayError(new CompilationError_1.CompilationError(502, ":= expected", this.currentLineNb));
             return 1;
         }
         // Let's remove the 3 first words (x, :, =) and the ";"
@@ -530,14 +546,12 @@ class Compiler {
         words = tools.removeFromWords(words, 0, 1);
         let returnValue = this.analyzer(this.concatWords(words));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         // Now let's analyze the line and compare it to the corresponding type of our variable
         returnValue = this.syntaxAnalyzer(this.currentExpressionList, this.variableList.get(this.fullVariableName(variable)).type);
         // Something get wrong
         if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
             return 1;
         }
         let fullVariableName = this.variableList.get(this.fullVariableName(variable));
@@ -556,7 +570,10 @@ class Compiler {
         else {
             this.instructions.push(new Instruction_1.Instruction("empiler(" + fullVariableName.addPile + ");", "address"));
         }
-        this.generateInstructions(this.currentExpressionList, false);
+        returnValue = this.generateInstructions(this.currentExpressionList, false);
+        if (returnValue != 0) {
+            return returnValue;
+        }
         this.instructions.push(new Instruction_1.Instruction("affectation();"));
         // Let's inform the compiler that the variable has been affected
         this.variableList.get(this.fullVariableName(variable)).hasBeenAffected = true;
@@ -645,18 +662,16 @@ class Compiler {
         // then we analyse it
         let returnValue = this.analyzer(this.concatWords(words));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         // we check if there's any type error
         returnValue = this.syntaxAnalyzer(this.currentExpressionList);
         if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
             return returnValue;
         }
         // finally we generate the corresponding instructions
-        this.generateInstructions(this.currentExpressionList, false);
-        return 0;
+        returnValue = this.generateInstructions(this.currentExpressionList, false);
+        return returnValue;
     }
     //--------------------------------------------------------------------------------//
     //------------------------------- Syntax Analyzer --------------------------------//
@@ -676,9 +691,9 @@ class Compiler {
                 this.currentExpressionList.push(words[0]);
                 return 0;
             }
-            // else the is an error
+            // else this is an error
             else {
-                console.error("word " + words[0] + " unknown");
+                this.displayError(new CompilationError_1.CompilationError(501, words[0] + " is an unknown word", this.currentLineNb));
                 return 1;
             }
         }
@@ -752,9 +767,13 @@ class Compiler {
                 this.currentExpressionList.push("not");
                 return returnValue;
             }
+            else if (words[0] === undefined) {
+                return 0;
+            }
             // else, we should raise an error
             else {
-                console.error(words[0], "is undefined");
+                console.log("toto", words[0]);
+                this.displayError(new CompilationError_1.CompilationError(501, words[0] + " is an unknown word", this.currentLineNb));
                 return 1;
             }
         }
@@ -808,7 +827,7 @@ class Compiler {
             if (this.isVar(this.fullVariableName(element))) {
                 // Let's check if it has already been affected to get its type
                 if (!this.isAffected(this.fullVariableName(element))) {
-                    console.error(element + " has not been affected");
+                    this.displayError(new CompilationError_1.CompilationError(504, element + " has not been affected before", this.currentLineNb));
                     return 1;
                 }
                 let type = this.variableList.get(this.fullVariableName(element)).type;
@@ -841,7 +860,6 @@ class Compiler {
                 let typeB = expressionCopy[i - 1];
                 let typeOp = this.opDict[element].inType;
                 // if the types match
-                // if (typeOp == "both" || (typeA == typeB && typeA == typeOp)) {
                 if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
                     expressionCopy[i] = this.opDict[element].outType;
                 }
@@ -853,7 +871,7 @@ class Compiler {
                     else {
                         typeOp = "2 " + typeOp + "s";
                     }
-                    console.error("wrong type : operator " + element + " requires " + typeOp);
+                    this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
                     return 1;
                 }
             }
@@ -861,7 +879,7 @@ class Compiler {
         // if the operator's out type isn't right
         if (expectedType !== undefined) {
             if (expectedType != expressionCopy.pop()) {
-                console.error("wrong type");
+                this.displayError(new CompilationError_1.CompilationError(506, "Wrong expression type", this.currentLineNb));
                 return 1;
             }
         }
@@ -878,6 +896,7 @@ class Compiler {
          * @author Adam RIVIÈRE
          */
     generateInstructions(expression, isBlock) {
+        let returnValue = 0;
         // for each word in the expression
         for (let i = 0; i < expression.length; i++) {
             let word = expression[i];
@@ -923,13 +942,13 @@ class Compiler {
             else {
                 let end = this.currentExpressionList.slice(i + 1);
                 this.currentExpressionList = this.currentExpressionList.slice(0, i);
-                this.generateInstructionsMethod(word);
+                returnValue = this.generateInstructionsMethod(word);
                 this.currentExpressionList = this.currentExpressionList.concat(end);
             }
         }
         // finally we reset the current expression
         this.currentExpressionList = [];
-        return 0;
+        return returnValue;
     }
     /**
      * @description generates the instructions to call the given method with its parameters
@@ -953,30 +972,30 @@ class Compiler {
         let nbParamsExpected = this.methodList.get(methodName).params.length;
         let tmpWordsList = [];
         // for each word
-        for (let index in words) {
-            let word = words[index];
+        for (let word of words) {
             // if the word is ","
             if (word == ",") {
                 // we analyse the previous parameter as an expression
                 let returnValue = this.analyzer(this.concatWords(tmpWordsList));
                 if (returnValue != 0) {
-                    console.error("analyzer error");
                     return returnValue;
                 }
                 // then we verify that there isn't too much parameters
                 if (nbParamsRead >= nbParamsExpected) {
-                    console.error("too many parameters");
+                    this.displayError(new CompilationError_1.CompilationError(507, "the method " + methodName + " requires " + nbParamsExpected + " parameter(s) but got at least " + (nbParamsExpected + 1), this.currentLineNb));
                     return 1;
                 }
                 // then we check the type of these parameters
                 returnValue = this.syntaxAnalyzer(tmpWordsList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).type);
                 nbParamsRead++;
                 if (returnValue != 0) {
-                    console.error("syntaxAnalyzer");
                     return returnValue;
                 }
                 // finally we generate the instructions to get this parameter
-                this.generateInstructions(this.currentExpressionList, false);
+                returnValue = this.generateInstructions(this.currentExpressionList, false);
+                if (returnValue != 0) {
+                    return returnValue;
+                }
                 tmpWordsList = [];
             }
             // else the word is a part of a parameter
@@ -984,30 +1003,32 @@ class Compiler {
                 tmpWordsList.push(word);
             }
         }
+        if (words.length > 0) {
+            nbParamsRead++;
+        }
         // then we process the last parameter as we did for the others
         let returnValue = this.analyzer(this.concatWords(tmpWordsList));
         if (returnValue != 0) {
-            console.error("analyzer error");
             return returnValue;
         }
         // we check if there isn't too few parameters
-        if (nbParamsRead >= nbParamsExpected) {
-            console.error("too many parameters");
+        if (nbParamsRead != nbParamsExpected) {
+            this.displayError(new CompilationError_1.CompilationError(507, "the method " + methodName + " requires " + nbParamsExpected + " parameter(s) but got " + (nbParamsRead), this.currentLineNb));
             return 1;
         }
-        else if (nbParamsRead + 1 != nbParamsExpected) {
-            console.error("not enough parameters");
-            return 1;
-        }
-        returnValue = this.syntaxAnalyzer(tmpWordsList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).type);
-        if (returnValue != 0) {
-            console.error("syntaxAnalyzer");
-            return returnValue;
+        if (nbParamsExpected != 0) {
+            returnValue = this.syntaxAnalyzer(tmpWordsList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).type);
+            if (returnValue != 0) {
+                return returnValue;
+            }
         }
         // we create the instruction to reserve a block in the pile before calling the method
         this.instructions.push(new Instruction_1.Instruction("reserverBloc();", "bloc"));
         // we generate the instructions for the method's parameters
-        this.generateInstructions(this.currentExpressionList, true);
+        returnValue = this.generateInstructions(this.currentExpressionList, true);
+        if (returnValue != 0) {
+            return returnValue;
+        }
         tmpWordsList = [];
         // finally we create the instruction to call the method with its beginning line and the number of parameters to get
         let methodLine = this.methodList.get(methodName).refLine + 1;
@@ -1184,6 +1205,10 @@ class Compiler {
             }
         }
         return line;
+    }
+    displayError(error) {
+        this.outputChannel.appendLine(error.message);
+        this.outputChannel.show(true);
     }
 }
 exports.Compiler = Compiler;

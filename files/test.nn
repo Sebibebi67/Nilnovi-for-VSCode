@@ -1,9 +1,17 @@
 procedure main() is
-        toto : integer;
-begin
-        toto := 4;
-        if toto = 6 then
-                put(4);
+        procedure notMain(jenCrien : in integer) is
+                #variable1 : Type;
+        begin
+                put(6);
         end
+
+        procedure tata() is
+                #variable1 : Type;
+        begin
+                put(9);
+        end
+begin
+        notMain(4,5,6);
+        # tata(5);
 
 end

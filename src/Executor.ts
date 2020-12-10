@@ -34,7 +34,7 @@ export class Executor {
   //--------------------------------- Constructor ----------------------------------//
 
   constructor() {
-    this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
+    this.output = vscode.window.createOutputChannel("TOOT");
     this.output.show(true);
   }
 

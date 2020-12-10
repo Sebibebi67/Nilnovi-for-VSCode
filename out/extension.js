@@ -6,10 +6,9 @@ exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const path = require("path");
 const fs_1 = require("fs");
-const Executor_1 = require("./Executor");
 const syntaxError = require("./syntax/SyntaxError");
-let executor = new Executor_1.Executor();
-let output = vscode.window.createOutputChannel("Nilnovi - Output");
+// let executor = new Executor();
+let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./syntax/providers");
 const providers_2 = require("./syntax/providers");
 const Compiler_1 = require("./compiler/Compiler");
@@ -45,7 +44,7 @@ function activate(context) {
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());
 }
 exports.activate = activate;
-//fonction webviewcontent
+//Function webViewContent
 function getWebviewContent() {
     return `<!DOCTYPE html>
 <html lang="en">
@@ -63,11 +62,12 @@ function runNilnovi() {
     if (vscode.window.activeTextEditor) {
         var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
         if (fileNamePath.endsWith(".nn")) {
-            if (!syntaxError.isError) {
-                var compiler = new Compiler_1.Compiler(fs_1.readFileSync(fileNamePath, "utf-8"));
+            if (syntaxError.isError) {
+                vscode.window.showErrorMessage("An error occurred before compilation. Please correct the syntax before trying again");
             }
             else {
-                console.log("errors");
+                vscode.window.showInformationMessage("Compilation in progress");
+                var compiler = new Compiler_1.Compiler(fs_1.readFileSync(fileNamePath, "utf-8"), outputChannel);
             }
             // executor.output.clear();
             // executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");

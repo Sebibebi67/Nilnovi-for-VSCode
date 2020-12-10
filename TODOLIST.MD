@@ -3,6 +3,6 @@ while true in executor
 
 
 TEST Compiler
-var name endToto
-<!-- double symbol error -> undefined is undefined -->
-<!-- affectation in condition -->
+tata(); -> Compilation error at line 15 : the method tata requires 0 but got 1. (no XD)
+
+notMain(); -> undefined is an unknown word (yes but actually no...)
