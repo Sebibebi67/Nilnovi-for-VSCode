@@ -164,7 +164,7 @@ function setErrors(file) {
             exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
         }
         // if procedure or function
-        if (new RegExp(/^(procedure|function)/).test(currentLine)) {
+        if (new RegExp(/^(procedure|function)\s+/).test(currentLine)) {
             if (mainDeclarationFlag == true) {
                 exports.errors.push(new SyntaxError_1.SyntaxError(419, "Cannot define a method after main variable declaration", nbLine));
             }
@@ -189,7 +189,7 @@ function setErrors(file) {
                 }
             }
         }
-        else if (new RegExp(/^(if|for|while|elif|else)/).test(currentLine)) {
+        else if (new RegExp(/^((if|for|while|elif)\s+|else$)/).test(currentLine)) {
             // "if" or "elif" read
             if (new RegExp(/^(if|elif)/).test(currentLine)) {
                 checkingError_If(currentLine, nbLine);
@@ -259,7 +259,6 @@ function expressionIsBoolean(expression, nbLine) {
         return true;
     }
     if (variableExists(expression)) {
-        // console.log(variablesTable[currentMethod +"."+ expression], expression, variablesTable);
         if (variablesTable[currentMethod + "." + expression].type == "boolean") {
             return true;
         }
@@ -533,7 +532,7 @@ function checkingError_If(currentLine, nbLine) {
     }
     else {
         // if the condition isn't correct
-        let condition = currentLine.split("if")[1].split("then")[0].trim();
+        let condition = currentLine.split("if ")[1].split(" then")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(406, condition + " is not boolean", nbLine));
         }
@@ -559,7 +558,7 @@ function checkingError_While(currentLine, nbLine) {
     }
     // the format is correct
     else {
-        let condition = currentLine.split("while")[1].split("loop")[0].trim();
+        let condition = currentLine.split("while ")[1].split(" loop")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(406, condition + " is not a boolean", nbLine));
         }
@@ -593,9 +592,9 @@ function checkingError_For(currentLine, nbLine) {
     }
     // the format is correct
     else {
-        let variable = currentLine.split("for")[1].split("from")[0].trim();
-        let upperBound = currentLine.split("from")[1].split("to")[0].trim();
-        let lowerBound = currentLine.split("to")[1].trim();
+        let variable = currentLine.split("for ")[1].split(" from ")[0].trim();
+        let upperBound = currentLine.split(" from ")[1].split(" to ")[0].trim();
+        let lowerBound = currentLine.split(" to ")[1].trim();
         if (!variableExists(variable)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(414, variable + " is not defined", nbLine));
         }

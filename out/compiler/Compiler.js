@@ -189,16 +189,11 @@ class Compiler {
             return 0;
         }
         else if (words[0] == "for") {
-            // words.pop();
-            // words.shift();
-            // console.log(words);
             let variable = words[1];
-            // words.shift();
             let spliceIndex = words.indexOf("to");
             let lowerBound = words.splice(3, spliceIndex - 3);
             let upperBound = words.splice(4, words.length - 5);
             let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
-            console.log(affectationToLowerBoundLine);
             let condition = [variable, "<"].concat(upperBound);
             let returnValue = this.eval(affectationToLowerBoundLine);
             // Something got wrong
@@ -264,6 +259,16 @@ class Compiler {
                     }
                     else {
                         this.instructions.pop();
+                        //get the last tze
+                        let lastIndexTze = 0;
+                        for (let j = 0; j < this.instructions.length; j++) {
+                            let instruction = this.instructions[j];
+                            if (new RegExp(/tze\([0-9]+\)\;/).test(instruction.machineCode)) {
+                                lastIndexTze = j;
+                            }
+                        }
+                        let nbLineTze = +this.instructions[lastIndexTze].machineCode.split("(")[1].split(")")[0];
+                        this.instructions[lastIndexTze].machineCode = "tze(" + (nbLineTze - 1) + ");";
                     }
                     delete this.ifTraList[i];
                 }
@@ -672,7 +677,9 @@ class Compiler {
                     line.push(word + "=");
                     i++;
                 }
-                line.push(word);
+                else {
+                    line.push(word);
+                }
             }
             // else if it's a method
             else if (this.isMethod(word)) {
@@ -846,12 +853,13 @@ class Compiler {
     syntaxAnalyzer(expression, expectedType) {
         // Let's make a copy of the list, allowing us to modify this copy
         var expressionCopy = [];
-        expression.forEach(element => {
+        for (let element of expression) {
             // if the word is a variable
             if (this.isVar(this.fullVariableName(element))) {
                 // Let's check if it has already been affected to get its type
                 if (!this.isAffected(this.fullVariableName(element))) {
                     console.error(element + " has not been affected");
+                    return 1;
                 }
                 let type = this.variableList.get(this.fullVariableName(element)).type;
                 element = type;
@@ -872,7 +880,7 @@ class Compiler {
             }
             // then we push the element
             expressionCopy.push(element);
-        });
+        }
         // for each element in the list
         for (let i = 0; i < expressionCopy.length; i++) {
             const element = expressionCopy[i];

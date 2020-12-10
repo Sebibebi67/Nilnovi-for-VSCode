@@ -1,10 +1,9 @@
 procedure main() is
-        i : integer;
+        toto : integer;
 begin
-
-        for i from 0 to 5 loop
-                put(5);
+        toto := 4;
+        if toto = 6 then
+                put(4);
         end
-
 
 end

@@ -185,7 +185,7 @@ export function setErrors(file: string) {
         if (!regexUnexpectedChar.test(currentLine)) { errors.push(new SyntaxError(402, "Unexpected character", nbLine)); }
 
         // if procedure or function
-        if (new RegExp(/^(procedure|function)/).test(currentLine)) {
+        if (new RegExp(/^(procedure|function)\s+/).test(currentLine)) {
             if (mainDeclarationFlag == true) { errors.push(new SyntaxError(419, "Cannot define a method after main variable declaration", nbLine)); }
             else {
                 // it's a procedure
@@ -202,7 +202,7 @@ export function setErrors(file: string) {
             }
         }
 
-        else if (new RegExp(/^(if|for|while|elif|else)/).test(currentLine)) {
+        else if (new RegExp(/^((if|for|while|elif)\s+|else$)/).test(currentLine)) {
 
             // "if" or "elif" read
             if (new RegExp(/^(if|elif)/).test(currentLine)) { checkingError_If(currentLine, nbLine) }
@@ -261,7 +261,7 @@ function expressionIsBoolean(expression: string, nbLine: number) {
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
     if (regexContainsBooleanInstructions.test(expression)) { return true }
     if (variableExists(expression)){
-        // console.log(variablesTable[currentMethod +"."+ expression], expression, variablesTable);
+
         if (variablesTable[currentMethod +"."+ expression].type == "boolean"){ return true }
         return false;
     }
@@ -533,7 +533,7 @@ function checkingError_If(currentLine: string, nbLine: number) {
     if (!regexIfFormat.test(currentLine)) { errors.push(new SyntaxError(409, "Wrong 'if/elif' block format", nbLine)); }
     else {
         // if the condition isn't correct
-        let condition = currentLine.split("if")[1].split("then")[0].trim();
+        let condition = currentLine.split("if ")[1].split(" then")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) { errors.push(new SyntaxError(406, condition + " is not boolean", nbLine)); }
         else {
             const regexIf = new RegExp(/^if/);
@@ -554,7 +554,7 @@ function checkingError_While(currentLine: string, nbLine: number) {
     if (!regexWhileFormat.test(currentLine)) { errors.push(new SyntaxError(410, "Wrong 'while' block format", nbLine)) }
     // the format is correct
     else {
-        let condition = currentLine.split("while")[1].split("loop")[0].trim();
+        let condition = currentLine.split("while ")[1].split(" loop")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) { errors.push(new SyntaxError(406, condition + " is not a boolean", nbLine)) }
         else { blockScope++; }
     }
@@ -583,9 +583,9 @@ function checkingError_For(currentLine: string, nbLine: number) {
 
     // the format is correct
     else {
-        let variable = currentLine.split("for")[1].split("from")[0].trim();
-        let upperBound = currentLine.split("from")[1].split("to")[0].trim();
-        let lowerBound = currentLine.split("to")[1].trim();
+        let variable = currentLine.split("for ")[1].split(" from ")[0].trim();
+        let upperBound = currentLine.split(" from ")[1].split(" to ")[0].trim();
+        let lowerBound = currentLine.split(" to ")[1].trim();
 
         if (!variableExists(variable)) { errors.push(new SyntaxError(414, variable + " is not defined", nbLine)); }
         else if (!validBound(upperBound)) { errors.push(new SyntaxError(415, upperBound + " is not a valid bound", nbLine)) }
