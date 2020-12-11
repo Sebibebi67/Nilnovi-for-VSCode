@@ -82,12 +82,13 @@ export class PileWebViewPanel {
                 <table id='legende'><tbody>
                     <tr>
                         <td>Couleurs:</td>
-                        <td class='int'>Entier</td>
-                        <td class='bool'>Booléen</td>
-                        <td class='link'>Adresse</td>
+                        <td class='integer'>Entier</td>
+                        <td class='boolean'>Booléen</td>
+                        <td class='address'>Adresse</td>
                         <td class='block'>Bloc de liaison</td>
                     </tr>
                 </tbody></table>
+                <p id='instruction'></p>
 
                 <script>
 
@@ -103,6 +104,8 @@ export class PileWebViewPanel {
                             case 'showPile':
                                 table = document.getElementById('pileExecution');
                                 tableBody = document.getElementById('pileBody');
+                                tableBody.innerHTML = "" //Reset Pile
+                                instruction = document.getElementById('instruction');
                                 message.pile.forEach(element => {
                                     let tr = document.createElement('tr');
                                     let num = document.createElement('td');
@@ -123,6 +126,7 @@ export class PileWebViewPanel {
                                     tr.appendChild(content);
                                     tableBody.insertBefore(tr, tableBody.firstChild);
                                 })
+                                instruction.innerHTML = message.instructionLine.toString() + " : " + message.instruction; 
                                 break;
                         }
 

@@ -1,8 +1,18 @@
 format Document ?
 while true in executor
 
+```
+procedure main() is
+        procedure double(x : in out integer) is
+        begin
+                x := 2*x;
+        end
 
-TEST Compiler
-tata(); -> Compilation error at line 15 : the method tata requires 0 but got 1. (no XD)
+begin
 
-notMain(); -> undefined is an unknown word (yes but actually no...)
+        put(double(9));
+
+end
+```
+
+-> normalement erreur de compilation -> double ne renvoie rien

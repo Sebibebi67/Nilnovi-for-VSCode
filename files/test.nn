@@ -11,7 +11,7 @@ procedure main() is
                 put(9);
         end
 begin
-        notMain(4,5,6);
+        notMain(4);
         # tata(5);
 
 end

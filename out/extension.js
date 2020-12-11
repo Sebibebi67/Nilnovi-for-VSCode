@@ -6,15 +6,15 @@ exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const path = require("path");
 const fs_1 = require("fs");
+const Executor_1 = require("./Executor");
 const PileWebViewPanel_1 = require("./PileWebViewPanel");
 const syntaxError = require("./syntax/SyntaxError");
-// let executor = new Executor();
 let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./syntax/providers");
 const providers_2 = require("./syntax/providers");
 const Compiler_1 = require("./compiler/Compiler");
-var pileExec = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomBlock' }, { value: 6, type: 'topBlock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
-let pointerPile = 0;
+// var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomBlock' }, { value: 6, type: 'topBlock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
+// let pointerPile = 0;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -22,10 +22,10 @@ function activate(context) {
         // console.log(vscode.window.activeTextEditor);
         runNilnovi(context);
     });
-    let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
-        let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
-        panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile });
-    });
+    // let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
+    // 	let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
+    // 	panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
+    // });
     var diag_list = [];
     // var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');
     // var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
@@ -69,7 +69,8 @@ function runNilnovi(context) {
                 vscode.workspace.openTextDocument(outputFile).then((d) => {
                     vscode.window.showTextDocument(d, vscode.ViewColumn.Beside, false).then((editor) => {
                         let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
-                        panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile });
+                        let executor = new Executor_1.Executor(compiler.instructions, outputChannel, panel);
+                        // panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
                     });
                 });
                 // vscode.workspace.openTextDocument(outputFile)

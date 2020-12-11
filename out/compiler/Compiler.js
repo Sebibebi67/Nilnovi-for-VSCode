@@ -1043,7 +1043,7 @@ class Compiler {
             }
         }
         // we create the instruction to reserve a block in the pile before calling the method
-        this.instructions.push(new Instruction_1.Instruction("reserverBloc();", "bloc"));
+        this.instructions.push(new Instruction_1.Instruction("reserverBloc();"));
         // we generate the instructions for the method's parameters
         returnValue = this.generateInstructions(this.currentExpressionList, true);
         if (returnValue != 0) {
@@ -1075,9 +1075,9 @@ class Compiler {
         this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();", isBinary: true };
         this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();", isBinary: true };
         this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();", isBinary: true };
-        this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();", isBinary: true };
-        this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();", isBinary: true };
-        this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "not();", isBinary: false };
+        this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "et();", isBinary: true };
+        this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "ou();", isBinary: true };
+        this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "non();", isBinary: false };
     }
     /**
      * @description loads all parameters in the lists

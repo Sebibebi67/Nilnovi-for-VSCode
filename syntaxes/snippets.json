@@ -51,7 +51,7 @@
                 "\t${6:#variable1} : ${7:Type};",
             "begin",
                 "\t${8:#statement};",
-                "return ${9:0};",
+                "\treturn ${9:0};",
             "end"
         ],
         "description" : "Generates a new function in Nilnovi"

@@ -9,366 +9,659 @@
 //----------------------------------- Authors ------------------------------------//
 //
 // Sébastien HERT
+// Simon JOURDAN
+// Adam RIVIERE
 //
 //--------------------------------------------------------------------------------//
 
 //----------------------------------- Imports ------------------------------------//
 
 import * as vscode from "vscode";
+import { Instruction } from "./compiler/Instruction";
 
 //--------------------------------------------------------------------------------//
 
 export class Executor {
-  //------------------------------- Class Variables --------------------------------//
+	//------------------------------- Class Variables --------------------------------//
 
-  public currentLineCpt = 0;
-  public pile = [];
-  public base = -1;
-  public output: vscode.OutputChannel;
+	public currentLineCpt = 0;
+	public cptPile = 0;
+	// public pile: [number, string][] = [];
+	public pile: { value: number, type: string }[] = [];
+	public base = -1;
+	public output: vscode.OutputChannel;
 
-  private lines: string[] = [];
-  private end = false;
 
-  //--------------------------------------------------------------------------------//
+	public instructions: Instruction[]
 
-  //--------------------------------- Constructor ----------------------------------//
+	private lines: string[] = [];
+	private end = false;
+	private panel:vscode.WebviewPanel;
 
-  constructor() {
-    this.output = vscode.window.createOutputChannel("TOOT");
-    this.output.show(true);
-  }
+	//--------------------------------------------------------------------------------//
 
-  //--------------------------------------------------------------------------------//
+	//--------------------------------- Constructor ----------------------------------//
 
-  //-------------------------------- Public Methods --------------------------------//
+	constructor(instructions: Instruction[], output: vscode.OutputChannel, panel:vscode.WebviewPanel) {
+		this.output = output;
+		this.instructions = instructions;
+		this.panel = panel;
 
-  /**
-   * Description : Loads and converts the file into an array of strings, one string per line. It also removes the block of comments
-   *
-   * Input:
-   * * The file which should be loaded
-   *
-   * Output: None
-   *
-   * Authors:
-   * * Sébastien HERT
-   */
-  public loadingFile(file: string) {
-    // First, we will remove all the blocks of comments and replace them by empty lines, then filling our array of lines
-    const regex = /\/\*(.|[\r\n])*\*\//;
-    this.lines = file.replace(regex, "\r\n").split(/\r?\n/);
-  }
+		this.run(1000);
 
-  /**
-   * Description : Runs the file previously loaded
-   *
-   * Input:
-   * * (Optional) The delay
-   *
-   * Output: None
-   *
-   * Authors:
-   * * Sébastien HERT
-   */
-  public run(delay?: number) {
-    // resets the global values
-    this.reset();
+	}
 
-    // while not "FinProg" or error
-    while (!this.end) {
-      // Evaluating current line
-      const returnValue = this.eval(this.lines[this.currentLineCpt]);
+	//--------------------------------------------------------------------------------//
 
-      // An error occurs
-      if (returnValue != 0) {
-        this.stop();
-      }
-    }
-  }
+	//-------------------------------- Public Methods --------------------------------//
 
-  //--------------------------------------------------------------------------------//
 
-  //-------------------------------- Private Methods -------------------------------//
 
-  private eval(line: string) {
-    // First, we need to remove the spaces at begin and end of the line
-    line = line.trim();
+	/**
+	   * @description Runs the file previously loaded
+	   * @param number (Optional) The delay
+	   * @author Sébastien HERT
+	   */
+	public async run(delay?: number) {
 
-    // if the line is empty or commented
-    if (line.length == 0 || line.startsWith("#")) {
-      this.currentLineCpt++;
-      return 0;
-    }
+		// resets the global values
+		this.reset();
 
-    let method = line.split(";")[0].split("=>")[0];
-    // User cannot use word "undefined", except for the "erreur" method
-    let arg = line.split("(")[1].split(")")[0];
-    if (arg.includes("undefined") && !method.includes("erreur")) {
-      this.wordUndefinedUseError();
-      return 1;
-    }
+		// while not "FinProg" or error
+		while (!this.end) {
 
-    // checks if the line is commented or empty
-    if (!(line.length == 0) && !line.startsWith("#")) {
-      try {
-        const returnValue = eval("this.evaluable_" + method);
-        if (returnValue != 0) {
-          return 1;
-        }
-      } catch (error) {
-        if (error.message.endsWith("is not a function")) {
-          this.functionNotDefinedError(method.split("(")[0]);
-          return 1;
-        }
+			// Evaluating current line
+			let returnValue = await this.eval(this.instructions[this.currentLineCpt]);
+			// An error occurs
+			if (delay !== undefined){await this.delay(delay);}
 
-        if (error.name == "SyntaxError") {
-          this.syntaxError();
-          return 1;
-        }
+			if (returnValue != 0) {
+				// console.log(this.pile);
+				this.stop();
+			}
+			
+			this.updateWebView();
 
-        this.unknownError();
-        return 1;
-      }
-    } else {
-      // else, we should increase the currentLineCpt
-      this.currentLineCpt++;
-    }
-    return 0;
-  }
 
-  private stop() {
-    this.end = true;
-  }
+			// await this.delay(delay);
+		}
+	}
 
-  private reset() {
-    this.end = false;
-    this.currentLineCpt = 0;
-    // this.commentedState = this.commentedStates.NOT_COMMENTED;
-  }
+	//--------------------------------------------------------------------------------//
 
-  private paramsError(name: string, nbOfParams: number) {
-    const currentLine = this.currentLineCpt + 1;
-    const methodName = name.split("_")[1];
-    this.output.appendLine(
-      "ERROR at line " +
-        currentLine +
-        " : Method " +
-        methodName +
-        " requires " +
-        nbOfParams +
-        " parameter(s)."
-    );
-    this.stop();
-  }
+	//-------------------------------- Private Methods -------------------------------//
 
-  private wordUndefinedUseError() {
-    const currentLine = this.currentLineCpt + 1;
-    this.output.appendLine(
-      "ERROR at line " +
-        currentLine +
-        ' : Please do not use the word "undefined"'
-    );
-    this.stop();
-  }
+	private async eval(instruction: Instruction) {
+		// console.log(instruction)
 
-  private functionNotDefinedError(name: string) {
-    const currentLine = this.currentLineCpt + 1;
-    this.output.appendLine(
-      "ERROR at line " + currentLine + " : Method " + name + " is not defined."
-    );
-  }
 
-  private syntaxError() {
-    const currentLine = this.currentLineCpt + 1;
-    this.output.appendLine("ERROR at line " + currentLine + " : Syntax Error.");
-  }
+		let type = instruction.type;
+		let method = "";
 
-  private unknownError() {
-    const currentLine = this.currentLineCpt + 1;
-    this.output.appendLine("ERROR at line " + currentLine + ".");
-  }
+		// console.log(type);
+		
+		if (type !== undefined) { method = instruction.machineCode.replace(");", ",\"" + type + "\")"); }
+		else { method = instruction.machineCode.replace(");", ")"); }
 
-  //--------------------------------------------------------------------------------//
+		// console.log(method);
 
-  //-------------------------------- Nilnovi Methods -------------------------------//
+		console.log(method);
+		const returnValue = await eval("this.evaluable_" + method);
+		if (returnValue != 0) { return 1; }
+		return 0;
+	}
 
-  /**
-   * Description : Enables the beginning of the program
-   *
-   * Input :
-   * * No parameter should be given (The parameter error checks if no argument has been given)
-   *
-   * Output: 
-   * * The return status 1 | 0
-   *
-   * Authors:
-   * * Sébastien HERT
-   */
-  private evaluable_debutProg(error = undefined) {
-    if (!(error === undefined)) {
-      this.paramsError(this.evaluable_debutProg.name, 0);
-      return 1;
-    }
-    this.output.appendLine("Début de Programme");
-    this.currentLineCpt++;
-    return 0;
-  }
+	private stop() {
+		this.end = true;
+	}
 
-  /**
-   * Description : Enables the end of the program
-   *
-   * Input:
-   * * No parameter should be given (The parameter error checks if no argument has been given)
-   *
-   * Output:
-   * * The return status 1 | 0
-   *
-   * Authors:
-   * * Sébastien HERT
-   */
-  private evaluable_finProg(error = undefined) {
-    if (!(error === undefined)) {
-      this.paramsError(this.evaluable_finProg.name, 0);
-      return 1;
-    }
-    this.output.appendLine("Fin de Programme");
-    this.end = true;
-    this.currentLineCpt = 0;
-    return 0;
-  }
+	private reset() {
+		this.end = false;
+		this.currentLineCpt = 0;
+		// this.commentedState = this.commentedStates.NOT_COMMENTED;
+	}
 
-  private evaluable_reserver(n: number) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	private pileError(str: string) {
+		const currentLine = this.currentLineCpt + 1;
+		this.output.appendLine("ERROR at line " + currentLine + " : " + str);
+	}
 
-  private evaluable_empiler(n: number) {
-    // console.log(n);
-    this.output.appendLine("TODO");
+	private zeroDivisionError() {
+		const currentLine = this.currentLineCpt + 1;
+		this.output.appendLine(
+			"ERROR at line " + currentLine + " : division by zero."
+		);
+	}
 
-    this.currentLineCpt++;
-    // return 0;
-  }
+	private addToPile(value:number, type:string){
+		this.pile.push({value:value, type : type});
+	}
 
-  private evaluable_affectation() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	private updateWebView(){
+		this.panel.webview.postMessage({ command: "showPile", pile: this.pile, pointer: this.cptPile, instructionLine : this.currentLineCpt+1, instruction :this.instructions[this.currentLineCpt].machineCode });
+	}
 
-  private evaluable_valeurPile() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	private delay(ms: number) {
+		return new Promise( resolve => setTimeout(resolve, ms) );
+	}
 
-  private evaluable_get() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	//--------------------------------------------------------------------------------//
 
-  private evaluable_put() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_moins() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	//-------------------------------- Nilnovi Methods -------------------------------//
 
-  private evaluable_sous() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	/**
+	* @description Enables the beginning of the program
+	* @return output status
+	* @author Sébastien HERT
+	*/
+	private evaluable_debutProg() {
+		this.output.appendLine("Début de Programme");
+		this.currentLineCpt++;
+		return 0;
+	}
 
-  private evaluable_add() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	/**
+	* @description Enables the end of the program
+	* @return output status
+	* @author Sébastien HERT
+	*/
+	private evaluable_finProg() {
+		this.output.appendLine("Fin de Programme");
+		this.stop();
+		return 0;
+	}
 
-  private evaluable_mult() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_div() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_egal() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_diff() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_inf() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	/**
+	* @description Reserves n slots in the pile
+	* @param number the number of slots to reserve
+	* @return output status
+	* @author Sébastien HERT
+	*/
+	private evaluable_reserver(n: number, type: string) {
+		for (let i = 0; i < n; i++) {
+			this.addToPile(0, type);
+		}
+		this.cptPile += n;
+		this.currentLineCpt++;
+		return 0;
+	}
 
-  private evaluable_infeg() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_sup() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_supeg() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_et() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	/**
+	* @description stacks the value n at the top of the pile
+	* @param number the number to stack
+	* @param type the type of the number to stack
+	* @return output status
+	* @author Sébastien HERT
+	*/
+	private evaluable_empiler(n: number, type: string) {
+		// let type = this.instructions[this.currentLineCpt].type;addToPile(
+		this.addToPile(n, type);
+		this.cptPile++;
+		this.currentLineCpt++;
+		return 0;
+	}
 
-  private evaluable_ou() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+	private evaluable_affectation() {
 
-  private evaluable_non() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_tra(n: number) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_tze(n: number) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_erreur(exp: string) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-    return 0;
-  }
-  private evaluable_empilerAd(n: number) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_empilerParam(n: number) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_retourProc() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_retourFonct() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_reserverBloc() {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
-  private evaluable_traStat(n: number, t: number) {
-    this.output.appendLine("TODO");
-    this.currentLineCpt++;
-  }
+		const value = this.pile.pop();
+		const address = this.pile.pop();
 
-  //--------------------------------------------------------------------------------//
+		// if (value === undefined || address === undefined) {
+		// 	console.error("affectation problem");
+		// 	return 1;
+		// }
+
+		if (
+			address === undefined ||
+			address.value < 0 ||
+			address.value > this.pile.length ||
+			value === undefined
+		) {
+			this.pileError("Address isn't is the pile");
+			return 1;
+		}
+
+		try {
+			this.pile[address.value].value = value.value;
+		} catch (error) {
+			console.log(error);
+			this.stop();
+			return 1;
+		}
+		this.cptPile -= 2;
+		this.currentLineCpt++;
+		return 0;
+	}
+
+	private evaluable_valeurPile() {
+
+		const address = this.pile.pop();
+		this.cptPile--;
+
+		if (address === undefined || address.value < 0 || address.value > this.pile.length) {
+			this.pileError("Address isn't is the pile");
+			return 1;
+		}
+
+		// if (address === undefined) {
+		// 	console.error("valeurPile problem");
+		// 	return 1;
+		// }
+
+		const value = this.pile[address.value].value;
+		const type = this.pile[address.value].type;
+		return this.evaluable_empiler(value, type);
+	}
+
+	private async evaluable_get() {
+
+		// if (this.pile.length < 1) {
+		// 	this.pileError("Pile doesn't have enough elements.");
+		// 	return 1;
+		// }
+
+		async function getInputValue() {
+			let res = await vscode.window.showInputBox({
+				placeHolder: "",
+				prompt: "Please enter an integer.",
+			});
+			if (res === undefined) { return ""; }
+			else { return res; }
+		}
+
+		let inputString = await getInputValue();
+
+		if (inputString === undefined) {
+			console.log("inputBox is undefined");
+			this.currentLineCpt++;
+			return 0;
+		}
+
+		let inputNumber: number = parseInt(inputString);
+
+		// if (isNaN(inputNumber)) {
+		// 	this.notNumberError(inputString);
+		// 	return 1;
+		// }
+
+		const address = this.pile.pop();
+		this.cptPile--;
+
+		if (address === undefined || address.value < 0 || address.value > this.pile.length) {
+			this.pileError("Address isn't is the pile");
+			return 1;
+		}
+
+		// if (address === undefined){return 1}
+
+		this.pile[address.value].value = inputNumber;
+		this.currentLineCpt++;
+
+		return 0;
+	}
+
+	private evaluable_put() {
+		const value = this.pile.pop();
+
+		if (value === undefined) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		this.cptPile--;
+		this.currentLineCpt++;
+		if (value.type == "boolean") {
+			if (value.value == 0) {this.output.appendLine("false");}
+			else{this.output.appendLine("true");}
+		}
+		else{this.output.appendLine(value.value.toString());}
+		
+		return 0;
+	}
+
+	private evaluable_moins() {
+
+		if (this.pile.length < 1) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let value = this.pile.pop();
+		this.cptPile--;
+		if (value === undefined) { return 1; }
+
+		return this.evaluable_empiler(-value, "integer");
+	}
+
+	private evaluable_sous() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(b.value - a.value, "integer");
+	}
+
+	private evaluable_add() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(b.value + a.value, "integer");
+	}
+
+	private evaluable_mult() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(b.value * a.value, "integer");
+	}
+	private evaluable_div() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		if (a.value == 0) {
+			this.zeroDivisionError();
+			return 1;
+		}
+
+		return this.evaluable_empiler(Math.floor(b.value / a.value), "integer");
+	}
+
+	private evaluable_egal() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(Number(a.value == b.value), "boolean");
+	}
+
+	private evaluable_diff() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(Number(!(a.value == b.value)), "boolean");
+	}
+
+	private evaluable_inf() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		// console.log(a.value < b.value);
+		// console.log(Number(a.value < b.value));
+
+		return this.evaluable_empiler(Number(a.value < b.value), "boolean");
+	}
+
+	private evaluable_infeg() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(Number(a.value <= b.value), "boolean");
+	}
+
+	private evaluable_sup() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(Number(a.value > b.value), "boolean");
+	}
+
+	private evaluable_supeg() {
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+
+		return this.evaluable_empiler(Number(a.value >= b.value), "boolean");
+	}
+
+	private evaluable_et() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+		//   if (a[0] != 0 && a[0] != 1) {
+		// 	this.notBooleanError(a);
+		// 	return 1;
+		//   }
+		//   if (b[0] != 0 && b[0] != 1) {
+		// 	this.notBooleanError(b);
+		// 	return 1;
+		//   }
+
+		return this.evaluable_empiler(Number(b.value && a.value), "boolean");
+	}
+
+	private evaluable_ou() {
+
+		if (this.pile.length < 2) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let b = this.pile.pop();
+		let a = this.pile.pop();
+
+		this.cptPile -= 2;
+
+		if (a === undefined || b === undefined) { return 1; }
+		//   if (a[0] != 0 && a[0] != 1) {
+		// 	this.notBooleanError(a);
+		// 	return 1;
+		//   }
+		//   if (b[0] != 0 && b[0] != 1) {
+		// 	this.notBooleanError(b);
+		// 	return 1;
+		//   }
+
+		return this.evaluable_empiler(Number(b.value || a.value), "boolean");
+	}
+
+	//Simon à partir d'ici
+
+	private evaluable_non() {
+
+		if (this.pile.length < 1) {
+			this.pileError("Pile doesn't have enough elements.");
+			return 1;
+		}
+
+		let a = this.pile.pop();
+
+		this.cptPile -= 1;
+
+		if (a === undefined) { return 1; }
+		//   if (a[0] != 0 && a[0] != 1) {
+		// 	this.notBooleanError(a);
+		// 	return 1;
+		//   }
+
+		return this.evaluable_empiler(Number(!a.value), "boolean");
+	}
+
+	private evaluable_tra(n: number) {
+		this.currentLineCpt = n - 1;
+		return 0;
+	}
+
+	private evaluable_tze(n: number) {
+		let a = this.pile.pop();
+
+		this.cptPile -= 1;
+
+		if (a === undefined) { return 1; }
+
+		if (a.value == 0) { return this.evaluable_tra(n); }
+		else {
+			this.currentLineCpt++;
+			return 0;
+		}
+
+	}
+
+	// private evaluable_erreur(exp: string) {
+	// 	this.output.appendLine("TODO");
+	// 	this.currentLineCpt++;
+	// 	return 0;
+	// }
+
+	private evaluable_empilerAd(n: number) {
+		// this.currentLineCpt++;
+		return this.evaluable_empiler(this.base + 2 + n, "address");
+	}
+
+	private evaluable_empilerParam(n: number) {
+		let v = this.pile[this.base + 2 + n]; //On lit le couple situé à l'adresse n au dessus du bloc courant
+		// this.currentLineCpt++;
+		return this.evaluable_empiler(v.value, v.type);
+	}
+
+	private evaluable_retourProc() {
+		while (this.pile[this.cptPile - 1].type != "topBlock") {	//Efface les valeurs au dessus du bloc de liaison
+			this.pile.pop();
+			this.cptPile -= 1;
+		}
+
+		let t = this.pile.pop();	//Traitement du topBlock
+		this.cptPile -= 1;
+		if (t === undefined) { return 1; }
+		let returnValue = this.evaluable_tra(t.value);
+		if (returnValue != 0) { return 1; }
+
+		let b = this.pile.pop();	//Traitement du bottomBlock
+		this.cptPile -= 1;
+		if (b === undefined) { return 1; }
+		this.base = b.value;
+
+		return 0;
+	}
+
+	private evaluable_retourFonct() {
+		let a = this.pile.pop();
+		this.cptPile--;
+		let returnValue = this.evaluable_retourProc();
+		if (returnValue != 0 || a === undefined) { return 1; }
+		this.currentLineCpt--;
+		return this.evaluable_empiler(a.value, a.type);
+	}
+
+	private evaluable_reserverBloc() {
+		let returnValue = this.evaluable_empiler(this.base, "bottomBlock");
+		if (returnValue != 0) { return 1; }
+		returnValue = this.evaluable_empiler(0, "topBlock");
+		if (returnValue != 0) { return 1; }
+		this.currentLineCpt--;
+		return 0;
+	}
+
+	private evaluable_traStat(n: number, t: number) {
+		this.pile[this.cptPile - t - 1].value = this.currentLineCpt + 2; //affectation topBlock
+		this.base = (this.cptPile - t) - 2;
+		return this.evaluable_tra(n);
+	}
+
+	//--------------------------------------------------------------------------------//
 }
 //================================================================================//

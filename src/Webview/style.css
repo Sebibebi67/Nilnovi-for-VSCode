@@ -48,16 +48,16 @@ th, td {
     height: 100%;
 }
 
-.int {
+.integer {
     color: var(--intcolor);
 }
 tr:hover{
     background-color: var(--backgroundcolor);
 }
-.bool {
+.boolean {
     color: var(--boolcolor);
 }
-.link {
+.address {
     color: var(--linkcolor);
 }
 .bottomBlock {
