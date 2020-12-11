@@ -12,6 +12,8 @@ let executor = new Executor_1.Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./syntax/providers");
 const providers_2 = require("./syntax/providers");
+var pileExec = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomblock' }, { value: 6, type: 'topblock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
+let pointeurPile = 0;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -19,8 +21,9 @@ function activate(context) {
         console.log(vscode.window.activeTextEditor);
         runNilnovi();
     });
-    let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
-        let panel = PileWebViewPanel_1.PileWebViewPanel.get();
+    let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
+        let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
+        panel.webview.postMessage({ command: "showPile", pile: pileExec, pointeur: pointeurPile });
     });
     var diag_list = [];
     // var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');

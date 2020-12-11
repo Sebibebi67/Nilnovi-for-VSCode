@@ -14,33 +14,105 @@ exports.PileWebViewPanel = void 0;
 //--------------------------------------------------------------------------------//
 //----------------------------------- Imports ------------------------------------//
 const vscode = require("vscode");
+const path = require("path");
 //--------------------------------------------------------------------------------//
 class PileWebViewPanel {
-    constructor() {
-        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {});
-        this.panel.webview.html = this.getWebviewContent();
+    constructor(context) {
+        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, '/src/Webview'))]
+        });
+        this.panel.webview.html = this.getWebviewContent(this.panel.webview, context);
+        this.panel.onDidDispose(() => {
+            PileWebViewPanel.dispose();
+        });
     }
-    static get() {
-        if (!this.active) {
-            this.instance = new PileWebViewPanel();
-            this.active = true;
+    static get(context) {
+        if (!this.instance) {
+            this.instance = new PileWebViewPanel(context);
         }
         return this.instance.panel;
     }
-    getWebviewContent() {
-        return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Cat Coding</title>
-        </head>
-        <body>
-            <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
-        </body>
+    static dispose() {
+        this.instance = undefined;
+    }
+    getWebviewContent(webview, context) {
+        return `
+        <!DOCTYPE html>
+            <html lang="fr">
+
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" type="text/css" href="${webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'style.css')))}">
+                <title>Cat Coding</title>
+            </head>
+
+            <body>
+
+                <div>
+                    <h1>Pile d'exécution</h1>
+                    <table id='pileExecution'>
+                        <thead><tr><td>Indice pile</td><td>Pile d'exécution</td></tr></thead>
+                        <tbody  id='pileBody'></tbody>
+                    </table>
+                </div>
+                <table id='legende'><tbody>
+                    <tr>
+                        <td>Couleurs:</td>
+                        <td class='int'>Entier</td>
+                        <td class='bool'>Booléen</td>
+                        <td class='link'>Adresse</td>
+                        <td class='block'>Bloc de liaison</td>
+                    </tr>
+                </tbody></table>
+
+                <script>
+
+                    const vscode = acquireVsCodeApi();
+                    // Handle the message inside the webview
+
+                    window.addEventListener('message', event => {
+
+                        const message = event.data; // The JSON data our extension sent
+
+                        switch (message.command) {
+
+                            case 'showPile':
+                                table = document.getElementById('pileExecution');
+                                tablebody = document.getElementById('pileBody');
+                                message.pile.forEach(element => {
+                                    let tr = document.createElement('tr');
+                                    let num = document.createElement('td');
+                                    num.innerHTML = table.rows.length - 1;
+                                    if(message.pointeur == num.innerHTML){
+                                        num.innerHTML = 'ip -> '+num.innerHTML;
+                                    }
+                                    tr.appendChild(num);
+                                    let content = document.createElement('td');
+                                    if(element.type != 'link'){
+                                        content.innerHTML = "<span class=" + element.type + ">" + element.value + "</span>";
+                                    }else{
+                                        content.innerHTML = 
+                                            "<span class=" + element.type + ">" + element.value + "</span>" + 
+                                            " -> (" +
+                                            "<span class=" + message.pile[element.value]['type'] +">" + message.pile[element.value]['value'] + "</span>)";
+                                    }
+                                    tr.appendChild(content);
+                                    tablebody.insertBefore(tr, tablebody.firstChild);
+                                })
+                                break;
+                        }
+
+                    });
+                </script>
+
+            </body>
+
         </html>`;
     }
 }
 exports.PileWebViewPanel = PileWebViewPanel;
-PileWebViewPanel.active = false;
+PileWebViewPanel.instance = undefined;
 //# sourceMappingURL=PileWebViewPanel.js.map

@@ -1,0 +1,77 @@
+body.vscode-light{
+    --color: black;
+    --intcolor: #4b692f;
+    --boolcolor: #3f3f74;
+    --linkcolor: #ac3232;
+    --blockcolor: #ac6b02;
+    --backgroundcolor: #696a6a;
+}
+
+body.vscode-dark {
+    --color: white;
+    --intcolor: #6abe30;
+    --boolcolor: #5b6ee1;
+    --linkcolor: #b7462e;
+    --blockcolor: #d0902a;
+    --backgroundcolor: #696a6a;
+}
+
+body.vscode-high-contrast{
+    --color: white;
+    --intcolor: #99e550;
+    --boolcolor: #639bff;
+    --linkcolor: #d98144;
+    --blockcolor: #fbf236;
+    --backgroundcolor: #696a6a;
+}
+
+
+td, th {
+    border: 2px solid var(--color);
+    font-weight: 800;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td{
+    padding: 10px;
+}
+
+th, td {
+    text-align: center;
+}
+
+#pileExecution, #legende {
+    width: 100%;
+    height: 100%;
+}
+
+.int {
+    color: var(--intcolor);
+}
+tr:hover{
+    background-color: var(--backgroundcolor);
+}
+.bool {
+    color: var(--boolcolor);
+}
+.link {
+    color: var(--linkcolor);
+}
+.bottomblock {
+    color: var(--blockcolor);
+    border-top: 0px;    
+}
+.topblock{
+    color: var(--blockcolor);
+    border-bottom: 0px;
+}
+.block{
+    color: var(--blockcolor);
+}
+
+h1 {
+    text-align: center;
+}

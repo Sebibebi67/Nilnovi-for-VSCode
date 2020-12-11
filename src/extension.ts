@@ -13,6 +13,9 @@ let executor = new Executor();
 import {autoCompletion, errors, setErrors, updateDiags} from "./syntax/providers";
 import {hovers} from "./syntax/providers";
 
+var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomblock' }, { value: 6, type: 'topblock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
+let pointeurPile = 0;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -22,8 +25,9 @@ export function activate(context: vscode.ExtensionContext) {
     runNilnovi();
   });
 
-  let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
-    let panel: vscode.WebviewPanel = PileWebViewPanel.get();
+  let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
+    let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
+    panel.webview.postMessage({command:"showPile", pile: pileExec, pointeur: pointeurPile})
   });
 
   var diag_list: vscode.DiagnosticCollection[] = [];
