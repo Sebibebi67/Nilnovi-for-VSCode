@@ -25,7 +25,7 @@ class Executor {
         this.base = -1;
         this.lines = [];
         this.end = false;
-        this.output = vscode.window.createOutputChannel("Nilnovi Executor Output");
+        this.output = vscode.window.createOutputChannel("TOOT");
         this.output.show(true);
     }
     //--------------------------------------------------------------------------------//

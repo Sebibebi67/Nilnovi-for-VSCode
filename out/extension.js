@@ -6,19 +6,20 @@ exports.deactivate = exports.activate = void 0;
 const vscode = require("vscode");
 const path = require("path");
 const fs_1 = require("fs");
-const Executor_1 = require("./Executor");
 const PileWebViewPanel_1 = require("./PileWebViewPanel");
-let executor = new Executor_1.Executor();
-// let output = vscode.window.createOutputChannel("Nilnovi - Output");
+const syntaxError = require("./syntax/SyntaxError");
+// let executor = new Executor();
+let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
 const providers_1 = require("./syntax/providers");
 const providers_2 = require("./syntax/providers");
+const Compiler_1 = require("./compiler/Compiler");
 var pileExec = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomblock' }, { value: 6, type: 'topblock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
 let pointeurPile = 0;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-        console.log(vscode.window.activeTextEditor);
+        // console.log(vscode.window.activeTextEditor);
         runNilnovi();
     });
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
@@ -50,10 +51,17 @@ function runNilnovi() {
     if (vscode.window.activeTextEditor) {
         var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
         if (fileNamePath.endsWith(".nn")) {
-            executor.output.clear();
-            executor.output.appendLine("Running " + path.basename(fileNamePath) + "\n");
-            executor.loadingFile(fs_1.readFileSync(fileNamePath, "utf-8"));
-            executor.run();
+            if (syntaxError.isError) {
+                vscode.window.showErrorMessage("An error occurred before compilation. Please correct the syntax before trying again");
+            }
+            else {
+                vscode.window.showInformationMessage("Compilation in progress");
+                var compiler = new Compiler_1.Compiler(fs_1.readFileSync(fileNamePath, "utf-8"), outputChannel);
+            }
+            // executor.output.clear();
+            // executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
+            // executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
+            // executor.run();
             //   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
             //   output.appendLine("Hello there");
             //   console.log(executor.currentLineCpt);

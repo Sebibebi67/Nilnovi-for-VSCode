@@ -28,6 +28,8 @@ var declarationOk = false;
 var mainDeclarationFlag = false;
 var blockScope = 0;
 var knownWords = ["put", "get"];
+let currentMethod = "";
+let mainMethod = "";
 //--------------------------------------------------------------------------------//
 //----------------------------------- Functions ----------------------------------//
 /**
@@ -55,6 +57,8 @@ function autoCompletion() {
             completions.push(new vscode.CompletionItem('is', vscode.CompletionItemKind.Keyword));
             completions.push(new vscode.CompletionItem('procedure', vscode.CompletionItemKind.Keyword));
             completions.push(new vscode.CompletionItem('function', vscode.CompletionItemKind.Keyword));
+            completions.push(new vscode.CompletionItem('in', vscode.CompletionItemKind.Keyword));
+            completions.push(new vscode.CompletionItem('out', vscode.CompletionItemKind.Keyword));
             completions.push(new vscode.CompletionItem('or', vscode.CompletionItemKind.Operator));
             completions.push(new vscode.CompletionItem('and', vscode.CompletionItemKind.Operator));
             completions.push(new vscode.CompletionItem('not', vscode.CompletionItemKind.Operator));
@@ -87,13 +91,11 @@ function hovers() {
                         language: "NilNovi",
                         value: "Description : Prints the given value\nInput : Value to print\nOutput : None"
                     });
-                    break;
                 case "get":
                     return new vscode.Hover({
                         language: "NilNovi",
                         value: "Description : Gets the value given by the user and affect it to the given variable\nInput : Variable to affect\nOutput : None"
                     });
-                    break;
             }
         }
     });
@@ -142,7 +144,7 @@ function setErrors(file) {
     // We should now remove the comments from the indexed file, which is a single-line string
     let lines = [];
     file = tools.removeComments(tools.indexingFile(file));
-    lines = file.split(/\r?\n/);
+    lines = tools.removeEmptyLines(file.split(/\r?\n/));
     // Now, for each line, we need to check for errors
     for (let i = 0; i < lines.length; i++) {
         let lineFeatures = tools.splittingLine(lines[i]);
@@ -150,82 +152,83 @@ function setErrors(file) {
         let nbLine = lineFeatures["index"];
         const regexSemiColon = new RegExp(/^(?!begin|end|if|elif|else|while|for|procedure|function).*(?<!\;)$/);
         const regexUnexpectedChar = new RegExp(/^[a-zA-Z0-9\+\*\-\/<>=:\(\)_ ;,]*$/);
-        if (currentLine.length != 0) {
-            // ';' is missing
-            if (regexSemiColon.test(currentLine)) {
-                exports.errors.push(new SyntaxError_1.SyntaxError(401, "; expected", nbLine));
-            }
-            // Unknown character is spotted
-            if (!regexUnexpectedChar.test(currentLine)) {
-                exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
-            }
-            // if procedure or function
-            if (new RegExp(/^(procedure|function)/).test(currentLine)) {
-                if (mainDeclarationFlag == true) {
-                    exports.errors.push(new SyntaxError_1.SyntaxError(419, "Cannot define a method after main variable declaration", nbLine));
-                }
-                else {
-                    // it's a procedure
-                    if (new RegExp(/^procedure/).test(currentLine)) {
-                        if (blockScope > 1) {
-                            exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
-                        }
-                        else {
-                            checkingError_Procedure(currentLine, nbLine);
-                        }
-                    }
-                    // it's a function
-                    else {
-                        if (blockScope > 1) {
-                            exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
-                        }
-                        else {
-                            checkingError_Function(currentLine, nbLine);
-                        }
-                    }
-                }
-            }
-            else if (new RegExp(/^(if|for|while|elif|else)/).test(currentLine)) {
-                // "if" or "elif" read
-                if (new RegExp(/^(if|elif)/).test(currentLine)) {
-                    checkingError_If(currentLine, nbLine);
-                }
-                // "while" read
-                else if (new RegExp(/^while/).test(currentLine)) {
-                    checkingError_While(currentLine, nbLine);
-                }
-                // "for" read
-                else if (new RegExp(/^for/).test(currentLine)) {
-                    checkingError_For(currentLine, nbLine);
-                }
-                // "else" read
-                else {
-                    checkingError_Else(currentLine, nbLine);
-                }
-            }
-            else if (new RegExp(/.*:=.*/).test(currentLine)) {
-                checkingError_Affectation(currentLine, nbLine);
-            }
-            else if (new RegExp(/.*:.*/).test(currentLine)) {
-                checkingError_VariableDeclaration(currentLine, nbLine);
-            }
-            else if (new RegExp(/^begin/).test(currentLine)) {
-                declarationOk = false;
-            }
-            else if (new RegExp(/^end/).test(currentLine)) {
-                blockScope--;
-                if (blockScope == 1) {
-                    removeFromTables(getLastMethod().name);
-                }
-            }
-            checkingError_UnknownWord(currentLine, nbLine);
-            checkingError_MissingParenthesis(currentLine, nbLine);
+        if (i == 0 && !(new RegExp(/^procedure\s+([a-zA-Z][a-zA-Z0-9_]*)\(\s*\)\s+is$/).test(currentLine))) {
+            exports.errors.push(new SyntaxError_1.SyntaxError(422, "first line format error (use format 'procedure pp() is'", nbLine));
         }
+        // ';' is missing
+        if (regexSemiColon.test(currentLine)) {
+            exports.errors.push(new SyntaxError_1.SyntaxError(401, "; expected", nbLine));
+        }
+        // Unknown character is spotted
+        if (!regexUnexpectedChar.test(currentLine)) {
+            exports.errors.push(new SyntaxError_1.SyntaxError(402, "Unexpected character", nbLine));
+        }
+        // if procedure or function
+        if (new RegExp(/^(procedure|function)\s+/).test(currentLine)) {
+            if (mainDeclarationFlag == true) {
+                exports.errors.push(new SyntaxError_1.SyntaxError(419, "Cannot define a method after main variable declaration", nbLine));
+            }
+            else {
+                // it's a procedure
+                if (new RegExp(/^procedure/).test(currentLine)) {
+                    if (blockScope > 1) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
+                    }
+                    else {
+                        checkingError_Procedure(currentLine, nbLine);
+                    }
+                }
+                // it's a function
+                else {
+                    if (blockScope > 1) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(420, "Cannot define a method in another method", nbLine));
+                    }
+                    else {
+                        checkingError_Function(currentLine, nbLine);
+                    }
+                }
+            }
+        }
+        else if (new RegExp(/^((if|for|while|elif)\s+|else$)/).test(currentLine)) {
+            // "if" or "elif" read
+            if (new RegExp(/^(if|elif)/).test(currentLine)) {
+                checkingError_If(currentLine, nbLine);
+            }
+            // "while" read
+            else if (new RegExp(/^while/).test(currentLine)) {
+                checkingError_While(currentLine, nbLine);
+            }
+            // "for" read
+            else if (new RegExp(/^for/).test(currentLine)) {
+                checkingError_For(currentLine, nbLine);
+            }
+            // "else" read
+            else {
+                checkingError_Else(currentLine, nbLine);
+            }
+        }
+        else if (new RegExp(/.*:=.*/).test(currentLine)) {
+            checkingError_Affectation(currentLine, nbLine);
+        }
+        else if (new RegExp(/.*:.*/).test(currentLine)) {
+            checkingError_VariableDeclaration(currentLine, nbLine);
+        }
+        else if (new RegExp(/^begin/).test(currentLine)) {
+            declarationOk = false;
+        }
+        else if (new RegExp(/^end/).test(currentLine)) {
+            blockScope--;
+            if (blockScope == 1) {
+                removeFromTables(currentMethod);
+                currentMethod = mainMethod;
+            }
+        }
+        checkingError_UnknownWord(currentLine, nbLine);
+        checkingError_MissingParenthesis(currentLine, nbLine);
     }
     if (blockScope != 0) {
         exports.errors.push(new SyntaxError_1.SyntaxError(413, "End of file read", lines.length - 1));
     }
-    console.log(syntaxError.isError);
 }
 exports.setErrors = setErrors;
 /**
@@ -240,6 +243,7 @@ function resetTables() {
     methodsTable["put"] = { name: "put", nbParams: 1, returnType: "void" };
     methodsTable["get"] = { name: "get", nbParams: 1, returnType: "void" };
     variablesTable = {};
+    knownWords = ["put", "get"];
 }
 /**
  * @description checks if it a potential boolean expression. It doesn't check if it is correct
@@ -254,7 +258,13 @@ function expressionIsBoolean(expression, nbLine) {
     if (regexContainsBooleanInstructions.test(expression)) {
         return true;
     }
-    const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_])*\(.*\);$/);
+    if (variableExists(expression)) {
+        if (variablesTable[currentMethod + "." + expression].type == "boolean") {
+            return true;
+        }
+        return false;
+    }
+    const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*)\(.*\);$/);
     if (regexIsFunction.test(expression)) {
         const methodName = expression.split("(")[0].trim();
         const methodDef = methodsTable[methodName];
@@ -264,10 +274,10 @@ function expressionIsBoolean(expression, nbLine) {
         }
         return methodDef.returnType == "boolean";
     }
-    const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]);$/);
+    const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*);$/);
     if (regexIsVariable.test(expression)) {
         const variableName = expression.split(";")[0].trim();
-        const variableDef = variablesTable[getLastMethod().name + "." + variableName];
+        const variableDef = variablesTable[currentMethod + "." + variableName];
         if (!variableExists(variableName)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(414, "Variable " + variableName + " not found", nbLine));
             return false;
@@ -283,16 +293,16 @@ function expressionIsBoolean(expression, nbLine) {
  * @author Sébastien HERT
  * @author Adam RIVIÈRE
  */
-function variableExists(variable) { return (variablesTable[getLastMethod().name + "." + variable] !== undefined); }
+function variableExists(variable) { return (variablesTable[currentMethod + "." + variable] !== undefined); }
 /**
  * @description checks if a variable has a correct name
  * @param string variable
  * @returns true | false
  * @author Sébastien HERT
  */
-function variableHasCorrectName(variable) {
+function hasCorrectName(variable) {
     const regexCorrectName = new RegExp(/^[a-zA-Z][a-zA-Z0-9_]*$/);
-    return regexCorrectName.test(variable);
+    return (regexCorrectName.test(variable) && !isKeyWord(variable));
 }
 /**
  * @description checks if the method given exists
@@ -324,23 +334,22 @@ function validBound(bound) {
         }
     }
 }
-/**
- * @description get the last element of method table
- * @returns the object method : { name: string, nbParams: number, returnType : string } }
- * @author Sébastien HERT
- */
-function getLastMethod() {
-    return methodsTable[Object.keys(methodsTable)[Object.keys(methodsTable).length - 1]];
-}
+// /**
+//  * @description get the last element of method table
+//  * @returns the object method : { name: string, nbParams: number, returnType : string } }
+//  * @author Sébastien HERT
+//  */
+// function getLastMethod() {
+//     return methodsTable[Object.keys(methodsTable)[Object.keys(methodsTable).length - 1]]
+// }
 /**
  * @description remove the method and its list of variables from the tables
  * @param String the method name
  * @author Sébastien HERT
  */
 function removeFromTables(methodName) {
-    delete methodsTable[methodName];
     for (var key in variablesTable) {
-        if (variablesTable[key].group == methodName) {
+        if (variablesTable[key].group == methodName && methodName != mainMethod) {
             delete variablesTable[key];
         }
     }
@@ -354,6 +363,10 @@ function removeFromTables(methodName) {
 function isKnownWord(word) {
     return (knownWords.includes(word) || word == "" || (new RegExp(/^[0-9]+$/).test(word)));
 }
+function isKeyWord(word) {
+    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean", "in", "out"];
+    return keyWordList.includes(word);
+}
 //--------------------------------------------------------------------------------//
 //-------------------------------- Error Methods --------------------------------//
 /**
@@ -365,7 +378,7 @@ function isKnownWord(word) {
  */
 function checkingError_Procedure(currentLine, nbLine) {
     const regexProcedureFormat = new RegExp(/^procedure\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*is\s*$/);
-    const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
+    const regexDefinition = new RegExp(/.*:\s*(in|in\s+out)\s+(integer|boolean)$/);
     const regexTwoPoints = new RegExp(/.*:.*/);
     // If the procedure format isn't right
     if (!regexProcedureFormat.test(currentLine)) {
@@ -383,6 +396,9 @@ function checkingError_Procedure(currentLine, nbLine) {
             // Getting the parameters between parentheses and the name of the procedure
             let params = currentLine.split("(")[1].split(")")[0].trim();
             let methodName = currentLine.split("procedure")[1].split("(")[0].trim();
+            if (mainMethod == "") {
+                mainMethod = methodName;
+            }
             // If there is at least one valid parameter
             if (regexTwoPoints.test(params)) {
                 // Checking if it has the correct format -> x : integer
@@ -390,12 +406,16 @@ function checkingError_Procedure(currentLine, nbLine) {
                 if (!regexDefinition.test(params)) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
                 }
+                else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                    exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
+                }
                 else {
                     methodsTable[methodName] = { name: methodName, nbParams: params.split(",").length, returnType: "void" };
-                    knownWords.push(methodName);
                     declarationOk = true;
                     blockScope++;
+                    knownWords.push(methodName);
                     checkingError_Parameters(nbLine, params, methodName);
+                    currentMethod = methodName;
                 }
             }
             // If there is no valid parameters
@@ -404,12 +424,16 @@ function checkingError_Procedure(currentLine, nbLine) {
                 if (params.length != 0) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(408, "Wrong procedure block format", nbLine));
                 }
+                else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                    exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
+                }
                 // else add it to our table
                 else {
                     methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: "void" };
                     declarationOk = true;
                     blockScope++;
                     knownWords.push(methodName);
+                    currentMethod = methodName;
                 }
             }
         }
@@ -424,7 +448,7 @@ function checkingError_Procedure(currentLine, nbLine) {
  */
 function checkingError_Function(currentLine, nbLine) {
     const regexFunctionFormat = new RegExp(/^function\s*[a-zA-Z][a-zA-Z0-9_]*\(.*\)\s*return\s*.*\s*is\s*$/);
-    const regexDefinition = new RegExp(/.*:\s*(integer|boolean)$/);
+    const regexDefinition = new RegExp(/.*:\s*(in|in\s+out)\s+(integer|boolean)$/);
     const regexTwoPoints = new RegExp(/.*:.*/);
     // if the function format isn't right
     if (!regexFunctionFormat.test(currentLine)) {
@@ -451,6 +475,9 @@ function checkingError_Function(currentLine, nbLine) {
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) {
                         exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
                     }
+                    else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
+                    }
                     // If everything is right, we register the function
                     else {
                         let nbParamsMethod = params.split(",").length;
@@ -459,6 +486,7 @@ function checkingError_Function(currentLine, nbLine) {
                         declarationOk = true;
                         blockScope++;
                         checkingError_Parameters(nbLine, params, methodName);
+                        currentMethod = methodName;
                     }
                 }
             }
@@ -474,12 +502,16 @@ function checkingError_Function(currentLine, nbLine) {
                     if (!new RegExp(/^(integer|boolean)$/).test(outputs)) {
                         exports.errors.push(new SyntaxError_1.SyntaxError(403, "Undefined type", nbLine));
                     }
+                    else if (!hasCorrectName(methodName) || isKnownWord(methodName)) {
+                        exports.errors.push(new SyntaxError_1.SyntaxError(423, "Method " + methodName + " is already defined", nbLine));
+                    }
                     // If everything is right, we register the function
                     else {
                         methodsTable[methodName] = { name: methodName, nbParams: 0, returnType: outputs };
                         declarationOk = true;
                         blockScope++;
                         knownWords.push(methodName);
+                        currentMethod = methodName;
                     }
                 }
             }
@@ -500,7 +532,7 @@ function checkingError_If(currentLine, nbLine) {
     }
     else {
         // if the condition isn't correct
-        let condition = currentLine.split("if")[1].split("then")[0].trim();
+        let condition = currentLine.split("if ")[1].split(" then")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(406, condition + " is not boolean", nbLine));
         }
@@ -526,7 +558,7 @@ function checkingError_While(currentLine, nbLine) {
     }
     // the format is correct
     else {
-        let condition = currentLine.split("while")[1].split("loop")[0].trim();
+        let condition = currentLine.split("while ")[1].split(" loop")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(406, condition + " is not a boolean", nbLine));
         }
@@ -560,9 +592,9 @@ function checkingError_For(currentLine, nbLine) {
     }
     // the format is correct
     else {
-        let variable = currentLine.split("for")[1].split("from")[0].trim();
-        let upperBound = currentLine.split("from")[1].split("to")[0].trim();
-        let lowerBound = currentLine.split("to")[1].trim();
+        let variable = currentLine.split("for ")[1].split(" from ")[0].trim();
+        let upperBound = currentLine.split(" from ")[1].split(" to ")[0].trim();
+        let lowerBound = currentLine.split(" to ")[1].trim();
         if (!variableExists(variable)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(414, variable + " is not defined", nbLine));
         }
@@ -608,12 +640,12 @@ function checkingError_VariableDeclaration(currentLine, nbLine) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(416, variable + " is already defined", nbLine));
                 }
                 // If that is not a valid variable name
-                else if (!variableHasCorrectName(variable)) {
+                else if (!hasCorrectName(variable)) {
                     exports.errors.push(new SyntaxError_1.SyntaxError(417, variable + "is not a valid variable name", nbLine));
                 }
                 else {
                     // Else we register the variable
-                    variablesTable[getLastMethod().name + "." + variable] = { name: variable, type: type.split(";")[0], group: getLastMethod().name };
+                    variablesTable[currentMethod + "." + variable] = { name: variable, type: type.split(";")[0], group: currentMethod };
                     knownWords.push(variable);
                     // We check if we are beginning the main procedure
                     if (blockScope == 1) {
@@ -641,7 +673,7 @@ function checkingError_Affectation(currentLine, nbLine) {
     // else it exists
     else {
         // Get the type of the variable and the expression
-        let type = variablesTable[getLastMethod().name + "." + variable].type;
+        let type = variablesTable[currentMethod + "." + variable].type;
         let exp = currentLine.split(":=")[1].trim();
         // if the variable is supposed to be a boolean but the expression cannot be a boolean
         if (type == "boolean" && !expressionIsBoolean(exp, nbLine)) {
@@ -670,20 +702,22 @@ function checkingError_Parameters(nbLine, params, methodName) {
     listParams.forEach(element => {
         element = element.trim();
         // If it's a type
-        if (element == "boolean" || element == "integer") {
+        if (new RegExp(/^in\s*(out)?\s*(integer|boolean)$/).test(element)) {
+            // if (element == "boolean" || element == "integer") {
             // We need to loads all the variables stored in our local list into our global list
             currentVarList.forEach(param => {
-                variablesTable[methodName + "." + param] = { name: param, group: methodName, type: element };
+                let elementInWords = element.split(" ");
+                variablesTable[methodName + "." + param] = { name: param, group: methodName, type: elementInWords[elementInWords.length - 1] };
             });
             // And then resets it
             currentVarList = [];
         }
-        // If the element is ':' or ',' we do nothing
-        else if (element == ":" || element == ",") { }
+        // If the element is ':'/','/"in"/"out" we do nothing
+        else if (element == ":" || element == "," || element == "in" || element == "out") { }
         // Else the element is a parameter's name
         else {
             // If the name given is not a valid parameter name
-            if (!variableHasCorrectName(element)) {
+            if (!hasCorrectName(element)) {
                 exports.errors.push(new SyntaxError_1.SyntaxError(417, element + " is not a valid parameter name", nbLine));
             }
             // Else we keep the name
@@ -730,7 +764,7 @@ function checkingError_Parameters(nbLine, params, methodName) {
 function checkingError_UnknownWord(currentLine, nbLine) {
     // We need to define all the potential parsers and all the keywords known
     const regexParser = new RegExp(/ |,|\+|\-|\/|\*|>|<|=|:|;|\(|\)/);
-    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean"];
+    const keyWordList = ["begin", "end", "if", "elif", "else", "while", "for", "procedure", "function", "then", "from", "to", "loop", "is", "or", "not", "and", "true", "false", "return", "integer", "boolean", "in", "out"];
     // We also need to split our currentLine
     var wordsList = currentLine.split(regexParser);
     // For each word

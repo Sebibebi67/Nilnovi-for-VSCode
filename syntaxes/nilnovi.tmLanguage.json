@@ -28,7 +28,7 @@
 				},
 				{
 					"name": "keyword.other.nilnovi",
-					"match": "\\b(loop|then|from|to|is|procedure|function|or|and|not|true|false)\\b"
+					"match": "\\b(loop|then|from|to|is|procedure|function|or|and|not|true|false|in|out)\\b"
 				}
 			]
 		},

@@ -1,26 +1,17 @@
-procedure pp(parameter :  integer) is
-        # toto : integer;
-        function test() return  boolean is
-                # toto : boolean;
-                titi : integer;
+procedure main() is
+        procedure notMain(jenCrien : in integer) is
+                #variable1 : Type;
         begin
-                #statement;
-                return 0;
+                put(6);
         end
 
-        #variable1 :  Type;
-        toto : boolean;
-        tata :integer;
+        procedure tata() is
+                #variable1 : Type;
+        begin
+                put(9);
+        end
 begin
-
-        toto := true;
-        # toto := 2;
-        # titi := toto;
-        tata := 2;
-        test();
-        titi();
-
+        notMain(4,5,6);
+        # tata(5);
 
 end
-
-
