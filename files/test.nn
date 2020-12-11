@@ -1,10 +1,26 @@
-debutProg();
+procedure pp(parameter :  integer) is
+        # toto : integer;
+        function test() return  boolean is
+                # toto : boolean;
+                titi : integer;
+        begin
+                #statement;
+                return 0;
+        end
 
-/*toto
-*/
+        #variable1 :  Type;
+        toto : boolean;
+        tata :integer;
+begin
 
-# toto
-# toto();
+        toto := true;
+        # toto := 2;
+        # titi := toto;
+        tata := 2;
+        test();
+        titi();
 
-# erreur(this is undefined)
-finProg();
+
+end
+
+

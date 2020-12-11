@@ -10,8 +10,8 @@ const Executor_1 = require("./Executor");
 const PileWebViewPanel_1 = require("./PileWebViewPanel");
 let executor = new Executor_1.Executor();
 // let output = vscode.window.createOutputChannel("Nilnovi - Output");
-const providers_1 = require("./providers");
-const providers_2 = require("./providers");
+const providers_1 = require("./syntax/providers");
+const providers_2 = require("./syntax/providers");
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -22,6 +22,24 @@ function activate(context) {
     let pile = vscode.commands.registerCommand("nilnovi-for-vscode.pile", () => {
         let panel = PileWebViewPanel_1.PileWebViewPanel.get();
     });
+    var diag_list = [];
+    // var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');
+    // var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
+    var editor = vscode.window.activeTextEditor;
+    if (editor !== undefined) {
+        // updateDiags(editor.document, diag_coll);
+        providers_1.setErrors(editor.document.getText());
+        // diag_coll = updateDiags(editor.document, diag_coll);
+        providers_1.updateDiags(editor.document, diag_list);
+        // console.log("done opening")
+    }
+    context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((e) => {
+        if (e !== undefined) {
+            diag_list.forEach(diag => diag.clear());
+            providers_1.setErrors(e.document.getText());
+            providers_1.updateDiags(e.document, diag_list);
+        }
+    }));
     context.subscriptions.push(providers_1.autoCompletion(), providers_2.hovers());
 }
 exports.activate = activate;

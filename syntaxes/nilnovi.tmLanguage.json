@@ -1,6 +1,7 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "nilnovi",
+	"fileTypes": [".nn"],
 	"patterns": [
 		{
 			"include": "#keywords"
@@ -23,11 +24,11 @@
 			"patterns": [
 				{
 					"name": "keyword.control.nilnovi",
-					"match": "\\b(debutProg|finProg|retourFonct|retourProc)\\b"
+					"match": "\\b(begin|end|return|if|elif|else|while|for)\\b"
 				},
 				{
 					"name": "keyword.other.nilnovi",
-					"match": "\\b(tra|tze|traStat)\\b"
+					"match": "\\b(loop|then|from|to|is|procedure|function|or|and|not|true|false)\\b"
 				}
 			]
 		},
@@ -45,11 +46,11 @@
 		"comment":{
 			"patterns": [
 				{
-					"name": "comment.line.number-sign",
+					"name": "comment.line.number-sign.nilnovi",
 					"match": "\\#.*"
 				},
 				{
-					"name": "comment.block.documentation",
+					"name": "comment.block.documentation.nilnovi",
 					"begin": "\\/\\*",
 					"end": "\\*\\/"
 				}
@@ -58,16 +59,27 @@
 		"constant":{
 			"patterns":[
 				{
-					"name": "constant.numeric",
+					"name": "constant.numeric.nilnovi",
 					"match": "[0-9]"
 				}
 			]
 		},
 		"entity":{
 			"patterns": [
+
 				{
-					"name": "entity.name.function",
-					"match": "\\b(empiler|reserver|empilerAd|empilerParam|add|mult|sous|div|affectation|valeurPile|get|put|moins|egal|diff|inf|infeg|sup|supeg|et|ou|non|erreur|reserverBloc)\\b"
+					"match": "([a-zA-Z][a-zA-Z0-9_]*)(\\()",
+					"captures":{
+						"1": {"name": "entity.name.function.nilnovi"}
+					}
+				  },
+				{
+					"name": "entity.name.type.nilnovi",
+					"match": "\\b(integer|boolean)\\b"
+				},
+				{
+					"name" : "entity.name.variable.nilnovi",
+					"match": "[a-zA-Z][a-zA-Z0-9_]*"
 				}
 			]
 		}
