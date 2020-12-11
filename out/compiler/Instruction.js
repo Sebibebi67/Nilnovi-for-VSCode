@@ -1,5 +1,5 @@
 "use strict";
-//== Class Instruction ==//
+//============================== Class Instruction ===============================//
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Instruction = void 0;
 //--------------------------------- Description ----------------------------------//
