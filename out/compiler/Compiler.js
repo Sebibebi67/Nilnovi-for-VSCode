@@ -63,24 +63,23 @@ class Compiler {
             vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information");
         }
         else {
-            console.log(returnValue);
             vscode.window.showInformationMessage("Compilation ran successfully");
         }
         // Printing part
-        for (let i = 0; i < this.instructions.length; i++) {
-            console.log(i + 1, this.instructions[i].toString());
-        }
-        this.methodList.display();
-        this.variableList.display();
+        // for (let i = 0; i < this.instructions.length; i++) {
+        // 	console.log(i + 1, this.instructions[i].toString());
+        // }
+        // this.methodList.display();
+        // this.variableList.display();
     }
     //--------------------------------------------------------------------------------//
     //--------------------------------- Compilation ----------------------------------//
     /**
- * @description evaluates and compiles all the lines
- * @returns the output status
- * @author Sébastien HERT
- * @author Adam RIVIÈRE
- */
+     * @description evaluates and compiles all the lines
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+       */
     compile() {
         // Adding the begin and the "tra" at the beginning of the instructions
         this.instructions.push(new Instruction_1.Instruction("debutProg();"));
@@ -102,12 +101,12 @@ class Compiler {
         return 0;
     }
     /**
- * @description evaluates the current line
- * @param string the current line
- * @returns the output status
- * @author Sébastien HERT
- * @author Adam RIVIÈRE
- */
+     * @description evaluates the current line
+     * @param string the current line
+     * @returns the output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     eval(currentLine) {
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
@@ -602,7 +601,7 @@ class Compiler {
                     this.methodList.get(this.currentMethodName).fakePileLength++;
                 });
                 // Then we need to save as much slots as variables 
-                this.instructions.push(new Instruction_1.Instruction("reserver(" + nameList.length + ");", "empty"));
+                this.instructions.push(new Instruction_1.Instruction("reserver(" + nameList.length + ");", word));
             }
             // else it's a variable
             else {
@@ -697,6 +696,9 @@ class Compiler {
                 return 1;
             }
         }
+        if (words[0] == "-") {
+            words[0] = "!";
+        }
         // if the expression is composed of several words we establish the priority of the calculations
         let betweenParentheses = 0;
         let lastAddition = -1;
@@ -770,9 +772,13 @@ class Compiler {
             else if (words[0] === undefined) {
                 return 0;
             }
+            else if (words.length == 2 && words[0] == "!") {
+                let returnValue = this.analyzer(tools.removeFromWords(words, 1, 0));
+                this.currentExpressionList.push("!");
+                return returnValue;
+            }
             // else, we should raise an error
             else {
-                console.log("toto", words[0]);
                 this.displayError(new CompilationError_1.CompilationError(501, words[0] + " is an unknown word", this.currentLineNb));
                 return 1;
             }
@@ -855,24 +861,38 @@ class Compiler {
             const element = expressionCopy[i];
             // if the element is a known operator
             if (this.opDict[element] != undefined) {
-                // we split the expression in 3 : the operator and the two terms
-                let typeA = expressionCopy[i - 2];
-                let typeB = expressionCopy[i - 1];
-                let typeOp = this.opDict[element].inType;
-                // if the types match
-                if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
-                    expressionCopy[i] = this.opDict[element].outType;
-                }
-                // else there is an error
-                else {
-                    if (typeOp == "both") {
-                        typeOp = "2 integers or 2 booleans";
+                if (!this.opDict[element].isBinary) {
+                    // we split the expression in 2 : the operator and the term
+                    let typeA = expressionCopy[i - 1];
+                    let typeOp = this.opDict[element].inType;
+                    if (typeA == typeOp) {
+                        expressionCopy[i] = this.opDict[element].outType;
                     }
                     else {
-                        typeOp = "2 " + typeOp + "s";
+                        this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
+                        return 1;
                     }
-                    this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
-                    return 1;
+                }
+                else {
+                    // we split the expression in 3 : the operator and the two terms
+                    let typeA = expressionCopy[i - 2];
+                    let typeB = expressionCopy[i - 1];
+                    let typeOp = this.opDict[element].inType;
+                    // if the types match
+                    if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
+                        expressionCopy[i] = this.opDict[element].outType;
+                    }
+                    // else there is an error
+                    else {
+                        if (typeOp == "both") {
+                            typeOp = "2 integers or 2 booleans";
+                        }
+                        else {
+                            typeOp = "2 " + typeOp + "s";
+                        }
+                        this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
+                        return 1;
+                    }
                 }
             }
         }
@@ -1044,19 +1064,20 @@ class Compiler {
      */
     initDict() {
         // we define every possible operator (boolean or integer)
-        this.opDict["+"] = { inType: "integer", outType: "integer", machineCode: "add();" };
-        this.opDict["-"] = { inType: "integer", outType: "integer", machineCode: "sous();" };
-        this.opDict["*"] = { inType: "integer", outType: "integer", machineCode: "mult();" };
-        this.opDict["/"] = { inType: "integer", outType: "integer", machineCode: "div();" };
-        this.opDict["<"] = { inType: "integer", outType: "boolean", machineCode: "inf();" };
-        this.opDict["<="] = { inType: "integer", outType: "boolean", machineCode: "infeg();" };
-        this.opDict[">"] = { inType: "integer", outType: "boolean", machineCode: "sup();" };
-        this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();" };
-        this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();" };
-        this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();" };
-        this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();" };
-        this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();" };
-        this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "not();" };
+        this.opDict["+"] = { inType: "integer", outType: "integer", machineCode: "add();", isBinary: true };
+        this.opDict["-"] = { inType: "integer", outType: "integer", machineCode: "sous();", isBinary: true };
+        this.opDict["*"] = { inType: "integer", outType: "integer", machineCode: "mult();", isBinary: true };
+        this.opDict["/"] = { inType: "integer", outType: "integer", machineCode: "div();", isBinary: true };
+        this.opDict["!"] = { inType: "integer", outType: "integer", machineCode: "moins();", isBinary: false };
+        this.opDict["<"] = { inType: "integer", outType: "boolean", machineCode: "inf();", isBinary: true };
+        this.opDict["<="] = { inType: "integer", outType: "boolean", machineCode: "infeg();", isBinary: true };
+        this.opDict[">"] = { inType: "integer", outType: "boolean", machineCode: "sup();", isBinary: true };
+        this.opDict[">="] = { inType: "integer", outType: "boolean", machineCode: "supeg();", isBinary: true };
+        this.opDict["="] = { inType: "both", outType: "boolean", machineCode: "egal();", isBinary: true };
+        this.opDict["/="] = { inType: "both", outType: "boolean", machineCode: "diff();", isBinary: true };
+        this.opDict["and"] = { inType: "boolean", outType: "boolean", machineCode: "and();", isBinary: true };
+        this.opDict["or"] = { inType: "boolean", outType: "boolean", machineCode: "or();", isBinary: true };
+        this.opDict["not"] = { inType: "boolean", outType: "boolean", machineCode: "not();", isBinary: false };
     }
     /**
      * @description loads all parameters in the lists
@@ -1209,6 +1230,13 @@ class Compiler {
     displayError(error) {
         this.outputChannel.appendLine(error.message);
         this.outputChannel.show(true);
+    }
+    displayInstructions() {
+        let instructions = "";
+        for (let i of this.instructions) {
+            instructions += i.machineCode + "\n";
+        }
+        return instructions;
     }
 }
 exports.Compiler = Compiler;

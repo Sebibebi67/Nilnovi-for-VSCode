@@ -18,7 +18,7 @@ const path = require("path");
 //--------------------------------------------------------------------------------//
 class PileWebViewPanel {
     constructor(context) {
-        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", vscode.ViewColumn.Two, {
+        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }, {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, '/src/Webview'))]
@@ -81,12 +81,12 @@ class PileWebViewPanel {
 
                             case 'showPile':
                                 table = document.getElementById('pileExecution');
-                                tablebody = document.getElementById('pileBody');
+                                tableBody = document.getElementById('pileBody');
                                 message.pile.forEach(element => {
                                     let tr = document.createElement('tr');
                                     let num = document.createElement('td');
                                     num.innerHTML = table.rows.length - 1;
-                                    if(message.pointeur == num.innerHTML){
+                                    if(message.pointer == num.innerHTML){
                                         num.innerHTML = 'ip -> '+num.innerHTML;
                                     }
                                     tr.appendChild(num);
@@ -100,7 +100,7 @@ class PileWebViewPanel {
                                             "<span class=" + message.pile[element.value]['type'] +">" + message.pile[element.value]['value'] + "</span>)";
                                     }
                                     tr.appendChild(content);
-                                    tablebody.insertBefore(tr, tablebody.firstChild);
+                                    tableBody.insertBefore(tr, tableBody.firstChild);
                                 })
                                 break;
                         }

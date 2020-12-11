@@ -3,7 +3,7 @@
 import * as vscode from "vscode";
 import { PythonShell } from "python-shell";
 import path = require("path");
-import { readFileSync } from "fs";
+import { readFileSync, writeFile, writeFileSync } from "fs";
 import { Executor } from "./Executor";
 import { PileWebViewPanel } from "./PileWebViewPanel";
 import { exec } from "child_process";
@@ -15,8 +15,8 @@ import { autoCompletion, errors, setErrors, updateDiags } from "./syntax/provide
 import { hovers } from "./syntax/providers";
 import { Compiler } from "./compiler/Compiler";
 
-var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomblock' }, { value: 6, type: 'topblock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
-let pointeurPile = 0;
+var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomBlock' }, { value: 6, type: 'topBlock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
+let pointerPile = 0;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -24,12 +24,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
     // console.log(vscode.window.activeTextEditor);
-    runNilnovi();
+    runNilnovi(context);
   });
 
   let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
     let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
-    panel.webview.postMessage({command:"showPile", pile: pileExec, pointeur: pointeurPile})
+    panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
   });
 
   var diag_list: vscode.DiagnosticCollection[] = [];
@@ -37,20 +37,28 @@ export function activate(context: vscode.ExtensionContext) {
   // var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
   var editor = vscode.window.activeTextEditor;
   if (editor !== undefined) {
-    // updateDiags(editor.document, diag_coll);
-    setErrors(editor.document.getText());
-    // diag_coll = updateDiags(editor.document, diag_coll);
-    updateDiags(editor.document, diag_list);
-    // console.log("done opening")
+
+    var fileNamePath = editor.document.uri.fsPath;
+    if (fileNamePath.endsWith(".nn")) {
+      // updateDiags(editor.document, diag_coll);
+      setErrors(editor.document.getText());
+      // diag_coll = updateDiags(editor.document, diag_coll);
+      updateDiags(editor.document, diag_list);
+      // console.log("done opening")
+    }
   }
 
 
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(
     (e: vscode.TextDocumentChangeEvent | undefined) => {
+      // editor = vscode.window.activeTextEditor;
       if (e !== undefined) {
-        diag_list.forEach(diag => diag.clear());
-        setErrors(e.document.getText());
-        updateDiags(e.document, diag_list);
+        var fileNamePath = e.document.uri.fsPath;
+        if (fileNamePath.endsWith(".nn")) {
+          diag_list.forEach(diag => diag.clear());
+          setErrors(e.document.getText());
+          updateDiags(e.document, diag_list);
+        }
       }
     }
   ));
@@ -58,7 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(autoCompletion(), hovers());
 }
 
-function runNilnovi() {
+function runNilnovi(context: vscode.ExtensionContext) {
   if (vscode.window.activeTextEditor) {
     var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
     if (fileNamePath.endsWith(".nn")) {
@@ -67,6 +75,26 @@ function runNilnovi() {
       } else {
         vscode.window.showInformationMessage("Compilation in progress");
         var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"), outputChannel);
+        let outputFile = vscode.window.activeTextEditor.document.uri.fsPath.replace(".nn", ".machine_code");
+        writeFileSync(outputFile, compiler.displayInstructions());
+
+
+        vscode.workspace.openTextDocument(outputFile).then((d: vscode.TextDocument) => {
+          vscode.window.showTextDocument(d, vscode.ViewColumn.Beside, false).then((editor : vscode.TextEditor) =>{
+            let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
+            panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
+          });
+        });
+
+
+
+        // vscode.workspace.openTextDocument(outputFile)
+        // let filePanel = vscode.window.showTextDocument(vscode.workspace.openTextDocument(outputFile), vscode.ViewColumn.One);
+
+
+        // vscode.workspace.fs.writeFile()
+        // vscode.window.showTextDocument()
+
       }
 
 

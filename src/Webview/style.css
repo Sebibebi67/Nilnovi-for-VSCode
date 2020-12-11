@@ -60,11 +60,11 @@ tr:hover{
 .link {
     color: var(--linkcolor);
 }
-.bottomblock {
+.bottomBlock {
     color: var(--blockcolor);
     border-top: 0px;    
 }
-.topblock{
+.topBlock{
     color: var(--blockcolor);
     border-bottom: 0px;
 }
