@@ -41,8 +41,7 @@ class Executor {
         this.output = output;
         this.instructions = instructions;
         this.panel = panel;
-        // this.run(delay);
-        this.run(0);
+        this.run(delay);
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
@@ -55,14 +54,14 @@ class Executor {
         return __awaiter(this, void 0, void 0, function* () {
             // while not "FinProg" or error
             while (!this.end) {
+                //We now need to update the web View
+                this.updateWebView();
                 // Evaluating current line
                 let returnValue = yield this.eval(this.instructions[this.currentLineCpt]);
                 // An error occurs
                 if (returnValue != 0) {
                     this.stop();
                 }
-                //We now need to update the web View
-                this.updateWebView();
                 // Then wait for the delay which is in ms
                 yield this.sleep(delay);
             }
@@ -114,8 +113,7 @@ class Executor {
             command: "showPile",
             pile: this.pile,
             pointer: this.cptPile,
-            instructionLine: this.currentLineCpt + 1,
-            instruction: this.instructions[this.currentLineCpt].machineCode
+            instructionLine: this.currentLineCpt + 1
         });
     }
     /**

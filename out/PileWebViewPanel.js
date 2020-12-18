@@ -50,24 +50,31 @@ class PileWebViewPanel {
             </head>
 
             <body>
-
-                <div>
-                    <h1>Pile d'exécution</h1>
-                    <table id='pileExecution'>
-                        <thead><tr><td>Indice pile</td><td>Pile d'exécution</td></tr></thead>
-                        <tbody  id='pileBody'></tbody>
-                    </table>
+                <div class='div'>
+                    <div>
+                        <h1>Code Machine</h1>
+                        <p id='instruction'></p>
+                        <table id='instructionList'>
+                            <tbody id = 'instructionListBody'></tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h1>Pile d'exécution</h1>
+                        <table id='pileExecution'>
+                            <thead><tr><td>Indice pile</td><td>Pile d'exécution</td></tr></thead>
+                            <tbody  id='pileBody'></tbody>
+                        </table>
+                        <table id='legende'><tbody>
+                            <tr>
+                                <td>Couleurs:</td>
+                                <td class='integer'>Entier</td>
+                                <td class='boolean'>Booléen</td>
+                                <td class='address'>Adresse</td>
+                                <td class='block'>Bloc de liaison</td>
+                            </tr>
+                        </tbody></table>
+                    </div> 
                 </div>
-                <table id='legende'><tbody>
-                    <tr>
-                        <td>Couleurs:</td>
-                        <td class='integer'>Entier</td>
-                        <td class='boolean'>Booléen</td>
-                        <td class='address'>Adresse</td>
-                        <td class='block'>Bloc de liaison</td>
-                    </tr>
-                </tbody></table>
-                <p id='instruction'></p>
 
                 <script>
 
@@ -84,7 +91,7 @@ class PileWebViewPanel {
                                 table = document.getElementById('pileExecution');
                                 tableBody = document.getElementById('pileBody');
                                 tableBody.innerHTML = "" //Reset Pile
-                                instruction = document.getElementById('instruction');
+                                
                                 message.pile.forEach(element => {
                                     let tr = document.createElement('tr');
                                     let num = document.createElement('td');
@@ -105,7 +112,41 @@ class PileWebViewPanel {
                                     tr.appendChild(content);
                                     tableBody.insertBefore(tr, tableBody.firstChild);
                                 })
-                                instruction.innerHTML = message.instructionLine.toString() + " : " + message.instruction; 
+                                
+                                let highlighted = document.getElementById('highlighted');
+                                highlighted.classList.remove('highlighted');
+                                highlighted.removeAttribute("id");
+                                document.getElementById('instructionListBody').children[message.instructionLine-1].classList.add('highlighted');
+                                document.getElementById('instructionListBody').children[message.instructionLine-1].id = "highlighted";
+                                break;
+
+                            case 'showInstructionList':
+
+                            
+                                let instructionListBody = document.getElementById('instructionListBody');
+                                let debug = document.getElementById('debug');
+
+
+
+                                for (let i = 0; i< message.list.length; i++){
+
+                                    let instruction = message.list[i];    
+                                                                 
+                                    let num = document.createElement('td');
+                                    num.classList.add("num");
+                                    
+                                    num.innerHTML = (i+1)+" - ";
+
+                                    let tr = document.createElement('tr');
+                                    let line = document.createElement('td');
+
+                                    line.innerHTML = instruction.machineCode;
+              
+                                    tr.appendChild(num);
+                                    tr.appendChild(line);
+                                    instructionListBody.appendChild(tr);
+                                    
+                                }
                                 break;
                         }
 

@@ -71,18 +71,12 @@ function runNilnovi(context) {
                 else {
                     let outputFile = vscode.window.activeTextEditor.document.uri.fsPath.replace(".nn", ".machine_code");
                     fs_1.writeFileSync(outputFile, compiler.displayInstructions());
-                    // vscode.workspace.openTextDocument(outputFile).then((d: vscode.TextDocument) => {
-                    // vscode.window.showTextDocument(d, vscode.ViewColumn.Beside, false).then((editor: vscode.TextEditor) => {
                     let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
-                    console.log(compiler.instructions);
                     panel.webview.postMessage({
                         command: "showInstructionList",
                         list: compiler.instructions
                     });
                     let executor = new Executor_1.Executor(compiler.instructions, outputChannel, panel);
-                    // panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
-                    // });
-                    // });
                 }
                 // vscode.workspace.openTextDocument(outputFile)
                 // let filePanel = vscode.window.showTextDocument(vscode.workspace.openTextDocument(outputFile), vscode.ViewColumn.One);

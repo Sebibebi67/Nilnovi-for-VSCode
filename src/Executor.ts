@@ -48,8 +48,7 @@ export class Executor {
 		this.instructions = instructions;
 		this.panel = panel;
 
-		// this.run(delay);
-		this.run(0);
+		this.run(delay);
 	}
 
 	//--------------------------------------------------------------------------------//
@@ -68,6 +67,9 @@ export class Executor {
 		// while not "FinProg" or error
 		while (!this.end) {
 
+			//We now need to update the web View
+			this.updateWebView();
+
 			// Evaluating current line
 			let returnValue = await this.eval(this.instructions[this.currentLineCpt]);
 
@@ -75,8 +77,6 @@ export class Executor {
 			// An error occurs
 			if (returnValue != 0) { this.stop(); }
 
-			//We now need to update the web View
-			this.updateWebView();
 
 			// Then wait for the delay which is in ms
 			await this.sleep(delay);
@@ -131,8 +131,7 @@ export class Executor {
 			command: "showPile",
 			pile: this.pile,
 			pointer: this.cptPile,
-			instructionLine: this.currentLineCpt + 1,
-			instruction: this.instructions[this.currentLineCpt].machineCode
+			instructionLine: this.currentLineCpt + 1
 		});
 	}
 
