@@ -30,6 +30,6 @@ Initial release
 Enssat Compilation Team :
 - HERT Sébastien
 - JOURDAN Simon
-- RIVIÈRE ADAM
+- RIVIÈRE Adam
 
 **Have fun!**
