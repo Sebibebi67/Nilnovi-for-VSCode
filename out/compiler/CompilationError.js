@@ -1,7 +1,7 @@
 "use strict";
 //============================ Class CompilationError ============================//
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CompilationError = void 0;
+exports.CompilationError = exports.setError = exports.isError = void 0;
 //--------------------------------- Description ----------------------------------//
 //
 // This class stores all the data used for each error for the compiler.
@@ -15,6 +15,11 @@ exports.CompilationError = void 0;
 //--------------------------------------------------------------------------------//
 //----------------------------------- Imports ------------------------------------//
 //--------------------------------------------------------------------------------//
+exports.isError = false;
+function setError(bool) {
+    exports.isError = bool;
+}
+exports.setError = setError;
 class CompilationError {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
@@ -22,6 +27,7 @@ class CompilationError {
         this.code = code;
         this.message = "Compilation error at line " + line + " : " + message + ".";
         this.line = line;
+        exports.isError = true;
     }
 }
 exports.CompilationError = CompilationError;

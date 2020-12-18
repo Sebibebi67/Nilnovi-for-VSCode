@@ -1,11 +1,7 @@
 format Document ?
-while true in executor
 
-compiler -> append line + show (as executor)
 compiler -> float and ","
-- boolean ?
 
--> merge add, sous etc...
 
 ```
 procedure main() is
@@ -22,3 +18,15 @@ end
 ```
 
 -> normalement erreur de compilation -> double ne renvoie rien
+
+
+
+
+TODAY :
+
+test executor
+readme clean
+changelog clean
+first extension
+WebView
+Add image Format

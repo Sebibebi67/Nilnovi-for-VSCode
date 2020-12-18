@@ -26,6 +26,7 @@ import { Variable } from "./Variable";
 import { Instruction } from "./Instruction";
 import { CompilationError } from "./CompilationError";
 import * as vscode from "vscode";
+import { setError } from "./CompilationError";
 
 //--------------------------------------------------------------------------------//
 
@@ -70,6 +71,8 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	constructor(file: string, output: vscode.OutputChannel) {
+
+		setError(false);
 
 		this.outputChannel = output;
 		this.outputChannel.clear();
@@ -951,7 +954,7 @@ export class Compiler {
 
 		// for each element in the list
 		for (let i = 0; i < expressionCopy.length; i++) {
-			const element = expressionCopy[i];
+			let element = expressionCopy[i];
 
 			// if the element is a known operator
 			if (this.opDict[element] != undefined) {
@@ -966,6 +969,8 @@ export class Compiler {
 						expressionCopy[i] = this.opDict[element].outType;
 					}
 					else {
+						if (element == "!"){element = "-";}
+						if (typeOp == "integer"){typeOp = "an "+typeOp;}
 						this.displayError(new CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
 						return 1;
 					}
@@ -987,6 +992,7 @@ export class Compiler {
 					else {
 						if (typeOp == "both") { typeOp = "2 integers or 2 booleans"; }
 						else { typeOp = "2 " + typeOp + "s" }
+						if (element == "!"){element = "-";}
 						this.displayError(new CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
 						return 1;
 					}
@@ -1015,12 +1021,14 @@ export class Compiler {
 	/**
 		 * @description generates the instructions to translate the given expression
 		 * @param string[] expression to translate
-		 * @param boolean is it a block from reserverBloc ?
+		 * @param boolean is it a parameter which is "in out" ?
+		 * @param number (optional) the number of the parameter which has been read
+		 * @param string (optional) the methodName 
 		 * @returns the output status
 		 * @author Sébastien HERT
 		 * @author Adam RIVIÈRE
 		 */
-	private generateInstructions(expression: string[], isBlock: boolean) {
+	private generateInstructions(expression: string[], isOut: boolean, nbParam?: number, methodName?: string) {
 
 		let returnValue = 0;
 		// for each word in the expression
@@ -1028,7 +1036,14 @@ export class Compiler {
 			let word = expression[i];
 
 			// if the word is a valid number
-			if (this.isValidNumber(word)) { this.instructions.push(new Instruction("empiler(" + word + ");", "integer")); }
+			if (this.isValidNumber(word)) {
+				if (isOut) {
+					this.displayError(new CompilationError(509, "the method " + methodName + " requires a variable as its parameter nb " + nbParam, this.currentLineNb));
+					return 1;
+				}
+				else { this.instructions.push(new Instruction("empiler(" + word + ");", "integer")); }
+
+			}
 
 			// if the word is a known operator
 			else if (this.opDict[word] != undefined) {
@@ -1052,7 +1067,9 @@ export class Compiler {
 				else { this.instructions.push(new Instruction("empiler(" + variable.addPile + ");", "address")); }
 
 				// If we are waiting for valeurPile();
-				if (!isBlock) { this.instructions.push(new Instruction("valeurPile();")); }
+				if (!isOut) {
+					this.instructions.push(new Instruction("valeurPile();"));
+				}
 			}
 
 			// if the word is a boolean
@@ -1101,6 +1118,9 @@ export class Compiler {
 		let nbParamsExpected = this.methodList.get(methodName).params.length;
 		let tmpWordsList: string[] = [];
 
+		// we create the instruction to reserve a block in the pile before calling the method
+		this.instructions.push(new Instruction("reserverBloc();"));
+
 		// for each word
 		for (let word of words) {
 
@@ -1118,16 +1138,18 @@ export class Compiler {
 				}
 
 				// then we check the type of these parameters
-				returnValue = this.syntaxAnalyzer(tmpWordsList,
+				returnValue = this.syntaxAnalyzer(this.currentExpressionList,
 					this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).type);
 
-				nbParamsRead++;
 				if (returnValue != 0) { return returnValue; }
 
 				// finally we generate the instructions to get this parameter
-				returnValue = this.generateInstructions(this.currentExpressionList, false);
+				let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).isOut;
+				if (isOut) { returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName); }
+				else { returnValue = this.generateInstructions(this.currentExpressionList, isOut); }
 				if (returnValue != 0) { return returnValue; }
 
+				nbParamsRead++;
 				tmpWordsList = [];
 			}
 
@@ -1149,16 +1171,16 @@ export class Compiler {
 		}
 
 		if (nbParamsExpected != 0) {
-			returnValue = this.syntaxAnalyzer(tmpWordsList,
+			returnValue = this.syntaxAnalyzer(this.currentExpressionList,
 				this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).type);
 			if (returnValue != 0) { return returnValue; }
 		}
 
-		// we create the instruction to reserve a block in the pile before calling the method
-		this.instructions.push(new Instruction("reserverBloc();"));
-
 		// we generate the instructions for the method's parameters
-		returnValue = this.generateInstructions(this.currentExpressionList, true);
+		let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
+		if (isOut) { returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName); }
+		else { returnValue = this.generateInstructions(this.currentExpressionList, isOut); }
+
 		if (returnValue != 0) { return returnValue; }
 		tmpWordsList = [];
 

@@ -22,6 +22,7 @@ const Variable_1 = require("./Variable");
 const Instruction_1 = require("./Instruction");
 const CompilationError_1 = require("./CompilationError");
 const vscode = require("vscode");
+const CompilationError_2 = require("./CompilationError");
 //--------------------------------------------------------------------------------//
 class Compiler {
     //--------------------------------------------------------------------------------//
@@ -44,6 +45,7 @@ class Compiler {
         this.currentExpressionList = [];
         this.ifTraList = [];
         this.currentLineNb = 0;
+        CompilationError_2.setError(false);
         this.outputChannel = output;
         this.outputChannel.clear();
         this.outputChannel.show(true);
@@ -858,7 +860,7 @@ class Compiler {
         }
         // for each element in the list
         for (let i = 0; i < expressionCopy.length; i++) {
-            const element = expressionCopy[i];
+            let element = expressionCopy[i];
             // if the element is a known operator
             if (this.opDict[element] != undefined) {
                 if (!this.opDict[element].isBinary) {
@@ -869,6 +871,12 @@ class Compiler {
                         expressionCopy[i] = this.opDict[element].outType;
                     }
                     else {
+                        if (element == "!") {
+                            element = "-";
+                        }
+                        if (typeOp == "integer") {
+                            typeOp = "an " + typeOp;
+                        }
                         this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
                         return 1;
                     }
@@ -890,6 +898,9 @@ class Compiler {
                         else {
                             typeOp = "2 " + typeOp + "s";
                         }
+                        if (element == "!") {
+                            element = "-";
+                        }
                         this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
                         return 1;
                     }
@@ -910,19 +921,27 @@ class Compiler {
     /**
          * @description generates the instructions to translate the given expression
          * @param string[] expression to translate
-         * @param boolean is it a block from reserverBloc ?
+         * @param boolean is it a parameter which is "in out" ?
+         * @param number (optional) the number of the parameter which has been read
+         * @param string (optional) the methodName
          * @returns the output status
          * @author Sébastien HERT
          * @author Adam RIVIÈRE
          */
-    generateInstructions(expression, isBlock) {
+    generateInstructions(expression, isOut, nbParam, methodName) {
         let returnValue = 0;
         // for each word in the expression
         for (let i = 0; i < expression.length; i++) {
             let word = expression[i];
             // if the word is a valid number
             if (this.isValidNumber(word)) {
-                this.instructions.push(new Instruction_1.Instruction("empiler(" + word + ");", "integer"));
+                if (isOut) {
+                    this.displayError(new CompilationError_1.CompilationError(509, "the method " + methodName + " requires a variable as its parameter nb " + nbParam, this.currentLineNb));
+                    return 1;
+                }
+                else {
+                    this.instructions.push(new Instruction_1.Instruction("empiler(" + word + ");", "integer"));
+                }
             }
             // if the word is a known operator
             else if (this.opDict[word] != undefined) {
@@ -947,7 +966,7 @@ class Compiler {
                     this.instructions.push(new Instruction_1.Instruction("empiler(" + variable.addPile + ");", "address"));
                 }
                 // If we are waiting for valeurPile();
-                if (!isBlock) {
+                if (!isOut) {
                     this.instructions.push(new Instruction_1.Instruction("valeurPile();"));
                 }
             }
@@ -991,6 +1010,8 @@ class Compiler {
         let nbParamsRead = 0;
         let nbParamsExpected = this.methodList.get(methodName).params.length;
         let tmpWordsList = [];
+        // we create the instruction to reserve a block in the pile before calling the method
+        this.instructions.push(new Instruction_1.Instruction("reserverBloc();"));
         // for each word
         for (let word of words) {
             // if the word is ","
@@ -1006,16 +1027,22 @@ class Compiler {
                     return 1;
                 }
                 // then we check the type of these parameters
-                returnValue = this.syntaxAnalyzer(tmpWordsList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).type);
-                nbParamsRead++;
+                returnValue = this.syntaxAnalyzer(this.currentExpressionList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).type);
                 if (returnValue != 0) {
                     return returnValue;
                 }
                 // finally we generate the instructions to get this parameter
-                returnValue = this.generateInstructions(this.currentExpressionList, false);
+                let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead]).isOut;
+                if (isOut) {
+                    returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName);
+                }
+                else {
+                    returnValue = this.generateInstructions(this.currentExpressionList, isOut);
+                }
                 if (returnValue != 0) {
                     return returnValue;
                 }
+                nbParamsRead++;
                 tmpWordsList = [];
             }
             // else the word is a part of a parameter
@@ -1037,15 +1064,19 @@ class Compiler {
             return 1;
         }
         if (nbParamsExpected != 0) {
-            returnValue = this.syntaxAnalyzer(tmpWordsList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).type);
+            returnValue = this.syntaxAnalyzer(this.currentExpressionList, this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).type);
             if (returnValue != 0) {
                 return returnValue;
             }
         }
-        // we create the instruction to reserve a block in the pile before calling the method
-        this.instructions.push(new Instruction_1.Instruction("reserverBloc();"));
         // we generate the instructions for the method's parameters
-        returnValue = this.generateInstructions(this.currentExpressionList, true);
+        let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
+        if (isOut) {
+            returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName);
+        }
+        else {
+            returnValue = this.generateInstructions(this.currentExpressionList, isOut);
+        }
         if (returnValue != 0) {
             return returnValue;
         }

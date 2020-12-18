@@ -21,6 +21,11 @@
 
 //--------------------------------------------------------------------------------//
 
+export var isError: boolean = false;
+
+export function setError(bool : boolean){
+    isError = bool;
+}
 
 export class CompilationError {
 
@@ -40,6 +45,7 @@ export class CompilationError {
         this.code = code;
         this.message = "Compilation error at line " + line + " : " + message + ".";
         this.line = line;
+        isError = true;
     }
 //--------------------------------------------------------------------------------//
 

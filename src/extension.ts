@@ -8,11 +8,13 @@ import { Executor } from "./Executor";
 import { PileWebViewPanel } from "./PileWebViewPanel";
 import { exec } from "child_process";
 import * as syntaxError from "./syntax/SyntaxError";
+import * as compilationError from "./compiler/CompilationError"
 
 let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
 import { autoCompletion, errors, setErrors, updateDiags } from "./syntax/providers";
 import { hovers } from "./syntax/providers";
 import { Compiler } from "./compiler/Compiler";
+import { CompilationError } from "./compiler/CompilationError";
 
 // var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomBlock' }, { value: 6, type: 'topBlock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
 // let pointerPile = 0;
@@ -74,17 +76,29 @@ function runNilnovi(context: vscode.ExtensionContext) {
 			} else {
 				vscode.window.showInformationMessage("Compilation in progress");
 				var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"), outputChannel);
-				let outputFile = vscode.window.activeTextEditor.document.uri.fsPath.replace(".nn", ".machine_code");
-				writeFileSync(outputFile, compiler.displayInstructions());
+				if (compilationError.isError) {
+					vscode.window.showErrorMessage("Execution aborted : An error occurred during compilation.");
+				}
+				else {
+					let outputFile = vscode.window.activeTextEditor.document.uri.fsPath.replace(".nn", ".machine_code");
+					writeFileSync(outputFile, compiler.displayInstructions());
 
 
-				vscode.workspace.openTextDocument(outputFile).then((d: vscode.TextDocument) => {
-					vscode.window.showTextDocument(d, vscode.ViewColumn.Beside, false).then((editor: vscode.TextEditor) => {
-						let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
-						let executor = new Executor(compiler.instructions, outputChannel, panel);
-						// panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
+					// vscode.workspace.openTextDocument(outputFile).then((d: vscode.TextDocument) => {
+					// vscode.window.showTextDocument(d, vscode.ViewColumn.Beside, false).then((editor: vscode.TextEditor) => {
+					let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
+					console.log(compiler.instructions);
+					panel.webview.postMessage({
+						command: "showInstructionList",
+						list: compiler.instructions
 					});
-				});
+					let executor = new Executor(compiler.instructions, outputChannel, panel);
+					// panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
+					// });
+					// });
+				}
+
+
 
 
 

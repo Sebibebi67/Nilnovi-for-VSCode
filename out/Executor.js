@@ -35,13 +35,14 @@ class Executor {
         this.cptPile = 0;
         this.pile = [];
         this.base = -1;
-        this.lines = [];
         this.end = false;
+        this.maxRec = 100;
+        this.traRec = {};
         this.output = output;
         this.instructions = instructions;
         this.panel = panel;
         // this.run(delay);
-        this.run(2000);
+        this.run(0);
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
@@ -135,21 +136,50 @@ class Executor {
         this.output.appendLine(str);
         this.output.show();
     }
+    //--------------------------------------------------------------------------------//
+    //-------------------------------- Errors Methods --------------------------------//
+    /**
+     * @description raises an error with the pile
+     * @param string the message to display
+     * @author Sébastien HERT
+     */
     pileError(str) {
         const currentLine = this.currentLineCpt + 1;
-        this.output.appendLine("ERROR at line " + currentLine + " : " + str);
+        this.display("ERROR at line " + currentLine + " : " + str);
     }
+    /**
+     * @description raises an error if user tries to divide by zero
+     * @author Sébastien HERT
+     */
     zeroDivisionError() {
         const currentLine = this.currentLineCpt + 1;
-        this.output.appendLine("ERROR at line " + currentLine + " : division by zero.");
+        this.display("ERROR at line " + currentLine + " : division by zero.");
     }
-    unknownError() {
-        const currentLine = this.currentLineCpt + 1;
-        this.output.appendLine("ERROR at line " + currentLine + ".");
-    }
+    /**
+     * @description raises an error if the string given is not a number
+     * @param string the string which is not a number (can be undefined)
+     * @author Sébastien HERT
+     */
     notNumberError(str) {
         const currentLine = this.currentLineCpt + 1;
-        this.output.appendLine("ERROR at line " + currentLine + " : '" + str + "' is not a integer.");
+        this.display("ERROR at line " + currentLine + " : '" + str + "' is not a integer.");
+    }
+    /**
+     * @description raises an error if the maximum recursion has been reached
+     * @author Sébastien HERT
+     */
+    maxRecursionError() {
+        const currentLine = this.currentLineCpt + 1;
+        this.display("ERROR at line " + currentLine + " :  Maximum recursion reached.");
+    }
+    /**
+     * @description raises an unknown error
+     * @param string the error
+     * @author Sébastien HERT
+     */
+    unknownError(error) {
+        const currentLine = this.currentLineCpt + 1;
+        this.display("ERROR at line " + currentLine + ".");
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Nilnovi Methods -------------------------------//
@@ -230,8 +260,7 @@ class Executor {
             this.pile[a.value].value = b.value;
         }
         catch (error) {
-            console.log(error);
-            this.stop();
+            this.unknownError(error);
             return 1;
         }
         this.cptPile -= 2;
@@ -284,9 +313,7 @@ class Executor {
             let inputString = yield getInputValue();
             // First we need to be sure there is no problem with the input string
             if (inputString === undefined) {
-                console.log("inputBox is undefined");
-                this.currentLineCpt++;
-                return 0;
+                return 1;
             }
             // We now need to parse our inputString
             let inputNumber = parseInt(inputString);
@@ -499,11 +526,11 @@ class Executor {
         return this.evaluable_empiler(Number(a.value < b.value), "boolean");
     }
     /**
- * @description stacks a <= b on top of the pile, where b is on top of the pile, a just below
- * @returns output status
- * @author Sébastien HERT
- * @author Adam RIVIÈRE
- */
+     * @description stacks a <= b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_infeg() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -620,6 +647,16 @@ class Executor {
      * @author Adam RIVIÈRE
      */
     evaluable_tra(n) {
+        if (this.traRec[n] === undefined) {
+            this.traRec[n] = { nbRec: 1 };
+        }
+        else if (this.traRec[n].nbRec == this.maxRec) {
+            this.maxRecursionError();
+            return 1;
+        }
+        else {
+            this.traRec[n].nbRec++;
+        }
         this.currentLineCpt = n - 1;
         return 0;
     }
@@ -688,7 +725,7 @@ class Executor {
         if (returnValue != 0) {
             return 1;
         }
-        // the bottomBlock which contains the TODO
+        // the bottomBlock which contains the line which refers to the base which called the function
         let b = this.pile.pop();
         this.cptPile -= 1;
         if (b === undefined) {
@@ -726,7 +763,7 @@ class Executor {
      * @see evaluable_traStat
      */
     evaluable_reserverBloc() {
-        // the bottomBlock stacks TODO
+        // the bottomBlock stacks the reference to the current base
         let returnValue = this.evaluable_empiler(this.base, "bottomBlock");
         if (returnValue != 0) {
             return 1;

@@ -33,9 +33,11 @@ export class Executor {
 
 	public instructions: Instruction[]
 
-	private lines: string[] = [];
 	private end = false;
 	private panel: vscode.WebviewPanel;
+
+	private maxRec = 100;
+	private traRec : { [id: number]: {nbRec:number} } = {};
 
 	//--------------------------------------------------------------------------------//
 
@@ -47,8 +49,7 @@ export class Executor {
 		this.panel = panel;
 
 		// this.run(delay);
-		this.run(2000);
-
+		this.run(0);
 	}
 
 	//--------------------------------------------------------------------------------//
@@ -155,39 +156,66 @@ export class Executor {
 		this.output.show();
 	}
 
+	//--------------------------------------------------------------------------------//
 
 
+	//-------------------------------- Errors Methods --------------------------------//
 
-
-
-
-
-
-
-
+	/**
+	 * @description raises an error with the pile
+	 * @param string the message to display
+	 * @author Sébastien HERT
+	 */
 	private pileError(str: string) {
 		const currentLine = this.currentLineCpt + 1;
-		this.output.appendLine("ERROR at line " + currentLine + " : " + str);
+		this.display("ERROR at line " + currentLine + " : " + str);
 	}
 
+	/**
+	 * @description raises an error if user tries to divide by zero
+	 * @author Sébastien HERT
+	 */
 	private zeroDivisionError() {
 		const currentLine = this.currentLineCpt + 1;
-		this.output.appendLine(
+		this.display(
 			"ERROR at line " + currentLine + " : division by zero."
 		);
 	}
 
-	private unknownError() {
-		const currentLine = this.currentLineCpt + 1;
-		this.output.appendLine("ERROR at line " + currentLine + ".");
-	}
-
+	/**
+	 * @description raises an error if the string given is not a number
+	 * @param string the string which is not a number (can be undefined)
+	 * @author Sébastien HERT
+	 */
 	private notNumberError(str: string | undefined) {
 		const currentLine = this.currentLineCpt + 1;
-		this.output.appendLine(
+		this.display(
 			"ERROR at line " + currentLine + " : '" + str + "' is not a integer."
 		);
 	}
+
+	/**
+	 * @description raises an error if the maximum recursion has been reached
+	 * @author Sébastien HERT
+	 */
+	private maxRecursionError() {
+		const currentLine = this.currentLineCpt + 1;
+		this.display(
+			"ERROR at line " + currentLine + " :  Maximum recursion reached."
+		);
+	}
+
+
+	/**
+	 * @description raises an unknown error
+	 * @param string the error
+	 * @author Sébastien HERT
+	 */
+	private unknownError(error : string) {
+		const currentLine = this.currentLineCpt + 1;
+		this.display("ERROR at line " + currentLine + ".");
+	}
+
 
 
 
@@ -280,8 +308,7 @@ export class Executor {
 		// then we change the value of the address of a
 		try { this.pile[a.value].value = b.value; }
 		catch (error) {
-			console.log(error);
-			this.stop();
+			this.unknownError(error);
 			return 1;
 		}
 		this.cptPile -= 2;
@@ -335,9 +362,7 @@ export class Executor {
 
 		// First we need to be sure there is no problem with the input string
 		if (inputString === undefined) {
-			console.log("inputBox is undefined");
-			this.currentLineCpt++;
-			return 0;
+			return 1;
 		}
 
 		// We now need to parse our inputString
@@ -722,6 +747,20 @@ export class Executor {
 	 * @author Adam RIVIÈRE
 	 */
 	private evaluable_tra(n: number) {
+		if (this.traRec[n] === undefined){
+			this.traRec[n] = {nbRec : 1}
+		}
+
+		else if (this.traRec[n].nbRec == this.maxRec){
+			this.maxRecursionError();
+			return 1
+		}
+		else {
+			this.traRec[n].nbRec++;
+		}
+
+
+
 		this.currentLineCpt = n - 1;
 		return 0;
 	}
@@ -734,12 +773,13 @@ export class Executor {
 	 * @author Adam RIVIÈRE
 	 */
 	private evaluable_tze(n: number) {
+		
 		let a = this.pile.pop();
 		this.cptPile -= 1;
 
 		if (a === undefined) { return 1; }
 
-		if (a.value == 0) { return this.evaluable_tra(n); }
+		if (a.value == 0) {return this.evaluable_tra(n); }
 		else {
 			this.currentLineCpt++;
 			return 0;
@@ -753,7 +793,7 @@ export class Executor {
 	 * @author Simon JOURDAN
 	 * @author Adam RIVIÈRE
 	 */
-	private evaluable_empilerAd(n: number) {return this.evaluable_empiler(this.base + 2 + n, "address");}
+	private evaluable_empilerAd(n: number) { return this.evaluable_empiler(this.base + 2 + n, "address"); }
 
 	/**
 	 * @description stacks the global value of the variable which has the local address n (used in methods)
@@ -792,7 +832,7 @@ export class Executor {
 		let returnValue = this.evaluable_tra(topBlock.value);
 		if (returnValue != 0) { return 1; }
 
-		// the bottomBlock which contains the TODO
+		// the bottomBlock which contains the line which refers to the base which called the function
 		let b = this.pile.pop();
 		this.cptPile -= 1;
 		if (b === undefined) { return 1; }
@@ -831,10 +871,10 @@ export class Executor {
 	 */
 	private evaluable_reserverBloc() {
 
-		// the bottomBlock stacks TODO
+		// the bottomBlock stacks the reference to the current base
 		let returnValue = this.evaluable_empiler(this.base, "bottomBlock");
 		if (returnValue != 0) { return 1; }
-	
+
 		// the topBlock stacks the next line (which will be affected in evaluable_traStat())
 		returnValue = this.evaluable_empiler(0, "topBlock");
 		if (returnValue != 0) { return 1; }
