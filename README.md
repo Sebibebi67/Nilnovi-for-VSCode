@@ -9,6 +9,12 @@ This extension provides :
 - **IntelliSense**
 - Tracking of **Compilation** and **Execution** errors
 - **Dynamic display** of the pile
+## **Quick start**
+
+* First, open a file with the ```.nn``` extension to activate all the features of this extension
+* Then, write your program with all those wonderful tools
+* With that done, you can run your program by tapping ```F1``` (by default) to open the VSCode commands list and use ```run Nilnovi```
+* This will generate a new file called ```yourFileName.machine_code``` and open a new tab where you will see the machine_code and the pile.
 
 ## **Requirements**
 
