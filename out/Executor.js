@@ -29,11 +29,10 @@ const vscode = require("vscode");
 class Executor {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
-    constructor(instructions, output, panel) {
+    constructor(instructions, output, panel, delay = 200) {
         //------------------------------- Class Variables --------------------------------//
         this.currentLineCpt = 0;
         this.cptPile = 0;
-        // public pile: [number, string][] = [];
         this.pile = [];
         this.base = -1;
         this.lines = [];
@@ -41,66 +40,100 @@ class Executor {
         this.output = output;
         this.instructions = instructions;
         this.panel = panel;
-        this.run(1000);
+        // this.run(delay);
+        this.run(2000);
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
     /**
-       * @description Runs the file previously loaded
-       * @param number (Optional) The delay
+       * @description Runs all the file line by line
+       * @param number The delay in ms
        * @author Sébastien HERT
        */
     run(delay) {
         return __awaiter(this, void 0, void 0, function* () {
-            // resets the global values
-            this.reset();
             // while not "FinProg" or error
             while (!this.end) {
                 // Evaluating current line
                 let returnValue = yield this.eval(this.instructions[this.currentLineCpt]);
                 // An error occurs
-                if (delay !== undefined) {
-                    yield this.delay(delay);
-                }
                 if (returnValue != 0) {
-                    // console.log(this.pile);
                     this.stop();
                 }
+                //We now need to update the web View
                 this.updateWebView();
-                // await this.delay(delay);
+                // Then wait for the delay which is in ms
+                yield this.sleep(delay);
             }
         });
     }
     //--------------------------------------------------------------------------------//
-    //-------------------------------- Private Methods -------------------------------//
+    //------------------------------ Processing Methods ------------------------------//
+    /**
+     * @description evaluates Instruction.
+     * @param Instruction the instruction
+     * @returns the output status
+     * @author Sébastien HERT
+     */
     eval(instruction) {
         return __awaiter(this, void 0, void 0, function* () {
-            // console.log(instruction)
             let type = instruction.type;
             let method = "";
-            // console.log(type);
+            // we need to format properly the method which will be called
             if (type !== undefined) {
                 method = instruction.machineCode.replace(");", ",\"" + type + "\")");
             }
             else {
                 method = instruction.machineCode.replace(");", ")");
             }
-            // console.log(method);
-            console.log(method);
+            // And then evaluate it and returning the output status
             const returnValue = yield eval("this.evaluable_" + method);
-            if (returnValue != 0) {
-                return 1;
-            }
-            return 0;
+            return returnValue;
         });
     }
-    stop() {
-        this.end = true;
+    /**
+     * @description stops the process
+     * @author Sébastien HERT
+     */
+    stop() { this.end = true; }
+    /**
+     * @description adds a couple in the pile
+     * @param number the value to add
+     * @param string the type of the value (boolean, integer, address...)
+     * @author Sébastien HERT
+     */
+    addToPile(value, type) { this.pile.push({ value: value, type: type }); }
+    /**
+     * @description updates the webView
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     */
+    updateWebView() {
+        this.panel.webview.postMessage({
+            command: "showPile",
+            pile: this.pile,
+            pointer: this.cptPile,
+            instructionLine: this.currentLineCpt + 1,
+            instruction: this.instructions[this.currentLineCpt].machineCode
+        });
     }
-    reset() {
-        this.end = false;
-        this.currentLineCpt = 0;
-        // this.commentedState = this.commentedStates.NOT_COMMENTED;
+    /**
+     * @description sleeps for few ms
+     * @param number the delay in ms
+     * @returns Promise
+     * @author Sébastien HERT
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    /**
+     * @description displays a string in the output channel
+     * @param string the string to display
+     * @author Sébastien HERT
+     */
+    display(str) {
+        this.output.appendLine(str);
+        this.output.show();
     }
     pileError(str) {
         const currentLine = this.currentLineCpt + 1;
@@ -110,44 +143,48 @@ class Executor {
         const currentLine = this.currentLineCpt + 1;
         this.output.appendLine("ERROR at line " + currentLine + " : division by zero.");
     }
-    addToPile(value, type) {
-        this.pile.push({ value: value, type: type });
+    unknownError() {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + ".");
     }
-    updateWebView() {
-        this.panel.webview.postMessage({ command: "showPile", pile: this.pile, pointer: this.cptPile, instructionLine: this.currentLineCpt + 1, instruction: this.instructions[this.currentLineCpt].machineCode });
-    }
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    notNumberError(str) {
+        const currentLine = this.currentLineCpt + 1;
+        this.output.appendLine("ERROR at line " + currentLine + " : '" + str + "' is not a integer.");
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Nilnovi Methods -------------------------------//
     /**
     * @description Enables the beginning of the program
-    * @return output status
+    * @return 0 (output status)
     * @author Sébastien HERT
+    * @author Adam RIVIÈRE
     */
     evaluable_debutProg() {
-        this.output.appendLine("Début de Programme");
+        this.display("Début de Programme");
         this.currentLineCpt++;
         return 0;
     }
     /**
     * @description Enables the end of the program
-    * @return output status
+    * @return 0 (output status)
     * @author Sébastien HERT
+    * @author Adam RIVIÈRE
     */
     evaluable_finProg() {
-        this.output.appendLine("Fin de Programme");
+        this.display("Fin de Programme");
         this.stop();
         return 0;
     }
     /**
     * @description Reserves n slots in the pile
     * @param number the number of slots to reserve
-    * @return output status
+    * @param string the type as a string
+    * @return 0 (output status)
     * @author Sébastien HERT
+    * @author Adam RIVIÈRE
     */
     evaluable_reserver(n, type) {
+        // Let's add n "0" in the pile with their corresponding type
         for (let i = 0; i < n; i++) {
             this.addToPile(0, type);
         }
@@ -159,32 +196,38 @@ class Executor {
     * @description stacks the value n at the top of the pile
     * @param number the number to stack
     * @param type the type of the number to stack
-    * @return output status
+    * @return 0 (output status)
     * @author Sébastien HERT
+    * @author Adam RIVIÈRE
     */
     evaluable_empiler(n, type) {
-        // let type = this.instructions[this.currentLineCpt].type;addToPile(
         this.addToPile(n, type);
         this.cptPile++;
         this.currentLineCpt++;
         return 0;
     }
+    /**
+     * @description affects the last value in the pile to the penultimate value
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_affectation() {
-        const value = this.pile.pop();
-        const address = this.pile.pop();
-        // if (value === undefined || address === undefined) {
-        // 	console.error("affectation problem");
-        // 	return 1;
-        // }
-        if (address === undefined ||
-            address.value < 0 ||
-            address.value > this.pile.length ||
-            value === undefined) {
+        // Let's imagine we have a := b
+        // First we need to get a and b
+        const b = this.pile.pop();
+        const a = this.pile.pop();
+        // Then we check if everything is ok
+        if (a === undefined ||
+            a.value < 0 ||
+            a.value > this.pile.length ||
+            b === undefined) {
             this.pileError("Address isn't is the pile");
             return 1;
         }
+        // then we change the value of the address of a
         try {
-            this.pile[address.value].value = value.value;
+            this.pile[a.value].value = b.value;
         }
         catch (error) {
             console.log(error);
@@ -195,27 +238,34 @@ class Executor {
         this.currentLineCpt++;
         return 0;
     }
+    /**
+     * @description gets the value of the top of the pile considered as a address
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_valeurPile() {
+        // the address is a the top of the pile
         const address = this.pile.pop();
         this.cptPile--;
+        // We need to check if everything is ok
         if (address === undefined || address.value < 0 || address.value > this.pile.length) {
             this.pileError("Address isn't is the pile");
             return 1;
         }
-        // if (address === undefined) {
-        // 	console.error("valeurPile problem");
-        // 	return 1;
-        // }
-        const value = this.pile[address.value].value;
-        const type = this.pile[address.value].type;
-        return this.evaluable_empiler(value, type);
+        // Then it is, we need now to get the value and the pile of the variable which has this address
+        const newVariable = this.pile[address.value];
+        return this.evaluable_empiler(newVariable.value, newVariable.type);
     }
+    /**
+     * @description waits for the user input and affects if to the corresponding variable, which has its address on top of the pile
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_get() {
         return __awaiter(this, void 0, void 0, function* () {
-            // if (this.pile.length < 1) {
-            // 	this.pileError("Pile doesn't have enough elements.");
-            // 	return 1;
-            // }
+            // Let's define a function to get the input entered by the user.
             function getInputValue() {
                 return __awaiter(this, void 0, void 0, function* () {
                     let res = yield vscode.window.showInputBox({
@@ -230,62 +280,93 @@ class Executor {
                     }
                 });
             }
+            // Then let's wait for the input
             let inputString = yield getInputValue();
+            // First we need to be sure there is no problem with the input string
             if (inputString === undefined) {
                 console.log("inputBox is undefined");
                 this.currentLineCpt++;
                 return 0;
             }
+            // We now need to parse our inputString
             let inputNumber = parseInt(inputString);
-            // if (isNaN(inputNumber)) {
-            // 	this.notNumberError(inputString);
-            // 	return 1;
-            // }
+            let inputFloat = parseFloat(inputString);
+            // If it's not a number
+            if (isNaN(inputNumber) || inputNumber != inputFloat) {
+                this.notNumberError(inputString);
+                return 1;
+            }
+            // It's a number, so let's get the variable address
             const address = this.pile.pop();
             this.cptPile--;
+            // Now we want to be sure the address is in the pile
             if (address === undefined || address.value < 0 || address.value > this.pile.length) {
                 this.pileError("Address isn't is the pile");
                 return 1;
             }
-            // if (address === undefined){return 1}
+            // Finally, we could change the variable value
             this.pile[address.value].value = inputNumber;
             this.currentLineCpt++;
             return 0;
         });
     }
+    /**
+     * @description displays a which is the top of the pile
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_put() {
-        const value = this.pile.pop();
-        if (value === undefined) {
+        // Get a
+        const a = this.pile.pop();
+        // Check if a exists (if not, we need to raise an error)
+        if (a === undefined) {
             this.pileError("Pile doesn't have enough elements.");
             return 1;
         }
         this.cptPile--;
         this.currentLineCpt++;
-        if (value.type == "boolean") {
-            if (value.value == 0) {
-                this.output.appendLine("false");
+        // if a is boolean, we want to see "true" or "false" and not 1 or 0
+        if (a.type == "boolean") {
+            if (a.value == 0) {
+                this.display("false");
             }
             else {
-                this.output.appendLine("true");
+                this.display("true");
             }
         }
+        // else a is integer, we just need to display it
         else {
-            this.output.appendLine(value.value.toString());
+            this.display(a.value.toString());
         }
         return 0;
     }
+    /**
+     * @description stacks -a on top of the pile, where a is on top of the pile
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_moins() {
+        // First, checking the length of the pile
         if (this.pile.length < 1) {
             this.pileError("Pile doesn't have enough elements.");
             return 1;
         }
-        let value = this.pile.pop();
+        // let's get a
+        let a = this.pile.pop();
         this.cptPile--;
-        if (value === undefined) {
+        if (a === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(-value, "integer");
+        return this.evaluable_empiler(-a, "integer");
     }
+    /**
+     * @description stacks a - b on top of the pile, where b is on top of the pile and a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_sous() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -299,6 +380,12 @@ class Executor {
         }
         return this.evaluable_empiler(b.value - a.value, "integer");
     }
+    /**
+     * @description stacks a + b on top of the pile, where b is on top of the pile and a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_add() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -312,6 +399,12 @@ class Executor {
         }
         return this.evaluable_empiler(b.value + a.value, "integer");
     }
+    /**
+     * @description stacks a * b on top of the pile, where b is on top of the pile and a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_mult() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -325,6 +418,12 @@ class Executor {
         }
         return this.evaluable_empiler(b.value * a.value, "integer");
     }
+    /**
+     * @description stacks a // b on top of the pile, where b is on top of the pile, a just below and // is the euclidean division
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_div() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -342,6 +441,12 @@ class Executor {
         }
         return this.evaluable_empiler(Math.floor(b.value / a.value), "integer");
     }
+    /**
+     * @description stacks a == b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_egal() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -355,6 +460,12 @@ class Executor {
         }
         return this.evaluable_empiler(Number(a.value == b.value), "boolean");
     }
+    /**
+     * @description stacks a != b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_diff() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -368,6 +479,12 @@ class Executor {
         }
         return this.evaluable_empiler(Number(!(a.value == b.value)), "boolean");
     }
+    /**
+     * @description stacks a < b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_inf() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -379,10 +496,14 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        // console.log(a.value < b.value);
-        // console.log(Number(a.value < b.value));
         return this.evaluable_empiler(Number(a.value < b.value), "boolean");
     }
+    /**
+ * @description stacks a <= b on top of the pile, where b is on top of the pile, a just below
+ * @returns output status
+ * @author Sébastien HERT
+ * @author Adam RIVIÈRE
+ */
     evaluable_infeg() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -396,6 +517,12 @@ class Executor {
         }
         return this.evaluable_empiler(Number(a.value <= b.value), "boolean");
     }
+    /**
+     * @description stacks a > b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_sup() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -409,6 +536,12 @@ class Executor {
         }
         return this.evaluable_empiler(Number(a.value > b.value), "boolean");
     }
+    /**
+     * @description stacks a >= b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_supeg() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -422,6 +555,12 @@ class Executor {
         }
         return this.evaluable_empiler(Number(a.value >= b.value), "boolean");
     }
+    /**
+     * @description stacks a && b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_et() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -433,16 +572,14 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        //   if (a[0] != 0 && a[0] != 1) {
-        // 	this.notBooleanError(a);
-        // 	return 1;
-        //   }
-        //   if (b[0] != 0 && b[0] != 1) {
-        // 	this.notBooleanError(b);
-        // 	return 1;
-        //   }
         return this.evaluable_empiler(Number(b.value && a.value), "boolean");
     }
+    /**
+     * @description stacks a || b on top of the pile, where b is on top of the pile, a just below
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Adam RIVIÈRE
+     */
     evaluable_ou() {
         if (this.pile.length < 2) {
             this.pileError("Pile doesn't have enough elements.");
@@ -454,17 +591,15 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        //   if (a[0] != 0 && a[0] != 1) {
-        // 	this.notBooleanError(a);
-        // 	return 1;
-        //   }
-        //   if (b[0] != 0 && b[0] != 1) {
-        // 	this.notBooleanError(b);
-        // 	return 1;
-        //   }
         return this.evaluable_empiler(Number(b.value || a.value), "boolean");
     }
-    //Simon à partir d'ici
+    /**
+     * @description stacks !a on top of the pile, where a is on top of the pile
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     */
     evaluable_non() {
         if (this.pile.length < 1) {
             this.pileError("Pile doesn't have enough elements.");
@@ -475,16 +610,26 @@ class Executor {
         if (a === undefined) {
             return 1;
         }
-        //   if (a[0] != 0 && a[0] != 1) {
-        // 	this.notBooleanError(a);
-        // 	return 1;
-        //   }
         return this.evaluable_empiler(Number(!a.value), "boolean");
     }
+    /**
+     * @description jumps to the line n
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     */
     evaluable_tra(n) {
         this.currentLineCpt = n - 1;
         return 0;
     }
+    /**
+     * @description jumps to the line if the condition on top of the pile is false
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     */
     evaluable_tze(n) {
         let a = this.pile.pop();
         this.cptPile -= 1;
@@ -499,35 +644,52 @@ class Executor {
             return 0;
         }
     }
-    // private evaluable_erreur(exp: string) {
-    // 	this.output.appendLine("TODO");
-    // 	this.currentLineCpt++;
-    // 	return 0;
-    // }
-    evaluable_empilerAd(n) {
-        // this.currentLineCpt++;
-        return this.evaluable_empiler(this.base + 2 + n, "address");
-    }
+    /**
+     * @description stacks the local value of the variable which has the local address n (used in methods)
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     */
+    evaluable_empilerAd(n) { return this.evaluable_empiler(this.base + 2 + n, "address"); }
+    /**
+     * @description stacks the global value of the variable which has the local address n (used in methods)
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     */
     evaluable_empilerParam(n) {
-        let v = this.pile[this.base + 2 + n]; //On lit le couple situé à l'adresse n au dessus du bloc courant
-        // this.currentLineCpt++;
+        // Let's read the variable which has the local address n, which is n + 2 (length of our linking block) + base (length of the main block)
+        let v = this.pile[this.base + 2 + n];
         return this.evaluable_empiler(v.value, v.type);
     }
+    /**
+     * @description indicates the end of a procedure
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     */
     evaluable_retourProc() {
-        while (this.pile[this.cptPile - 1].type != "topBlock") { //Efface les valeurs au dessus du bloc de liaison
+        // First we need to erase the local value from the current procedure block
+        while (this.pile[this.cptPile - 1].type != "topBlock") {
             this.pile.pop();
             this.cptPile -= 1;
         }
-        let t = this.pile.pop(); //Traitement du topBlock
+        // Now, on top of the pile, we have 2 elements
+        // the topBlock which contains the next line of the next line
+        let topBlock = this.pile.pop();
         this.cptPile -= 1;
-        if (t === undefined) {
+        if (topBlock === undefined) {
             return 1;
         }
-        let returnValue = this.evaluable_tra(t.value);
+        let returnValue = this.evaluable_tra(topBlock.value);
         if (returnValue != 0) {
             return 1;
         }
-        let b = this.pile.pop(); //Traitement du bottomBlock
+        // the bottomBlock which contains the TODO
+        let b = this.pile.pop();
         this.cptPile -= 1;
         if (b === undefined) {
             return 1;
@@ -535,7 +697,16 @@ class Executor {
         this.base = b.value;
         return 0;
     }
+    /**
+     * @description indicates the end of a function
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     * @see evaluable_retourProc
+     */
     evaluable_retourFonct() {
+        // very similar to evaluable_retourProc() but we also need to get the element on top of the pile before removing all the values, and at the end stack this element again
         let a = this.pile.pop();
         this.cptPile--;
         let returnValue = this.evaluable_retourProc();
@@ -545,11 +716,22 @@ class Executor {
         this.currentLineCpt--;
         return this.evaluable_empiler(a.value, a.type);
     }
+    /**
+     * @description allocates 2 slots for a block (before calling methods)
+     * @param Type description
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     * @see evaluable_traStat
+     */
     evaluable_reserverBloc() {
+        // the bottomBlock stacks TODO
         let returnValue = this.evaluable_empiler(this.base, "bottomBlock");
         if (returnValue != 0) {
             return 1;
         }
+        // the topBlock stacks the next line (which will be affected in evaluable_traStat())
         returnValue = this.evaluable_empiler(0, "topBlock");
         if (returnValue != 0) {
             return 1;
@@ -557,10 +739,21 @@ class Executor {
         this.currentLineCpt--;
         return 0;
     }
-    evaluable_traStat(n, t) {
-        this.pile[this.cptPile - t - 1].value = this.currentLineCpt + 2; //affectation topBlock
-        this.base = (this.cptPile - t) - 2;
-        return this.evaluable_tra(n);
+    /**
+     * @description refers to a method line with nbParam parameters
+     * @param number l the line of the method
+     * @param number p the number of parameters
+     * @returns output status
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     * @author Adam RIVIÈRE
+     * @see evaluable_tra
+     */
+    evaluable_traStat(line, nbParam) {
+        // Let's affect the topBlock value
+        this.pile[this.cptPile - nbParam - 1].value = this.currentLineCpt + 2; //affectation topBlock
+        this.base = (this.cptPile - nbParam) - 2;
+        return this.evaluable_tra(line);
     }
 }
 exports.Executor = Executor;
