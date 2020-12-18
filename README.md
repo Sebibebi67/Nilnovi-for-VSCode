@@ -27,7 +27,7 @@ Initial release
 
 ## **Authors**
 
-Enssat Compilation Team :
+Enssat Compilation Team of Students (ECTS):
 - HERT Sébastien
 - JOURDAN Simon
 - RIVIÈRE Adam
