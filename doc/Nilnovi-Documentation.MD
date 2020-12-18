@@ -12,6 +12,13 @@ Such as a lot of non-indentation sensitive language, every line should finish by
 * **integer** : accepts both positive and negative number
 * **boolean** : *true* or *false*
 
+## **Allowed Scopes**
+
+Used in method declaration, define the scope (local or global) of the parameter :
+
+* **in** : the parameter is used as a local variable, no impact in the main program
+* **in out** : the parameter is used as a global variable, changing its value in both main procedure and sub method.
+
 ## **Declarations**
 
 ### **Functions and procedures**
@@ -27,7 +34,7 @@ Such as a lot of non-indentation sensitive language, every line should finish by
 All functions and procedures should be declared as follows:
 
 ```
-procedure my_procedure_name(param1 : Type1, [...]) is
+procedure my_procedure_name(param1 : scope Type1, [...]) is
 	var1 : Type;
 	var2 : Type;
 	[...]
@@ -38,7 +45,7 @@ procedure my_procedure_name(param1 : Type1, [...]) is
 OR
 
 ```
-function my_function_name(param1 : Type, [...]) return Type is
+function my_function_name(param1 : scope Type, [...]) return Type is
 	var1 : Type;
 	var2 : Type;
 	[...]
@@ -108,7 +115,25 @@ for [i] from [begin] to [end] loop
 end
 ```
 
+## **Key-words**
 
+* **procedure** 
+* **function**
+* **is**
+* **in**
+* **out**
+* **begin**
+* **end**
+* **return**
+* **if**
+* **then**
+* **elif**
+* **else**
+* **while**
+* **loop**
+* **for**
+* **from**
+* **to**
 
 
 

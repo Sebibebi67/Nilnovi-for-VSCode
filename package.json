@@ -4,6 +4,7 @@
 	"publisher": "Enssat-Compilation-Team",
 	"description": "",
 	"version": "0.0.1",
+	"repository": "https://github.com/Sebibebi67/Nilnovi-for-VSCode.git",
 	"engines": {
 		"vscode": "^1.49.0"
 	},

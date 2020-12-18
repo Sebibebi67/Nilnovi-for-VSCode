@@ -13,9 +13,14 @@ Comme la plupart des langages non sensibles à l'indentation, chaque ligne doit 
 * **integer** : nombres entiers positifs ou négatifs
 * **boolean** : *true* ou *false*
 
+## **Portées autorisées**
+
+* **in** : le paramètre est utilisé comme variable locale, aucun impact sur la procédure principale
+* **in out** : le paramètre est utilisé comme variable globale, changer sa valeur aura un effet sur la procédure principale
+
 ## **Déclarations**
 
-### **Fonctions et procedures**
+### **Fonctions et procédures**
 
 #### **Méthodes pré-implémentées**
 
@@ -28,7 +33,7 @@ Comme la plupart des langages non sensibles à l'indentation, chaque ligne doit 
 Toutes les fonctions et procédures doivent être déclarées comme suit:
 
 ```
-procedure my_procedure_name(param1 : Type1, [...]) is
+procedure my_procedure_name(param1 : scope Type1, [...]) is
 	var1 : Type;
 	var2 : Type;
 	[...]
@@ -39,7 +44,7 @@ procedure my_procedure_name(param1 : Type1, [...]) is
 OU
 
 ```
-function my_function_name(param1 : Type, [...]) return Type is
+function my_function_name(param1 : scope Type, [...]) return Type is
 	var1 : Type;
 	var2 : Type;
 	[...]
@@ -114,6 +119,8 @@ end
 * **procedure** 
 * **function**
 * **is**
+* **in**
+* **out**
 * **begin**
 * **end**
 * **return**

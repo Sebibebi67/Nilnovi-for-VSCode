@@ -1,6 +1,0 @@
-procedure pp() is
-      toto, titi, tutu : boolean;
-      tata : integer;
-begin
-      
-end
