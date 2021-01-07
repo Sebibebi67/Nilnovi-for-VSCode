@@ -15,6 +15,7 @@ exports.PileWebViewPanel = void 0;
 //--------------------------------------------------------------------------------//
 //----------------------------------- Imports ------------------------------------//
 const vscode = require("vscode");
+const path = require("path");
 const fs_1 = require("fs");
 //--------------------------------------------------------------------------------//
 class PileWebViewPanel {
@@ -26,7 +27,7 @@ class PileWebViewPanel {
             retainContextWhenHidden: true,
             localResourceRoots: []
         });
-        this.panel.webview.html = this.getWebviewContent();
+        this.panel.webview.html = this.getWebviewContent(context);
         this.panel.onDidDispose(() => { PileWebViewPanel.dispose(); });
     }
     //--------------------------------------------------------------------------------//
@@ -56,8 +57,8 @@ class PileWebViewPanel {
      * @author Sébastien HERT
      * @author Simon JOURDAN
      */
-    getWebviewContent() {
-        return fs_1.readFileSync("./src/Webview/pileDisplay.html", "utf-8");
+    getWebviewContent(context) {
+        return fs_1.readFileSync(path.join(context.extensionPath, './src/Webview/pileDisplay.html'), { encoding: 'utf8' });
     }
 }
 exports.PileWebViewPanel = PileWebViewPanel;
