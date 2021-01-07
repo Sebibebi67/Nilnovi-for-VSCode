@@ -9,6 +9,7 @@ This extension provides :
 - **IntelliSense**
 - Tracking of **Compilation** and **Execution** errors
 - **Dynamic display** of the pile
+
 ## **Quick start**
 
 * First, open a file with the ```.nn``` extension to activate all the features of this extension
