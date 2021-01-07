@@ -21,6 +21,7 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { readFileSync } from "fs";
+import { Context } from "mocha";
 
 //--------------------------------------------------------------------------------//
 
@@ -49,8 +50,8 @@ export class PileWebViewPanel {
                 localResourceRoots: []
             });
 
-        this.panel.webview.html = this.getWebviewContent();
-
+        this.panel.webview.html = this.getWebviewContent(context);
+        
         this.panel.onDidDispose(() => { PileWebViewPanel.dispose(); })
 
     }
@@ -86,8 +87,8 @@ export class PileWebViewPanel {
      * @author Sébastien HERT
      * @author Simon JOURDAN
      */
-    private getWebviewContent() {
-        return readFileSync("./src/Webview/pileDisplay.html", "utf-8");
+    private getWebviewContent(context: vscode.ExtensionContext) {
+        return readFileSync(path.join(context.extensionPath, './src/Webview/pileDisplay.html'), { encoding: 'utf8' });
     }
 
     //--------------------------------------------------------------------------------//
