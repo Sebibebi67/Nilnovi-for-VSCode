@@ -89,14 +89,26 @@ export class Compiler {
 		file = tools.removeComments(tools.indexingFile(file));
 		this.nilnoviProgram = tools.removeEmptyLines(file.split(/\r?\n/));
 
+		// console.log(this.nilnoviProgram.length);
+
+
+		// if the file is empty 
+		if (this.nilnoviProgram.length == 0) {
+			setError(true);
+			vscode.window.showErrorMessage("Compilation failed : empty file");
+		}
+
 		// From now, all the useless lines have been removed
+		else {
+			// We will just eval the first, the entire program will be a recursive call
+			let returnValue = this.compile();
 
-		// We will just eval the first, the entire program will be a recursive call
-		let returnValue = this.compile();
+			// If something get wrong
+			if (returnValue != 0) { vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information"); }
+			else { vscode.window.showInformationMessage("Compilation ran successfully") }
+		}
 
-		// If something get wrong
-		if (returnValue != 0) { vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information"); }
-		else { vscode.window.showInformationMessage("Compilation ran successfully") }
+
 
 		// Printing part
 
@@ -969,8 +981,8 @@ export class Compiler {
 						expressionCopy[i] = this.opDict[element].outType;
 					}
 					else {
-						if (element == "!"){element = "-";}
-						if (typeOp == "integer"){typeOp = "an "+typeOp;}
+						if (element == "!") { element = "-"; }
+						if (typeOp == "integer") { typeOp = "an " + typeOp; }
 						this.displayError(new CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
 						return 1;
 					}
@@ -992,7 +1004,7 @@ export class Compiler {
 					else {
 						if (typeOp == "both") { typeOp = "2 integers or 2 booleans"; }
 						else { typeOp = "2 " + typeOp + "s" }
-						if (element == "!"){element = "-";}
+						if (element == "!") { element = "-"; }
 						this.displayError(new CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
 						return 1;
 					}
