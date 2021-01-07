@@ -41,7 +41,7 @@ export class PileWebViewPanel {
     private constructor(context: vscode.ExtensionContext) {
         this.panel = vscode.window.createWebviewPanel(
             "pile",
-            "Pile éxecution",
+            "Execution Pile",
             { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
             {
                 enableScripts: true,
