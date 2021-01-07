@@ -1,0 +1,8 @@
+procedure pp() is
+        i:integer;
+begin
+
+        for i from 0 to 5 loop
+                put(i);
+        end
+end

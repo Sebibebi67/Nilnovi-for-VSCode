@@ -1,0 +1,13 @@
+procedure main() is
+        procedure double(x : in out integer) is
+        begin
+                x := 2*x;
+        end
+
+        a:integer;
+begin
+        get(a);
+        double(a);
+        put(a);
+
+end

@@ -1,0 +1,11 @@
+procedure main() is
+        function double(x :in integer) return integer is
+        begin
+                return 2*x;
+        end
+
+        a:integer;
+begin
+        get(a);
+        put(double(a));
+end

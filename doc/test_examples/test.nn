@@ -1,0 +1,6 @@
+procedure pp() is
+        bool : boolean;
+begin
+        bool := true;
+        put(bool);
+end
