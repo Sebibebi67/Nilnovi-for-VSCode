@@ -1,24 +1,23 @@
 format Document ?
 
 
-```
-procedure main() is
-        procedure double(x : in out integer) is
+errors :
+
+        - Compilation error : double doesn't return anything
+        ```
+        procedure main() is
+                procedure double(x : in out integer) is
+                begin
+                                x := 2*x;
+                end
+
+                x : integer;
+                
         begin
-                x := 2*x;
+                x := 9;
+                put(double(x));
         end
-
-begin
-
-        put(double(9));
-
-end
-```
-
--> normalement erreur de compilation -> double ne renvoie rien
-
-
-
+        ```
 
 TODAY :
 

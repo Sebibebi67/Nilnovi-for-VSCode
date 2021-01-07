@@ -59,6 +59,8 @@ export class Compiler {
 
 	private currentLineNb: number = 0;
 
+	private returnRead : boolean = false;
+
 	//--------------------------------------------------------------------------------//
 
 
@@ -88,9 +90,6 @@ export class Compiler {
 		// First we need to prepare the array which will contain our NilNovi Program
 		file = tools.removeComments(tools.indexingFile(file));
 		this.nilnoviProgram = tools.removeEmptyLines(file.split(/\r?\n/));
-
-		// console.log(this.nilnoviProgram.length);
-
 
 		// if the file is empty 
 		if (this.nilnoviProgram.length == 0) {
@@ -306,6 +305,8 @@ export class Compiler {
 	 */
 	private createFunction(words: string[]) {
 
+		this.returnRead = false;
+
 		// we update the global variables with the new function
 		const name = words[1];
 		const returnType = words[words.length - 2];
@@ -335,6 +336,13 @@ export class Compiler {
 		// and we create the function ending instruction and we update the current method's name
 		this.instructions.push(new Instruction("retourFonct();"));
 		this.currentMethodName = "pp";
+
+		if (this.returnRead ==false){
+			this.displayError(new CompilationError(511, "function should have at least one 'return'", this.currentLineNb));
+			return 1;
+		}
+
+
 		return 0;
 	}
 
@@ -760,6 +768,12 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private generateReturn(words: string[]) {
+		
+		// Checking if it's a procedure
+		if (this.methodList.get(this.currentMethodName).type == "none") {
+			this.displayError(new CompilationError(510, "'return' cannot be used in a procedure", this.currentLineNb));
+			return 1;
+		}
 
 		// we keep only the return value
 		words = tools.removeFromWords(words, 1, 1);
@@ -775,6 +789,7 @@ export class Compiler {
 
 		// finally we generate the corresponding instructions
 		returnValue = this.generateInstructions(this.currentExpressionList, false);
+		this.returnRead = true;
 		return returnValue;
 	}
 
