@@ -53,6 +53,7 @@ class PileWebViewPanel {
     }
     /**
      * @description Returns the html file
+     * @param vscode.ExtensionContext the current context
      * @returns the html file
      * @author Sébastien HERT
      * @author Simon JOURDAN
