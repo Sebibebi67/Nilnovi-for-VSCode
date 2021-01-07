@@ -22,7 +22,7 @@ class PileWebViewPanel {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
     constructor(context) {
-        this.panel = vscode.window.createWebviewPanel("pile", "Pile éxecution", { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }, {
+        this.panel = vscode.window.createWebviewPanel("pile", "Execution Pile", { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true }, {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: []
@@ -53,6 +53,7 @@ class PileWebViewPanel {
     }
     /**
      * @description Returns the html file
+     * @param vscode.ExtensionContext the current context
      * @returns the html file
      * @author Sébastien HERT
      * @author Simon JOURDAN

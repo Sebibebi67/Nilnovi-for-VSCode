@@ -21,7 +21,6 @@
 import * as vscode from "vscode";
 import * as path from 'path';
 import { readFileSync } from "fs";
-import { Context } from "mocha";
 
 //--------------------------------------------------------------------------------//
 
@@ -42,7 +41,7 @@ export class PileWebViewPanel {
     private constructor(context: vscode.ExtensionContext) {
         this.panel = vscode.window.createWebviewPanel(
             "pile",
-            "Pile éxecution",
+            "Execution Pile",
             { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
             {
                 enableScripts: true,
@@ -83,6 +82,7 @@ export class PileWebViewPanel {
 
     /**
      * @description Returns the html file
+     * @param vscode.ExtensionContext the current context
      * @returns the html file
      * @author Sébastien HERT
      * @author Simon JOURDAN
