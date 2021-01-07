@@ -3,7 +3,7 @@
 	"displayName": "Nilnovi for VSCode",
 	"publisher": "Enssat-Compilation-Team-Students",
 	"description": "",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"repository": "https://github.com/Sebibebi67/Nilnovi-for-VSCode.git",
 	"engines": {
 		"vscode": "^1.49.0"
