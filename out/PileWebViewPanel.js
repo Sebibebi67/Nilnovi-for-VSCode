@@ -1,7 +1,7 @@
 "use strict";
+//================================ Class Executor ================================//
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PileWebViewPanel = void 0;
-//================================ Class Executor ================================//
 //--------------------------------- Description ----------------------------------//
 //
 // This class describes a webview used to show the execution pile
@@ -127,6 +127,7 @@ class PileWebViewPanel {
                                 let debug = document.getElementById('debug');
 
 
+                                instructionListBody.innerHTML = "";
 
                                 for (let i = 0; i< message.list.length; i++){
 

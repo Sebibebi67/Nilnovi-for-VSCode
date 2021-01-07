@@ -1,4 +1,3 @@
-import { debug, timeStamp } from "console";
 //================================ Class Executor ================================//
 
 //--------------------------------- Description ----------------------------------//
@@ -148,6 +147,7 @@ export class PileWebViewPanel {
                                 let debug = document.getElementById('debug');
 
 
+                                instructionListBody.innerHTML = "";
 
                                 for (let i = 0; i< message.list.length; i++){
 
