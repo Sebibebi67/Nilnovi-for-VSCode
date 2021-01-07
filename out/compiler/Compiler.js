@@ -57,15 +57,23 @@ class Compiler {
         // First we need to prepare the array which will contain our NilNovi Program
         file = tools.removeComments(tools.indexingFile(file));
         this.nilnoviProgram = tools.removeEmptyLines(file.split(/\r?\n/));
-        // From now, all the useless lines have been removed
-        // We will just eval the first, the entire program will be a recursive call
-        let returnValue = this.compile();
-        // If something get wrong
-        if (returnValue != 0) {
-            vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information");
+        // console.log(this.nilnoviProgram.length);
+        // if the file is empty 
+        if (this.nilnoviProgram.length == 0) {
+            CompilationError_2.setError(true);
+            vscode.window.showErrorMessage("Compilation failed : empty file");
         }
+        // From now, all the useless lines have been removed
         else {
-            vscode.window.showInformationMessage("Compilation ran successfully");
+            // We will just eval the first, the entire program will be a recursive call
+            let returnValue = this.compile();
+            // If something get wrong
+            if (returnValue != 0) {
+                vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information");
+            }
+            else {
+                vscode.window.showInformationMessage("Compilation ran successfully");
+            }
         }
         // Printing part
         // for (let i = 0; i < this.instructions.length; i++) {
