@@ -132,7 +132,7 @@ class Executor {
      */
     display(str) {
         this.output.appendLine(str);
-        this.output.show();
+        this.output.show(true);
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Errors Methods --------------------------------//

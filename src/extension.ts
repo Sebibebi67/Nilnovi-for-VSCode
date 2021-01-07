@@ -52,11 +52,8 @@ let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
  */
 export function activate(context: vscode.ExtensionContext) {
 
-	toolBarInit();
-
 	// if the run command has been activate
 	let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => { runNilnovi(context); });
-	let toto = vscode.commands.registerCommand("nilnovi-for-vscode.launch", () => { launch(context); });
 
 	// creation of the diagnostic collection
 	var diag_list: vscode.DiagnosticCollection[] = [];
@@ -164,14 +161,6 @@ function runNilnovi(context: vscode.ExtensionContext) {
 
 	// else there is no current file
 	else { vscode.window.showErrorMessage("No current file"); }
-}
-
-function launch(context: vscode.ExtensionContext) {
-	console.log("launched");
-}
-
-function toolBarInit() {
-	let commandArray = []
 }
 
 export function deactivate() { }

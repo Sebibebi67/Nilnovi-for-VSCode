@@ -152,7 +152,7 @@ export class Executor {
 	 */
 	private display(str: string) {
 		this.output.appendLine(str);
-		this.output.show();
+		this.output.show(true);
 	}
 
 	//--------------------------------------------------------------------------------//

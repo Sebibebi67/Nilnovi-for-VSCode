@@ -15,21 +15,42 @@
 		"onLanguage:nilnovi",
 		"onCommand:nilnovi-for-vscode.run",
 		"onCommand:nilnovi-for-vscode.showPile",
-		"onLanguage:nilnovi",
 		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration": [
+			{
+				"title": "Shortcut Bar Configuration",
+				"properties": {
+					"Run": {
+						"type": "boolean",
+						"default": true,
+						"description": "show run icon"
+					}
+				}
+			}
+		],
 		"commands": [
 			{
 				"command": "nilnovi-for-vscode.run",
-				"title": "Run Nilnovi"
+				"title": "Run Nilnovi",
+				"icon": "src/icons/triangle-right.svg"
 			},
 			{
 				"command": "nilnovi-for-vscode.showPile",
 				"title": "Pile Display"
 			}
 		],
+		"menus": {
+			"editor/title": [
+				{
+					"when": "config.Run",
+					"command": "nilnovi-for-vscode.run",
+					"group": "navigation@1"
+				}
+			]
+		},
 		"languages": [
 			{
 				"id": "nilnovi",

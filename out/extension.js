@@ -37,10 +37,8 @@ let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
  * @author Adam RIVIERE
  */
 function activate(context) {
-    toolBarInit();
     // if the run command has been activate
     let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => { runNilnovi(context); });
-    let toto = vscode.commands.registerCommand("nilnovi-for-vscode.launch", () => { launch(context); });
     // creation of the diagnostic collection
     var diag_list = [];
     // we keep the active text editor
@@ -126,12 +124,6 @@ function runNilnovi(context) {
     else {
         vscode.window.showErrorMessage("No current file");
     }
-}
-function launch(context) {
-    console.log("launched");
-}
-function toolBarInit() {
-    let commandArray = [];
 }
 function deactivate() { }
 exports.deactivate = deactivate;
