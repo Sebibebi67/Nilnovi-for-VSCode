@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css">
+	<!-- href="${webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'style.css')))}" -->
+	<title>Pile Display</title>
+</head>
+
+<style>
+	body.vscode-light {
+		--color: black;
+		--intColor: #4b692f;
+		--boolColor: #3f3f74;
+		--linkColor: #ac3232;
+		--blockColor: #ac6b02;
+		--backgroundColor: #aaa8a8;
+	}
+
+	body.vscode-dark {
+		--color: white;
+		--intColor: #6abe30;
+		--boolColor: #5b6ee1;
+		--linkColor: #b7462e;
+		--blockColor: #d0902a;
+		--backgroundColor: #424242;
+	}
+
+	body.vscode-high-contrast {
+		--color: white;
+		--intColor: #99e550;
+		--boolColor: #639bff;
+		--linkColor: #d98144;
+		--blockColor: #fbf236;
+		--backgroundColor: #212121;
+	}
+
+
+	#pileExecution td,
+	th {
+		border: 2px solid var(--color);
+		font-weight: 800;
+		padding: 10px;
+		text-align: center;
+	}
+
+	table {
+		border-collapse: collapse;
+	}
+
+	#instructionList .num {
+		text-align: right;
+	}
+
+	#instructionList .highlighted {
+		background-color: var(--backgroundColor);
+	}
+
+
+	#pileExecution,
+	#legend {
+		width: 100%;
+	}
+
+	#instructionList {
+		border: 0px;
+	}
+
+	.div {
+		display: grid;
+		grid-template-columns: 30% 70%;
+		grid-gap: 10px;
+	}
+
+
+	.integer {
+		color: var(--intColor);
+	}
+
+	#pileExecution tr:hover {
+		background-color: var(--backgroundColor);
+	}
+
+	.boolean {
+		color: var(--boolColor);
+	}
+
+	.address {
+		color: var(--linkColor);
+	}
+
+	.bottomBlock {
+		color: var(--blockColor);
+		border-top: 0px;
+	}
+
+	.topBlock {
+		color: var(--blockColor);
+		border-bottom: 0px;
+	}
+
+	.block {
+		color: var(--blockColor);
+	}
+
+	h1 {
+		text-align: center;
+	}
+</style>
+
+<body>
+	<div class='div'>
+		<div>
+			<h1>Machine Code</h1>
+			<p id='instruction'></p>
+			<table id='instructionList'>
+				<tbody id='instructionListBody'></tbody>
+			</table>
+		</div>
+		<div>
+			<h1>Execution Pile</h1>
+			<table id='pileExecution'>
+				<thead>
+					<tr>
+						<td>Index</td>
+						<td>Pile</td>
+					</tr>
+				</thead>
+				<tbody id='pileBody'></tbody>
+			</table>
+			<table id='legend'>
+				<tbody>
+					<tr>
+						<td>Colors:</td>
+						<td class='integer'>Integer</td>
+						<td class='boolean'>Boolean</td>
+						<td class='address'>Address</td>
+						<td class='block'>Link block</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<script>
+
+		const vscode = acquireVsCodeApi();
+		// Handle the message inside the webview
+
+		window.addEventListener('message', event => {
+
+			const message = event.data; // The JSON data our extension sent
+
+			switch (message.command) {
+
+				case 'showPile':
+					table = document.getElementById('pileExecution');
+					tableBody = document.getElementById('pileBody');
+					tableBody.innerHTML = "" //Reset Pile
+
+					message.pile.forEach(element => {
+						let tr = document.createElement('tr');
+						let num = document.createElement('td');
+						num.innerHTML = table.rows.length - 1;
+						if (message.pointer == num.innerHTML) {
+							num.innerHTML = 'ip -> ' + num.innerHTML;
+						}
+						tr.appendChild(num);
+						let content = document.createElement('td');
+						if (element.type != 'link') {
+							content.innerHTML = "<span class=" + element.type + ">" + element.value + "</span>";
+						} else {
+							content.innerHTML =
+								"<span class=" + element.type + ">" + element.value + "</span>" +
+								" -> (" +
+								"<span class=" + message.pile[element.value]['type'] + ">" + message.pile[element.value]['value'] + "</span>)";
+						}
+						tr.appendChild(content);
+						tableBody.insertBefore(tr, tableBody.firstChild);
+					})
+
+					let highlighted = document.getElementById('highlighted');
+					highlighted.classList.remove('highlighted');
+					highlighted.removeAttribute("id");
+					document.getElementById('instructionListBody').children[message.instructionLine - 1].classList.add('highlighted');
+					document.getElementById('instructionListBody').children[message.instructionLine - 1].id = "highlighted";
+					break;
+
+				case 'showInstructionList':
+
+
+					let instructionListBody = document.getElementById('instructionListBody');
+					instructionListBody.innerHTML = "";
+
+					for (let i = 0; i < message.list.length; i++) {
+
+						let instruction = message.list[i];
+
+						let num = document.createElement('td');
+						num.classList.add("num");
+
+						num.innerHTML = (i + 1) + " - ";
+
+						let tr = document.createElement('tr');
+						let line = document.createElement('td');
+
+						line.innerHTML = instruction.machineCode;
+
+						tr.appendChild(num);
+						tr.appendChild(line);
+						instructionListBody.appendChild(tr);
+
+					}
+					break;
+			}
+
+		});
+	</script>
+
+</body>
+
+</html>
