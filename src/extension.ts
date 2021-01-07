@@ -1,62 +1,98 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+//================================= extension.ts =================================//
+
+
+//--------------------------------- Description ----------------------------------//
+//
+// This file contains the main scripts to run the application
+//
+//--------------------------------------------------------------------------------//
+
+
+//----------------------------------- Authors ------------------------------------//
+//
+// Sébastien HERT
+// Simon JOURDAN
+// Adam RIVIÈRE
+//
+//--------------------------------------------------------------------------------//
+
+
+//----------------------------------- Imports ------------------------------------//
+
 import * as vscode from "vscode";
-import { PythonShell } from "python-shell";
 import path = require("path");
-import { readFileSync, writeFile, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { Executor } from "./Executor";
 import { PileWebViewPanel } from "./PileWebViewPanel";
-import { exec } from "child_process";
 import * as syntaxError from "./syntax/SyntaxError";
 import * as compilationError from "./compiler/CompilationError"
 
-let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
+
 import { autoCompletion, errors, setErrors, updateDiags } from "./syntax/providers";
 import { hovers } from "./syntax/providers";
 import { Compiler } from "./compiler/Compiler";
-import { CompilationError } from "./compiler/CompilationError";
 
-// var pileExec: { value: number, type: string }[] = [{ value: 51, type: 'int' }, { value: 0, type: 'link' }, { value: 17, type: 'int' }, { value: 22, type: 'int' }, { value: 97, type: 'int' }, { value: 10, type: 'bottomBlock' }, { value: 6, type: 'topBlock' }, { value: 0, type: 'bool' }, { value: 4, type: 'int' }];
-// let pointerPile = 0;
+//--------------------------------------------------------------------------------//
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+
+//------------------------------- Global Variables -------------------------------//
+
+let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
+
+//--------------------------------------------------------------------------------//
+
+
+//----------------------------------- Activate -----------------------------------//
+
+/**
+ * @description defines the commands and the actions of the extension
+ * @param vscode.ExtensionContext context of the extension
+ * @author Sébastien HERT
+ * @author Adam RIVIERE
+ */
 export function activate(context: vscode.ExtensionContext) {
 
-	let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => {
-		// console.log(vscode.window.activeTextEditor);
-		runNilnovi(context);
-	});
+	// if the run command has been activate
+	let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => { runNilnovi(context); });
 
-	// let pile = vscode.commands.registerCommand("nilnovi-for-vscode.showPile", () => {
-	// 	let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
-	// 	panel.webview.postMessage({ command: "showPile", pile: pileExec, pointer: pointerPile })
-	// });
-
+	// creation of the diagnostic collection
 	var diag_list: vscode.DiagnosticCollection[] = [];
-	// var diag_list = vscode.languages.createDiagnosticCollection('nilnovi');
-	// var diag_coll = vscode.languages.createDiagnosticCollection('nilnovi');
+
+	// we keep the active text editor
 	var editor = vscode.window.activeTextEditor;
+
+	// if the editor exists
 	if (editor !== undefined) {
 
+		// we get the path to the current file
 		var fileNamePath = editor.document.uri.fsPath;
+
+		// if the file is a NilNovi file (.nn extension)
 		if (fileNamePath.endsWith(".nn")) {
-			// updateDiags(editor.document, diag_coll);
+
+			// we check the errors and complete the diagnostic collection
 			setErrors(editor.document.getText());
-			// diag_coll = updateDiags(editor.document, diag_coll);
 			updateDiags(editor.document, diag_list);
-			// console.log("done opening")
 		}
 	}
 
-
+	// each time the document is modified
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(
 		(e: vscode.TextDocumentChangeEvent | undefined) => {
-			// editor = vscode.window.activeTextEditor;
+
+			// if the event is not undefined
 			if (e !== undefined) {
+
+				// we get the path to the current file
 				var fileNamePath = e.document.uri.fsPath;
+
+				// if the file is a NilNovi file (.nn extension)
 				if (fileNamePath.endsWith(".nn")) {
+
+					// we clear the previous diagnostic collection
 					diag_list.forEach(diag => diag.clear());
+
+					// we check the errors and complete the diagnostic collection
 					setErrors(e.document.getText());
 					updateDiags(e.document, diag_list);
 				}
@@ -64,84 +100,74 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	));
 
+	// we generate the auto completion and the hovers
 	context.subscriptions.push(autoCompletion(), hovers());
 }
 
+//--------------------------------------------------------------------------------//
+
+
+//---------------------------------- Functions -----------------------------------//
+
+
+/**
+ * @description runs the compilation and the execution of a nilnovi Program
+ * @param vscode.ExtensionContext context
+ * @author Sébastien HERT
+ */
 function runNilnovi(context: vscode.ExtensionContext) {
+
+	// checks if there is an activeTextEditor
 	if (vscode.window.activeTextEditor) {
+
+		// Then, the file should have the ".nn" extension to be runnable
 		var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
 		if (fileNamePath.endsWith(".nn")) {
-			if (syntaxError.isError) {
-				vscode.window.showErrorMessage("An error occurred before compilation. Please correct the syntax before trying again");
-			} else {
+
+			// If providers have already raised an error
+			if (syntaxError.isError) { vscode.window.showErrorMessage("An error occurred before compilation. Please correct the syntax before trying again"); }
+
+			// Else we can compile the program
+			else {
 				vscode.window.showInformationMessage("Compilation in progress");
 				var compiler = new Compiler(readFileSync(fileNamePath, "utf-8"), outputChannel);
-				if (compilationError.isError) {
-					vscode.window.showErrorMessage("Execution aborted : An error occurred during compilation.");
-				}
+
+				// if an error occurred
+				if (compilationError.isError) { vscode.window.showErrorMessage("Execution aborted : An error occurred during compilation."); }
+
+				// if not
 				else {
+
+					// Let's write the instructions in a new file (or override if it already exists) with the same name, and the ".machine_code" extension
 					let outputFile = vscode.window.activeTextEditor.document.uri.fsPath.replace(".nn", ".machine_code");
 					writeFileSync(outputFile, compiler.displayInstructions());
 
+					// Now we could display the pile
 					let panel: vscode.WebviewPanel = PileWebViewPanel.get(context);
 					panel.webview.postMessage({
 						command: "showInstructionList",
 						list: compiler.instructions
 					});
 
+					// And execute those instructions
 					let executor = new Executor(compiler.instructions, outputChannel, panel);
 				}
-
-
-
-
-
-				// vscode.workspace.openTextDocument(outputFile)
-				// let filePanel = vscode.window.showTextDocument(vscode.workspace.openTextDocument(outputFile), vscode.ViewColumn.One);
-
-
-				// vscode.workspace.fs.writeFile()
-				// vscode.window.showTextDocument()
-
 			}
-
-
-			// executor.output.clear();
-			// executor.output.appendLine("Running "+path.basename(fileNamePath)+"\n");
-			// executor.loadingFile(readFileSync(fileNamePath, "utf-8"));
-			// executor.run();
-
-			//   executor = new Executor(readFileSync(fileNamePath, "utf-8"));
-			//   output.appendLine("Hello there");
-			//   console.log(executor.currentLineCpt);
-			//   for (let line of file){
-			// 	  console.log(line);
-			// 	  break;
-			//   }
-			//   console.log(file);
-			// var options = {
-			//   scriptPath: __dirname + "/../src/",
-			//   args: [fileNamePath],
-			// };
-			// PythonShell.run("exec.py", options, function (err, results) {
-			//   if (err){
-			//     console.log(err);
-			//     vscode.window.showErrorMessage("A python error occurs : "+err.message+"\n"+err.traceback);
-			//   }else{
-			//     vscode.window.showInformationMessage("Running successfully "+path.basename(fileNamePath))
-			//   }
-			//   console.log(results);
-			// });
-		} else {
-			vscode.window.showErrorMessage(
-				path.basename(fileNamePath) +
-				' is not a Nilnovi file, please use the".nn" extension'
-			);
 		}
-	} else {
-		vscode.window.showErrorMessage("No current file");
+
+		// else its not a ".nn" file
+		else { vscode.window.showErrorMessage(path.basename(fileNamePath) + ' is not a Nilnovi file, please use the".nn" extension'); }
 	}
+
+	// else there is no current file
+	else { vscode.window.showErrorMessage("No current file"); }
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() { }
+
+//--------------------------------------------------------------------------------//
+
+
+//================================================================================//
+
+

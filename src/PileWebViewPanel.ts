@@ -1,4 +1,5 @@
-//================================ Class Executor ================================//
+//============================ Class PileWebViewPanel ============================//
+
 
 //--------------------------------- Description ----------------------------------//
 //
@@ -6,26 +7,36 @@
 //
 //--------------------------------------------------------------------------------//
 
+
 //----------------------------------- Authors ------------------------------------//
 //
-// Simon Jourdan
+// Sébastien HERT
+// Simon JOURDAN
 //
 //--------------------------------------------------------------------------------//
+
 
 //----------------------------------- Imports ------------------------------------//
 
 import * as vscode from "vscode";
 import * as path from 'path';
-import { readFile, readFileSync } from "fs";
-import { dirname } from "path";
-import { Context } from "vm";
+import { readFileSync } from "fs";
 
 //--------------------------------------------------------------------------------//
 
+
 export class PileWebViewPanel {
+
+
+    //------------------------------- Class Variables --------------------------------//
 
     private static instance: PileWebViewPanel | undefined = undefined;
     private panel: vscode.WebviewPanel;
+
+    //--------------------------------------------------------------------------------//
+
+
+    //--------------------------------- Constructor ----------------------------------//
 
     private constructor(context: vscode.ExtensionContext) {
         this.panel = vscode.window.createWebviewPanel(
@@ -35,17 +46,25 @@ export class PileWebViewPanel {
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, './Webview'))]
+                localResourceRoots: []
             });
 
-        this.panel.webview.html = this.getWebviewContent(this.panel.webview, context);
+        this.panel.webview.html = this.getWebviewContent();
 
-        this.panel.onDidDispose(() => {
-            PileWebViewPanel.dispose();
-        })
+        this.panel.onDidDispose(() => { PileWebViewPanel.dispose(); })
 
     }
+    //--------------------------------------------------------------------------------//
 
+
+    //----------------------------------- Methods ------------------------------------//
+
+    /**
+     * @description Returns the panel
+     * @param vscode.ExtensionContext context
+     * @returns the panel
+     * @author Simon JOURDAN
+     */
     public static get(context: vscode.ExtensionContext) {
         if (!this.instance) {
             this.instance = new PileWebViewPanel(context);
@@ -53,13 +72,26 @@ export class PileWebViewPanel {
         return this.instance.panel;
     }
 
+    /**
+     * @description Closes the window
+     * @author Simon JOURDAN
+     */
     private static dispose() {
         this.instance = undefined;
     }
 
-    private getWebviewContent(webview: vscode.Webview, context: Context) {
-        let htmlFile = readFileSync("./src/Webview/pileDisplay.html", "utf-8");
-        console.log(webview.asWebviewUri(vscode.Uri.file(path.join(context.extensionPath, 'src/Webview', 'style.css'))));
-        return htmlFile;
+    /**
+     * @description Returns the html file
+     * @returns the html file
+     * @author Sébastien HERT
+     * @author Simon JOURDAN
+     */
+    private getWebviewContent() {
+        return readFileSync("./src/Webview/pileDisplay.html", "utf-8");
     }
+
+    //--------------------------------------------------------------------------------//
+
+
 }
+//================================================================================//
