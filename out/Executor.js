@@ -38,19 +38,20 @@ class Executor {
         this.end = false;
         this.maxRec = 100;
         this.traRec = {};
+        this.delay = 200;
+        this.onPause = false;
         this.output = output;
         this.instructions = instructions;
         this.panel = panel;
-        this.run(delay);
+        this.delay = delay;
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
     /**
        * @description Runs all the file line by line
-       * @param number The delay in ms
        * @author Sébastien HERT
        */
-    run(delay) {
+    run() {
         return __awaiter(this, void 0, void 0, function* () {
             // while not "FinProg" or error
             while (!this.end) {
@@ -63,7 +64,7 @@ class Executor {
                     this.stop();
                 }
                 // Then wait for the delay which is in ms
-                yield this.sleep(delay);
+                yield this.sleep(this.delay);
             }
         });
     }
@@ -96,6 +97,8 @@ class Executor {
      * @author Sébastien HERT
      */
     stop() { this.end = true; }
+    resume() { this.end = false; this.run(); this.onPause = false; }
+    pause() { this.end = true; this.onPause = true; }
     /**
      * @description adds a couple in the pile
      * @param number the value to add

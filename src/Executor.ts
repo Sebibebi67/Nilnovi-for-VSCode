@@ -38,6 +38,9 @@ export class Executor {
 
 	private maxRec = 100;
 	private traRec : { [id: number]: {nbRec:number} } = {};
+	private delay = 200;
+
+	public onPause = false;
 
 	//--------------------------------------------------------------------------------//
 
@@ -47,8 +50,7 @@ export class Executor {
 		this.output = output;
 		this.instructions = instructions;
 		this.panel = panel;
-
-		this.run(delay);
+		this.delay = delay;
 	}
 
 	//--------------------------------------------------------------------------------//
@@ -59,10 +61,9 @@ export class Executor {
 
 	/**
 	   * @description Runs all the file line by line
-	   * @param number The delay in ms
 	   * @author Sébastien HERT
 	   */
-	private async run(delay: number) {
+	public async run() {
 
 		// while not "FinProg" or error
 		while (!this.end) {
@@ -79,7 +80,7 @@ export class Executor {
 
 
 			// Then wait for the delay which is in ms
-			await this.sleep(delay);
+			await this.sleep(this.delay);
 		}
 	}
 
@@ -111,7 +112,11 @@ export class Executor {
 	 * @description stops the process
 	 * @author Sébastien HERT
 	 */
-	private stop() { this.end = true; }
+	public stop() { this.end = true; }
+
+	public resume() { this.end = false; this.run(); this.onPause = false;}
+
+	public pause(){ this.end = true; this.onPause = true;}
 
 	/**
 	 * @description adds a couple in the pile

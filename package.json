@@ -15,6 +15,7 @@
 		"onLanguage:nilnovi",
 		"onCommand:nilnovi-for-vscode.run",
 		"onCommand:nilnovi-for-vscode.showPile",
+		"onCommand:nilnovi-for-vscode.stop",
 		"*"
 	],
 	"main": "./out/extension.js",
@@ -27,6 +28,16 @@
 						"type": "boolean",
 						"default": true,
 						"description": "show run icon"
+					},
+					"Stop": {
+						"type": "boolean",
+						"default": true,
+						"description": "show stop icon"
+					},
+					"Pause": {
+						"type": "boolean",
+						"default": true,
+						"description": "show pause icon"
 					}
 				}
 			}
@@ -40,6 +51,16 @@
 			{
 				"command": "nilnovi-for-vscode.showPile",
 				"title": "Pile Display"
+			},
+			{
+				"command": "nilnovi-for-vscode.stop",
+				"title": "Stop execution",
+				"icon": "src/icon/stop.svg"
+			},
+			{
+				"command": "nilnovi-for-vscode.resume",
+				"title": "Resume execution",
+				"icon": "src/icon/stop.svg"
 			}
 		],
 		"menus": {
@@ -48,6 +69,16 @@
 					"when": "config.Run",
 					"command": "nilnovi-for-vscode.run",
 					"group": "navigation@1"
+				},
+				{
+					"when": "config.Pause",
+					"command": "nilnovi-for-vscode.resume",
+					"group": "navigation@2"
+				},
+				{
+					"when": "config.Stop",
+					"command": "nilnovi-for-vscode.stop",
+					"group": "navigation@3"
 				}
 			]
 		},

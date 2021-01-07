@@ -38,6 +38,9 @@ import { Compiler } from "./compiler/Compiler";
 //------------------------------- Global Variables -------------------------------//
 
 let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
+let executor : Executor;
+let onRun = false;
+let onPause = false;
 
 //--------------------------------------------------------------------------------//
 
@@ -53,7 +56,9 @@ let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
 export function activate(context: vscode.ExtensionContext) {
 
 	// if the run command has been activate
-	let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => { runNilnovi(context); });
+	let run = vscode.commands.registerCommand("nilnovi-for-vscode.run", () => { if (!onRun) {runNilnovi(context);} });
+	let halt = vscode.commands.registerCommand("nilnovi-for-vscode.stop", () => { stop(); });
+	let pause = vscode.commands.registerCommand("nilnovi-for-vscode.resume", () => { resume(); });
 
 	// creation of the diagnostic collection
 	var diag_list: vscode.DiagnosticCollection[] = [];
@@ -150,7 +155,12 @@ function runNilnovi(context: vscode.ExtensionContext) {
 					});
 
 					// And execute those instructions
-					let executor = new Executor(compiler.instructions, outputChannel, panel);
+					
+					executor = new Executor(compiler.instructions, outputChannel, panel);
+					onRun = true;
+					executor.run().then(() => {
+						if (executor.onPause == false){console.log("end");onRun = false}
+					});
 				}
 			}
 		}
@@ -161,6 +171,25 @@ function runNilnovi(context: vscode.ExtensionContext) {
 
 	// else there is no current file
 	else { vscode.window.showErrorMessage("No current file"); }
+}
+
+function stop(){
+	if (onRun){
+		executor.stop();
+		onRun = false
+	}
+}
+
+function resume(){
+	if (onRun && !onPause) {
+		executor.pause();
+		onPause = true;
+	}
+
+	else if (onRun && onPause){
+		executor.resume();
+		onPause = false;
+	}
 }
 
 export function deactivate() { }
