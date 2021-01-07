@@ -45,6 +45,7 @@ class Compiler {
         this.currentExpressionList = [];
         this.ifTraList = [];
         this.currentLineNb = 0;
+        this.returnRead = false;
         CompilationError_2.setError(false);
         this.outputChannel = output;
         this.outputChannel.clear();
@@ -57,7 +58,6 @@ class Compiler {
         // First we need to prepare the array which will contain our NilNovi Program
         file = tools.removeComments(tools.indexingFile(file));
         this.nilnoviProgram = tools.removeEmptyLines(file.split(/\r?\n/));
-        // console.log(this.nilnoviProgram.length);
         // if the file is empty 
         if (this.nilnoviProgram.length == 0) {
             CompilationError_2.setError(true);
@@ -257,6 +257,7 @@ class Compiler {
      * @author Adam RIVIÈRE
      */
     createFunction(words) {
+        this.returnRead = false;
         // we update the global variables with the new function
         const name = words[1];
         const returnType = words[words.length - 2];
@@ -282,6 +283,10 @@ class Compiler {
         // and we create the function ending instruction and we update the current method's name
         this.instructions.push(new Instruction_1.Instruction("retourFonct();"));
         this.currentMethodName = "pp";
+        if (this.returnRead == false) {
+            this.displayError(new CompilationError_1.CompilationError(511, "function should have at least one 'return'", this.currentLineNb));
+            return 1;
+        }
         return 0;
     }
     /**
@@ -666,6 +671,11 @@ class Compiler {
      * @author Adam RIVIÈRE
      */
     generateReturn(words) {
+        // Checking if it's a procedure
+        if (this.methodList.get(this.currentMethodName).type == "none") {
+            this.displayError(new CompilationError_1.CompilationError(510, "'return' cannot be used in a procedure", this.currentLineNb));
+            return 1;
+        }
         // we keep only the return value
         words = tools.removeFromWords(words, 1, 1);
         // then we analyse it
@@ -680,6 +690,7 @@ class Compiler {
         }
         // finally we generate the corresponding instructions
         returnValue = this.generateInstructions(this.currentExpressionList, false);
+        this.returnRead = true;
         return returnValue;
     }
     //--------------------------------------------------------------------------------//

@@ -15,6 +15,8 @@ Here are all the compilation errors catch in our compiler.
 * **507** : too much parameters given for the method
 * **508** : ```get``` method requires one unique parameter, which is a variable
 * **509** : the parameter should be a variable and not an integer or a boolean
+* **510** : ```return``` in a procedure
+* **511** : function should have at least one ```return```
 
 ## **Authors**
 
