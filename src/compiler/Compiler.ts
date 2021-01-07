@@ -598,6 +598,18 @@ export class Compiler {
 		// we only keep the value to display
 		words = tools.removeFromWords(words, 2, 2);
 
+		// "put" need an unique parameter...
+		if (words.length == 0){
+			this.displayError(new CompilationError(512, "The method 'put' needs a unique parameter", this.currentLineNb));
+			return 1;
+		}
+
+		// ... which cannot be a procedure
+		if (this.methodList.get(words[0]) !== undefined && this.methodList.get(words[0]).type == "none"){
+			this.displayError(new CompilationError(512, "The method 'put' cannot call a procedure", this.currentLineNb));
+			return 1;
+		}
+
 		// we analyze it
 		let returnValue = this.analyzer(this.concatWords(words));
 		if (returnValue != 0) { return returnValue; }

@@ -17,6 +17,7 @@ Here are all the compilation errors catch in our compiler.
 * **509** : the parameter should be a variable and not an integer or a boolean
 * **510** : ```return``` in a procedure
 * **511** : function should have at least one ```return```
+* **512** : procedure ```put```should have an unique parameter, which cannot be a procedure
 
 ## **Authors**
 

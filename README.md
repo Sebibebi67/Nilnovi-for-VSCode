@@ -22,13 +22,20 @@ All you need is VScode 1.49.0 or upper.
 
 ## **Known Issues**
 
-- procedures (which don't return a value) can be placed as parameter, which should raise and error
+ø
 
 ## **Release Notes**
 
 ### **1.0.0**
 
 Initial release
+
+### **1.0.1**
+
+ - Corrected issues :
+	- Procedures (which don't return a value) cannot be placed as parameter anymore.
+	- "put" method now requires one unique parameter.
+	- Cannot run an empty file anymore.
 
 
 ## **Authors**
