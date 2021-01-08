@@ -1,5 +1,14 @@
 "use strict";
 //================================= extension.ts =================================//
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 //--------------------------------- Description ----------------------------------//
@@ -31,6 +40,8 @@ let outputChannel = vscode.window.createOutputChannel("Nilnovi - Output");
 let executor;
 let onRun = false;
 let onPause = false;
+let delay = 200;
+let maxRec = 100;
 //--------------------------------------------------------------------------------//
 //----------------------------------- Activate -----------------------------------//
 /**
@@ -46,6 +57,19 @@ function activate(context) {
     } });
     let halt = vscode.commands.registerCommand("nilnovi-for-vscode.stop", () => { stop(); });
     let pause = vscode.commands.registerCommand("nilnovi-for-vscode.resume", () => { resume(); });
+    let forward = vscode.commands.registerCommand("nilnovi-for-vscode.next", () => { next(context); });
+    let backward = vscode.commands.registerCommand("nilnovi-for-vscode.previous", () => { {
+        previous();
+    } });
+    let delay = vscode.commands.registerCommand("nilnovi-for-vscode.setDelay", () => { if (!onRun) {
+        setDelay();
+    } });
+    let nbRec = vscode.commands.registerCommand("nilnovi-for-vscode.setRec", () => { if (!onRun) {
+        setRec();
+    } });
+    let reboot = vscode.commands.registerCommand("nilnovi-for-vscode.reset", () => { {
+        reset(context);
+    } });
     // creation of the diagnostic collection
     var diag_list = [];
     // we keep the active text editor
@@ -118,11 +142,10 @@ function runNilnovi(context) {
                         list: compiler.instructions
                     });
                     // And execute those instructions
-                    executor = new Executor_1.Executor(compiler.instructions, outputChannel, panel);
+                    executor = new Executor_1.Executor(compiler.instructions, outputChannel, panel, delay, maxRec);
                     onRun = true;
                     executor.run().then(() => {
                         if (executor.onPause == false) {
-                            console.log("end");
                             onRun = false;
                         }
                     });
@@ -154,6 +177,94 @@ function resume() {
         executor.resume();
         onPause = false;
     }
+}
+function next(context) {
+    if (!onRun) {
+        // checks if there is an activeTextEditor
+        if (vscode.window.activeTextEditor) {
+            // Then, the file should have the ".nn" extension to be runnable
+            var fileNamePath = vscode.window.activeTextEditor.document.uri.fsPath;
+            if (fileNamePath.endsWith(".nn")) {
+                // If providers have already raised an error
+                if (syntaxError.isError) {
+                    vscode.window.showErrorMessage("An error occurred before compilation. Please correct the syntax before trying again");
+                }
+                // Else we can compile the program
+                else {
+                    vscode.window.showInformationMessage("Compilation in progress");
+                    var compiler = new Compiler_1.Compiler(fs_1.readFileSync(fileNamePath, "utf-8"), outputChannel);
+                    // if an error occurred
+                    if (compilationError.isError) {
+                        vscode.window.showErrorMessage("Execution aborted : An error occurred during compilation.");
+                    }
+                    // if not
+                    else {
+                        // Let's write the instructions in a new file (or override if it already exists) with the same name, and the ".machine_code" extension
+                        let outputFile = vscode.window.activeTextEditor.document.uri.fsPath.replace(".nn", ".machine_code");
+                        fs_1.writeFileSync(outputFile, compiler.displayInstructions());
+                        // Now we could display the pile
+                        let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
+                        panel.webview.postMessage({
+                            command: "showInstructionList",
+                            list: compiler.instructions
+                        });
+                        // And execute those instructions
+                        executor = new Executor_1.Executor(compiler.instructions, outputChannel, panel, delay, maxRec);
+                        onRun = true;
+                        onPause = true;
+                        executor.onPause = true;
+                    }
+                }
+            }
+        }
+    }
+    if (onPause) {
+        executor.next();
+    }
+}
+function previous() { executor.previous(); }
+function setDelay() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let res = yield vscode.window.showInputBox({
+            placeHolder: String(delay),
+            prompt: "Set the delay between instructions in ms (200 by default)",
+        });
+        if (res !== undefined) {
+            let tmpDelay = parseInt(res);
+            if (!isNaN(tmpDelay)) {
+                delay = tmpDelay;
+            }
+        }
+    });
+}
+function setRec() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let res = yield vscode.window.showInputBox({
+            placeHolder: String(maxRec),
+            prompt: "Set the maximum recursions (100 by default)",
+        });
+        if (res !== undefined) {
+            let tmpMaxRec = parseInt(res);
+            if (!isNaN(tmpMaxRec)) {
+                maxRec = tmpMaxRec;
+            }
+        }
+    });
+}
+function reset(context) {
+    stop();
+    outputChannel.clear();
+    let panel = PileWebViewPanel_1.PileWebViewPanel.get(context);
+    panel.webview.postMessage({
+        command: "showInstructionList",
+        list: []
+    });
+    panel.webview.postMessage({
+        command: "showPile",
+        pile: [],
+        pointer: 0,
+        instructionLine: 0
+    });
 }
 function deactivate() { }
 exports.deactivate = deactivate;

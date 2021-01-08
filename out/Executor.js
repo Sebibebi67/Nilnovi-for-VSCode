@@ -11,26 +11,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Executor = void 0;
-//--------------------------------- Description ----------------------------------//
-//
-// This class describes how the nilnovi executor should work
-//
-//--------------------------------------------------------------------------------//
-//----------------------------------- Authors ------------------------------------//
-//
-// Sébastien HERT
-// Simon JOURDAN
-// Adam RIVIERE
-//
-//--------------------------------------------------------------------------------//
-//----------------------------------- Imports ------------------------------------//
 const vscode = require("vscode");
+const Loader_1 = require("./Loader");
 //--------------------------------------------------------------------------------//
 class Executor {
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
-    constructor(instructions, output, panel, delay = 200) {
+    constructor(instructions, output, panel, delay = 200, maxRec = 100) {
         //------------------------------- Class Variables --------------------------------//
+        // public previousLineCpt
         this.currentLineCpt = 0;
         this.cptPile = 0;
         this.pile = [];
@@ -40,10 +29,12 @@ class Executor {
         this.traRec = {};
         this.delay = 200;
         this.onPause = false;
+        this.loader = [];
         this.output = output;
         this.instructions = instructions;
         this.panel = panel;
         this.delay = delay;
+        this.maxRec = maxRec;
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Public Methods --------------------------------//
@@ -54,15 +45,22 @@ class Executor {
     run() {
         return __awaiter(this, void 0, void 0, function* () {
             // while not "FinProg" or error
-            while (!this.end) {
-                //We now need to update the web View
-                this.updateWebView();
+            while (!this.end && !this.onPause) {
+                // We need a copy of the pile
+                let copyPile = [];
+                this.pile.forEach(element => {
+                    copyPile.push(element);
+                });
+                // Storing the values
+                this.loader.push(new Loader_1.Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
                 // Evaluating current line
                 let returnValue = yield this.eval(this.instructions[this.currentLineCpt]);
                 // An error occurs
                 if (returnValue != 0) {
                     this.stop();
                 }
+                //We now need to update the web View
+                this.updateWebView();
                 // Then wait for the delay which is in ms
                 yield this.sleep(this.delay);
             }
@@ -97,8 +95,54 @@ class Executor {
      * @author Sébastien HERT
      */
     stop() { this.end = true; }
-    resume() { this.end = false; this.run(); this.onPause = false; }
-    pause() { this.end = true; this.onPause = true; }
+    /**
+     * @description resumes the process
+     * @author Sébastien HERT
+     */
+    resume() { this.onPause = false; this.run(); }
+    /**
+     * @description pauses the process
+     * @author Sébastien HERT
+     */
+    pause() { this.onPause = true; }
+    /**
+     * @description execute the next line
+     * @author Sébastien HERT
+     * @author Adam RIVIERE
+     */
+    next() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // if the program is paused and not ended
+            if (this.onPause && !this.end) {
+                // We need a copy of the pile
+                let copyPile = [];
+                this.pile.forEach(element => {
+                    copyPile.push(element);
+                });
+                this.loader.push(new Loader_1.Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
+                // Evaluating current line
+                let returnValue = yield this.eval(this.instructions[this.currentLineCpt]);
+                // An error occurs
+                if (returnValue != 0) {
+                    this.stop();
+                }
+                //We now need to update the web View
+                this.updateWebView();
+            }
+        });
+    }
+    previous() {
+        let loadingConfig = this.loader.pop();
+        if (loadingConfig === undefined) {
+            return 0;
+        }
+        this.currentLineCpt = loadingConfig.currentLineCpt;
+        this.cptPile = loadingConfig.cptPile;
+        this.base = loadingConfig.base;
+        this.pile = loadingConfig.pile;
+        //We now need to update the web View
+        this.updateWebView();
+    }
     /**
      * @description adds a couple in the pile
      * @param number the value to add
@@ -116,7 +160,7 @@ class Executor {
             command: "showPile",
             pile: this.pile,
             pointer: this.cptPile,
-            instructionLine: this.currentLineCpt + 1
+            instructionLine: this.loader[this.loader.length - 1].currentLineCpt + 1
         });
     }
     /**

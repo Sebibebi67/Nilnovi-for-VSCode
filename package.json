@@ -38,6 +38,31 @@
 						"type": "boolean",
 						"default": true,
 						"description": "show pause icon"
+					},
+					"Next": {
+						"type": "boolean",
+						"default": true,
+						"description": "show next icon"
+					},
+					"Previous": {
+						"type": "boolean",
+						"default": true,
+						"description": "show previous icon"
+					},
+					"SetDelay": {
+						"type": "boolean",
+						"default": true,
+						"description": "show delay icon"
+					},
+					"Reset": {
+						"type": "boolean",
+						"default": true,
+						"description": "show reset icon"
+					},
+					"SetRec": {
+						"type": "boolean",
+						"default": true,
+						"description": "show nbRec icon"
 					}
 				}
 			}
@@ -46,7 +71,7 @@
 			{
 				"command": "nilnovi-for-vscode.run",
 				"title": "Run Nilnovi",
-				"icon": "src/icons/triangle-right.svg"
+				"icon": "src/icons/PlayButton.gif"
 			},
 			{
 				"command": "nilnovi-for-vscode.showPile",
@@ -55,12 +80,37 @@
 			{
 				"command": "nilnovi-for-vscode.stop",
 				"title": "Stop execution",
-				"icon": "src/icon/stop.svg"
+				"icon": "src/icons/StopButton.gif"
 			},
 			{
 				"command": "nilnovi-for-vscode.resume",
-				"title": "Resume execution",
-				"icon": "src/icon/stop.svg"
+				"title": "Play/Pause",
+				"icon": "src/icons/PlayPauseButton.gif"
+			},
+			{
+				"command": "nilnovi-for-vscode.next",
+				"title": "Next step",
+				"icon": "src/icons/ForwardButton.gif"
+			},
+			{
+				"command": "nilnovi-for-vscode.previous",
+				"title": "Previous step",
+				"icon": "src/icons/BackwardButton.gif"
+			},
+			{
+				"command": "nilnovi-for-vscode.setDelay",
+				"title": "Set delay",
+				"icon": "src/icons/delay.png"
+			},
+			{
+				"command": "nilnovi-for-vscode.setRec",
+				"title": "Set Rec number",
+				"icon": "src/icons/MaxRecButton.gif"
+			},
+			{
+				"command": "nilnovi-for-vscode.reset",
+				"title": "Reset program",
+				"icon": "src/icons/ResetButton.gif"
 			}
 		],
 		"menus": {
@@ -76,9 +126,34 @@
 					"group": "navigation@2"
 				},
 				{
+					"when": "config.Previous",
+					"command": "nilnovi-for-vscode.previous",
+					"group": "navigation@3"
+				},
+				{
+					"when": "config.Next",
+					"command": "nilnovi-for-vscode.next",
+					"group": "navigation@4"
+				},
+				{
+					"when": "config.Reset",
+					"command": "nilnovi-for-vscode.reset",
+					"group": "navigation@5"
+				},
+				{
 					"when": "config.Stop",
 					"command": "nilnovi-for-vscode.stop",
-					"group": "navigation@3"
+					"group": "navigation@6"
+				},
+				{
+					"when": "config.SetDelay",
+					"command": "nilnovi-for-vscode.setDelay",
+					"group": "navigation@7"
+				},
+				{
+					"when": "config.SetRec",
+					"command": "nilnovi-for-vscode.setRec",
+					"group": "navigation@8"
 				}
 			]
 		},

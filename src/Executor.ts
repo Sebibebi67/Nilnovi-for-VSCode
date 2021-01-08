@@ -16,20 +16,22 @@
 
 //----------------------------------- Imports ------------------------------------//
 
+import { PRIORITY_HIGHEST } from "constants";
 import * as vscode from "vscode";
 import { Instruction } from "./compiler/Instruction";
+import { Loader } from "./Loader";
 
 //--------------------------------------------------------------------------------//
 
 export class Executor {
 	//------------------------------- Class Variables --------------------------------//
 
+	// public previousLineCpt
 	public currentLineCpt = 0;
 	public cptPile = 0;
 	public pile: { value: number, type: string }[] = [];
 	public base = -1;
 	public output: vscode.OutputChannel;
-
 
 	public instructions: Instruction[]
 
@@ -42,22 +44,23 @@ export class Executor {
 
 	public onPause = false;
 
+	private loader : Loader[]= [];
+
 	//--------------------------------------------------------------------------------//
 
 	//--------------------------------- Constructor ----------------------------------//
 
-	constructor(instructions: Instruction[], output: vscode.OutputChannel, panel: vscode.WebviewPanel, delay: number = 200) {
+	constructor(instructions: Instruction[], output: vscode.OutputChannel, panel: vscode.WebviewPanel, delay: number = 200, maxRec:number = 100) {
 		this.output = output;
 		this.instructions = instructions;
 		this.panel = panel;
 		this.delay = delay;
+		this.maxRec = maxRec;
 	}
 
 	//--------------------------------------------------------------------------------//
 
 	//-------------------------------- Public Methods --------------------------------//
-
-
 
 	/**
 	   * @description Runs all the file line by line
@@ -66,18 +69,25 @@ export class Executor {
 	public async run() {
 
 		// while not "FinProg" or error
-		while (!this.end) {
+		while (!this.end && !this.onPause) {
 
-			//We now need to update the web View
-			this.updateWebView();
+			// We need a copy of the pile
+			let copyPile: { value: number, type: string }[] = [];
+			this.pile.forEach(element => {
+				copyPile.push(element);
+			});
+
+			// Storing the values
+			this.loader.push(new Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
 
 			// Evaluating current line
 			let returnValue = await this.eval(this.instructions[this.currentLineCpt]);
 
-
 			// An error occurs
 			if (returnValue != 0) { this.stop(); }
 
+			//We now need to update the web View
+			this.updateWebView();
 
 			// Then wait for the delay which is in ms
 			await this.sleep(this.delay);
@@ -114,10 +124,64 @@ export class Executor {
 	 */
 	public stop() { this.end = true; }
 
-	public resume() { this.end = false; this.run(); this.onPause = false;}
+	/**
+	 * @description resumes the process
+	 * @author Sébastien HERT
+	 */
+	public resume() { this.onPause = false; this.run(); }
 
-	public pause(){ this.end = true; this.onPause = true;}
+	/**
+	 * @description pauses the process
+	 * @author Sébastien HERT
+	 */
+	public pause(){ this.onPause = true; }
 
+	/**
+	 * @description execute the next line
+	 * @author Sébastien HERT
+	 * @author Adam RIVIERE
+	 */
+	public async next(){
+
+		// if the program is paused and not ended
+		if (this.onPause && !this.end){
+
+			// We need a copy of the pile
+			let copyPile: { value: number, type: string }[] = [];
+			this.pile.forEach(element => {
+				copyPile.push(element);
+			});
+
+			this.loader.push(new Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
+	
+			// Evaluating current line
+			let returnValue = await this.eval(this.instructions[this.currentLineCpt]);
+	
+			// An error occurs
+			if (returnValue != 0) { this.stop(); }
+
+			//We now need to update the web View
+			this.updateWebView();
+	
+		}
+	}
+
+
+	public previous(){
+		let loadingConfig = this.loader.pop();
+		if (loadingConfig === undefined){return 0;}
+
+		this.currentLineCpt = loadingConfig.currentLineCpt;
+		this.cptPile = loadingConfig.cptPile;
+		this.base = loadingConfig.base;
+		this.pile = loadingConfig.pile;
+		
+		//We now need to update the web View
+		this.updateWebView();
+
+		
+	}
+	
 	/**
 	 * @description adds a couple in the pile
 	 * @param number the value to add
@@ -136,7 +200,7 @@ export class Executor {
 			command: "showPile",
 			pile: this.pile,
 			pointer: this.cptPile,
-			instructionLine: this.currentLineCpt + 1
+			instructionLine: this.loader[this.loader.length -1].currentLineCpt +1
 		});
 	}
 
