@@ -1,0 +1,8 @@
+procedure test() is
+    function f(a : in integer) return integer is
+    begin
+        return true; # type de retour non vérifié
+    end
+begin
+    put(f(1));
+end

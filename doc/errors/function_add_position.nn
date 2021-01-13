@@ -1,0 +1,10 @@
+procedure test() is
+    function f(a : in integer) return integer is
+    begin
+        return 1;
+    end
+    a : integer;
+begin
+    a := 0 + f(1); # f(1) + 0 fonctionne, mais pas dans l'ordre inverse
+    put(a);
+end

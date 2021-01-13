@@ -1,0 +1,9 @@
+procedure test() is
+    procedure f(a : in integer) is
+        b : integer;
+    begin
+        b := 1; # erreur magique, exécute le programme en boucle
+    end
+begin
+    f(1);
+end

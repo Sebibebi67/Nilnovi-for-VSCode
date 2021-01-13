@@ -1,0 +1,10 @@
+procedure test() is
+    function f(a : in integer) return boolean is
+    begin
+        return true;
+    end
+    f : integer;
+begin
+    f := 1;
+    put(f(f)); # put(f) reconnaît la variable, f(f) non
+end
