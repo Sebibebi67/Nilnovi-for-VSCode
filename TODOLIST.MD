@@ -13,6 +13,8 @@ format Document ?
  - resume
  - breakpoint ?
 
-TODAY :
+ERRORS to fix :
 
-Highlight
+method without params -> error
+method's return type error (return; = return 0;)
+loop infinite ??? -> see mystic file
