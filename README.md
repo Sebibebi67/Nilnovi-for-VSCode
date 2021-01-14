@@ -12,6 +12,8 @@ This extension provides :
 
 ## **Quick start**
 
+TODO
+
 * First, open a file with the ```.nn``` extension to activate all the features of this extension
 * Then, write your program with all those wonderful tools
 * With that done, you can run your program by tapping ```F1``` (by default) to open the VSCode commands list and use ```run Nilnovi```
@@ -27,9 +29,15 @@ All you need is VScode 1.49.0 or upper.
 
 ## **Release Notes**
 
-### **1.0.0**
 
-Initial release
+
+### **2.0.0**
+
+- Corrected issues :
+  - Return type is now verified in functions and should match declaration.
+  - Indexing lines should now work with comments.
+  - Variable and Procedures declarations with the same name is no longer a problem.
+
 
 ### **1.0.1**
 
@@ -37,6 +45,11 @@ Initial release
 	- Procedures (which don't return a value) cannot be placed as parameter anymore.
 	- "put" method now requires one unique parameter.
 	- Cannot run an empty file anymore.
+
+### **1.0.0**
+
+Initial release
+
 
 
 ## **Authors**

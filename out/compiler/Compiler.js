@@ -234,7 +234,7 @@ class Compiler {
         // then we pass to the next line
         this.nbLine++;
         // while the procedure is not terminated
-        while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
+        while (!new RegExp(/^\$[0-9]+\$\s*end/).test(this.nilnoviProgram[this.nbLine].trim())) {
             // we evaluate each line and checks the eventual errors
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
             if (returnValue != 0) {
@@ -271,7 +271,7 @@ class Compiler {
         // then we pass to the next line
         this.nbLine++;
         // while the function is not terminated
-        while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
+        while (!new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine].trim())) {
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
             if (returnValue != 0) {
                 return 1;
@@ -321,7 +321,7 @@ class Compiler {
         let tzeLine = this.instructions.length - 1;
         // we keep the current blockScope
         let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -382,7 +382,7 @@ class Compiler {
         let tzeLine = this.instructions.length - 1;
         // we keep the current blockScope
         let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -438,7 +438,7 @@ class Compiler {
         // We also need to store the current Block scope before the recursive calls 
         let blockScopeBeforeWhile = this.blockScope;
         // While it's not the end of the current "if"/"elif"
-        while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -462,7 +462,7 @@ class Compiler {
     generateElse() {
         // we keep the current blockScope
         let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -694,7 +694,7 @@ class Compiler {
             return returnValue;
         }
         // we check if there's any type error
-        returnValue = this.syntaxAnalyzer(this.currentExpressionList);
+        returnValue = this.syntaxAnalyzer(this.currentExpressionList, this.methodList.get(this.currentMethodName).type);
         if (returnValue != 0) {
             return returnValue;
         }
@@ -1260,9 +1260,12 @@ class Compiler {
                 }
             }
             // else if it's a method
-            else if (this.isMethod(word)) {
+            else if (this.isMethod(word) && words[i + 1] == "(") {
                 inMethod = true;
                 method += word;
+            }
+            else if (this.isVar(this.fullVariableName(word)) && !inMethod) {
+                line.push(word);
             }
             // else we are in a method
             else {

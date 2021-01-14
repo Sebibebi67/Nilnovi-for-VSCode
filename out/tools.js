@@ -28,13 +28,13 @@ const SyntaxError_1 = require("./syntax/SyntaxError");
 function splittingLine(line) {
     // $ is used to indicate the line number
     var splitLine = line.trim().split("$");
-    // if there is more than one "$"
-    if (splitLine.length > 2) {
+    // if there is more than two "$"
+    if (splitLine.length > 3) {
         // the line number is at this end of the line
-        var nbLine = parseInt(splitLine[splitLine.length - 1]);
+        var nbLine = parseInt(splitLine[1]);
         // and we need to merge each part of the split line (except the last one) in order to look for more errors
         var currentLine = "";
-        for (let i = 0; i < splitLine.length - 2; i++) {
+        for (let i = 2; i < splitLine.length; i++) {
             currentLine += splitLine[i].trim();
         }
         // And don't forget to raise an error
@@ -43,7 +43,7 @@ function splittingLine(line) {
     // else everything is right
     else {
         var nbLine = parseInt(splitLine[1]);
-        var currentLine = splitLine[0].trim();
+        var currentLine = splitLine[2].trim();
     }
     return { content: currentLine.trim(), index: nbLine };
 }
@@ -63,7 +63,7 @@ function indexingFile(file) {
     // Then for each line, we recreate a single-line string with the current line and le line number
     for (let index = 0; index < parsedFile.length; index++) {
         var line = parsedFile[index];
-        indexedFile = indexedFile + line + "$" + i + "\n";
+        indexedFile = indexedFile + "$" + i + "$" + line + "\n";
         i++;
     }
     return indexedFile;
@@ -90,7 +90,7 @@ function removeEmptyLines(lines) {
     // we need to remove all the lines which are empty or only containing its number
     lines = lines.filter(function emptyLine(line) {
         line = line.trim();
-        return !(new RegExp(/^\$[0-9]+$/).test(line)) && line.length != 0;
+        return !(new RegExp(/^\$[0-9]+\$$/).test(line)) && line.length != 0;
     });
     return lines;
 }

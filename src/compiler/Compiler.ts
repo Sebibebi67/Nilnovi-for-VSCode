@@ -27,6 +27,7 @@ import { Instruction } from "./Instruction";
 import { CompilationError } from "./CompilationError";
 import * as vscode from "vscode";
 import { setError } from "./CompilationError";
+import { features } from "process";
 
 //--------------------------------------------------------------------------------//
 
@@ -219,7 +220,7 @@ export class Compiler {
 		else if (words[0] == "begin") { return 0; }
 
 		// if "end" is read
-		else if (words[0] == "end") { return this.generateEnd(words) }
+		else if (words[0] == "end") { return this.generateEnd(words); }
 
 		// if "return" is read
 		else if (words[0] == "return") { return this.generateReturn(words) }
@@ -279,7 +280,7 @@ export class Compiler {
 		this.nbLine++;
 
 		// while the procedure is not terminated
-		while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
+		while (!new RegExp(/^\$[0-9]+\$\s*end/).test(this.nilnoviProgram[this.nbLine].trim())) {
 
 			// we evaluate each line and checks the eventual errors
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -324,7 +325,8 @@ export class Compiler {
 		this.nbLine++;
 
 		// while the function is not terminated
-		while (!new RegExp(/^end/).test(this.nilnoviProgram[this.nbLine].trim())) {
+		
+		while (!new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine].trim())) {
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
 			if (returnValue != 0) { return 1; }
 			this.nbLine++;
@@ -379,7 +381,7 @@ export class Compiler {
 
 		// we keep the current blockScope
 		let blockScopeBeforeWhile = this.blockScope;
-		while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+		while (!(new RegExp(/^\$[0-9]+\$\s*end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
 			// recursive calling
 			this.nbLine++;
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -448,7 +450,7 @@ export class Compiler {
 
 		// we keep the current blockScope
 		let blockScopeBeforeWhile = this.blockScope;
-		while (!(new RegExp(/^end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+		while (!(new RegExp(/^\$[0-9]+\$\s*end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
 			// recursive calling
 			this.nbLine++;
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -506,7 +508,7 @@ export class Compiler {
 		let blockScopeBeforeWhile = this.blockScope;
 
 		// While it's not the end of the current "if"/"elif"
-		while (!(new RegExp(/^(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+		while (!(new RegExp(/^\$[0-9]+\$\s*(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
 			// recursive calling
 			this.nbLine++;
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -533,7 +535,7 @@ export class Compiler {
 
 		// we keep the current blockScope
 		let blockScopeBeforeWhile = this.blockScope;
-		while (!(new RegExp(/^(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
+		while (!(new RegExp(/^\$[0-9]+\$\s*(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
 			// recursive calling
 			this.nbLine++;
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -736,6 +738,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private generateEnd(words: string[]) {
+
 		// for each "tra(x)" created before
 		for (const i in this.ifTraList) {
 			let [tra, blockScope] = this.ifTraList[i]
@@ -768,7 +771,6 @@ export class Compiler {
 			}
 		}
 		this.blockScope--;
-
 		return 0;
 	}
 
@@ -795,7 +797,7 @@ export class Compiler {
 		if (returnValue != 0) { return returnValue; }
 
 		// we check if there's any type error
-		returnValue = this.syntaxAnalyzer(this.currentExpressionList);
+		returnValue = this.syntaxAnalyzer(this.currentExpressionList, this.methodList.get(this.currentMethodName).type);
 
 		if (returnValue != 0) { return returnValue; }
 
@@ -1150,6 +1152,7 @@ export class Compiler {
 
 		// else we keep the list of parameters for the method
 		let methodName = words[0];
+
 		words = tools.removeFromWords(words, 2, 1);
 		words = this.concatWords(words);
 
@@ -1399,9 +1402,13 @@ export class Compiler {
 			}
 
 			// else if it's a method
-			else if (this.isMethod(word)) {
+			else if (this.isMethod(word) && words[i+1] == "(") {
 				inMethod = true;
 				method += word;
+			}
+
+			else if (this.isVar(this.fullVariableName(word)) && !inMethod){
+				line.push(word);
 			}
 
 			// else we are in a method
