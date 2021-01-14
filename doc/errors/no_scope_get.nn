@@ -1,0 +1,11 @@
+procedure test() is
+    procedure p(a : in integer) is
+    begin
+        get(a); # get ignore la portée "in" du paramètre, "a" est modifié dans le corps du programme
+    end
+    a : integer;
+begin
+    a := 0;
+    p(a);
+    put(a);
+end

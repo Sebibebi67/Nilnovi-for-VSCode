@@ -1,0 +1,5 @@
+procedure test() is
+begin
+    put(0-1); # empilé dans le mauvais sens
+    put(0/1);
+end
