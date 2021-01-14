@@ -29,3 +29,5 @@ ERRORS FIXED:
  - same name game
  - no scope for get
  - no parameter method
+ - assym op
+ - boolean functions in While/if

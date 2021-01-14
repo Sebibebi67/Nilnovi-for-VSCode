@@ -258,6 +258,8 @@ function resetTables() {
  * @author Adam RIVIÈRE
  */
 function expressionIsBoolean(expression: string, nbLine: number) {
+    while ( expression.charAt( 0 ) == '(' && expression.charAt( expression.length -1) == ')'){expression = expression.slice(1, -1);}
+
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
     if (regexContainsBooleanInstructions.test(expression)) { return true }
     if (variableExists(expression)){
@@ -265,8 +267,10 @@ function expressionIsBoolean(expression: string, nbLine: number) {
         if (variablesTable[currentMethod +"."+ expression].type == "boolean"){ return true }
         return false;
     }
-    const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*)\(.*\);$/);
-    if (regexIsFunction.test(expression)) {
+    
+    
+    const regexIsFunction = new RegExp(/^\(*([a-zA-Z][a-zA-Z0-9_]*)\(.*\)\)*$/);
+    if (regexIsFunction.test(expression.trim())) {
         const methodName = expression.split("(")[0].trim();
         const methodDef = methodsTable[methodName];
         if (!methodExists(methodName)) {
@@ -557,6 +561,7 @@ function checkingError_While(currentLine: string, nbLine: number) {
         let condition = currentLine.split("while ")[1].split(" loop")[0].trim();
         if (!expressionIsBoolean(condition, nbLine)) { errors.push(new SyntaxError(406, condition + " is not a boolean", nbLine)) }
         else { blockScope++; }
+        // blockScope++;
     }
 }
 

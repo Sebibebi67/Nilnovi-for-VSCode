@@ -139,6 +139,7 @@ class Compiler {
             }
             this.traCompleted = true;
         }
+        // console.log("eval : ",words);
         // if it's a "procedure" or "function"
         if (words[0] == "function" || words[0] == "procedure") {
             // it's a "procedure"
@@ -321,7 +322,7 @@ class Compiler {
         let tzeLine = this.instructions.length - 1;
         // we keep the current blockScope
         let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^\$[0-9]+\$\s*end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -382,7 +383,7 @@ class Compiler {
         let tzeLine = this.instructions.length - 1;
         // we keep the current blockScope
         let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^\$[0-9]+\$\s*end\$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -438,7 +439,7 @@ class Compiler {
         // We also need to store the current Block scope before the recursive calls 
         let blockScopeBeforeWhile = this.blockScope;
         // While it's not the end of the current "if"/"elif"
-        while (!(new RegExp(/^\$[0-9]+\$\s*(end\$|else\$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*(end$|else$|elif\s+)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
@@ -462,7 +463,7 @@ class Compiler {
     generateElse() {
         // we keep the current blockScope
         let blockScopeBeforeWhile = this.blockScope;
-        while (!(new RegExp(/^\$[0-9]+\$\s*(end\$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
+        while (!(new RegExp(/^\$[0-9]+\$\s*(end$)/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && this.blockScope == blockScopeBeforeWhile)) {
             // recursive calling
             this.nbLine++;
             let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);

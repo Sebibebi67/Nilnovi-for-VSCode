@@ -254,6 +254,9 @@ function resetTables() {
  * @author Adam RIVIÈRE
  */
 function expressionIsBoolean(expression, nbLine) {
+    while (expression.charAt(0) == '(' && expression.charAt(expression.length - 1) == ')') {
+        expression = expression.slice(1, -1);
+    }
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
     if (regexContainsBooleanInstructions.test(expression)) {
         return true;
@@ -264,8 +267,8 @@ function expressionIsBoolean(expression, nbLine) {
         }
         return false;
     }
-    const regexIsFunction = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*)\(.*\);$/);
-    if (regexIsFunction.test(expression)) {
+    const regexIsFunction = new RegExp(/^\(*([a-zA-Z][a-zA-Z0-9_]*)\(.*\)\)*$/);
+    if (regexIsFunction.test(expression.trim())) {
         const methodName = expression.split("(")[0].trim();
         const methodDef = methodsTable[methodName];
         if (!methodExists(methodName)) {
@@ -565,6 +568,7 @@ function checkingError_While(currentLine, nbLine) {
         else {
             blockScope++;
         }
+        // blockScope++;
     }
 }
 /**
