@@ -29,6 +29,6 @@ ERRORS FIXED:
  - same name game
  - no scope for get
  - no parameter method
- - assym op
+ - asymmetrical op
  - boolean functions in While/if
  - if proc stopping
