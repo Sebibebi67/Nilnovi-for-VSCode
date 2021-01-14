@@ -236,7 +236,7 @@ export class Executor {
 	 */
 	private pileError(str: string) {
 		const currentLine = this.currentLineCpt + 1;
-		this.display("ERROR at line " + currentLine + " : " + str);
+		this.display("ERROR at instruction " + currentLine + " : " + str);
 	}
 
 	/**
@@ -246,7 +246,7 @@ export class Executor {
 	private zeroDivisionError() {
 		const currentLine = this.currentLineCpt + 1;
 		this.display(
-			"ERROR at line " + currentLine + " : division by zero."
+			"ERROR at instruction " + currentLine + " : division by zero."
 		);
 	}
 
@@ -258,7 +258,7 @@ export class Executor {
 	private notNumberError(str: string | undefined) {
 		const currentLine = this.currentLineCpt + 1;
 		this.display(
-			"ERROR at line " + currentLine + " : '" + str + "' is not a integer."
+			"ERROR at instruction " + currentLine + " : '" + str + "' is not a integer."
 		);
 	}
 
@@ -269,7 +269,7 @@ export class Executor {
 	private maxRecursionError() {
 		const currentLine = this.currentLineCpt + 1;
 		this.display(
-			"ERROR at line " + currentLine + " :  Maximum recursion reached."
+			"ERROR at instruction " + currentLine + " :  Maximum recursion reached."
 		);
 	}
 
@@ -281,7 +281,7 @@ export class Executor {
 	 */
 	private unknownError(error : string) {
 		const currentLine = this.currentLineCpt + 1;
-		this.display("ERROR at line " + currentLine + ".");
+		this.display("ERROR at instruction " + currentLine + ".");
 	}
 
 
@@ -534,7 +534,7 @@ export class Executor {
 		this.cptPile -= 2;
 
 		if (a === undefined || b === undefined) { return 1; }
-		return this.evaluable_empiler(b.value - a.value, "integer");
+		return this.evaluable_empiler(a.value - b.value, "integer");
 	}
 
 
@@ -557,7 +557,7 @@ export class Executor {
 		this.cptPile -= 2;
 
 		if (a === undefined || b === undefined) { return 1; }
-		return this.evaluable_empiler(b.value + a.value, "integer");
+		return this.evaluable_empiler(a.value + b.value, "integer");
 	}
 
 	/**
@@ -579,7 +579,7 @@ export class Executor {
 		this.cptPile -= 2;
 
 		if (a === undefined || b === undefined) { return 1; }
-		return this.evaluable_empiler(b.value * a.value, "integer");
+		return this.evaluable_empiler(a.value * b.value, "integer");
 	}
 
 	/**
@@ -602,11 +602,11 @@ export class Executor {
 
 		if (a === undefined || b === undefined) { return 1; }
 
-		if (a.value == 0) {
+		if (b.value == 0) {
 			this.zeroDivisionError();
 			return 1;
 		}
-		return this.evaluable_empiler(Math.floor(b.value / a.value), "integer");
+		return this.evaluable_empiler(Math.floor(a.value / b.value), "integer");
 	}
 
 	/**
@@ -760,7 +760,7 @@ export class Executor {
 		this.cptPile -= 2;
 
 		if (a === undefined || b === undefined) { return 1; }
-		return this.evaluable_empiler(Number(b.value && a.value), "boolean");
+		return this.evaluable_empiler(Number(a.value && b.value), "boolean");
 	}
 
 	/**
@@ -782,7 +782,7 @@ export class Executor {
 		this.cptPile -= 2;
 
 		if (a === undefined || b === undefined) { return 1; }
-		return this.evaluable_empiler(Number(b.value || a.value), "boolean");
+		return this.evaluable_empiler(Number(a.value || b.value), "boolean");
 	}
 
 	/**

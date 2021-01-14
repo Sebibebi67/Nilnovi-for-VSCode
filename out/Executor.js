@@ -190,7 +190,7 @@ class Executor {
      */
     pileError(str) {
         const currentLine = this.currentLineCpt + 1;
-        this.display("ERROR at line " + currentLine + " : " + str);
+        this.display("ERROR at instruction " + currentLine + " : " + str);
     }
     /**
      * @description raises an error if user tries to divide by zero
@@ -198,7 +198,7 @@ class Executor {
      */
     zeroDivisionError() {
         const currentLine = this.currentLineCpt + 1;
-        this.display("ERROR at line " + currentLine + " : division by zero.");
+        this.display("ERROR at instruction " + currentLine + " : division by zero.");
     }
     /**
      * @description raises an error if the string given is not a number
@@ -207,7 +207,7 @@ class Executor {
      */
     notNumberError(str) {
         const currentLine = this.currentLineCpt + 1;
-        this.display("ERROR at line " + currentLine + " : '" + str + "' is not a integer.");
+        this.display("ERROR at instruction " + currentLine + " : '" + str + "' is not a integer.");
     }
     /**
      * @description raises an error if the maximum recursion has been reached
@@ -215,7 +215,7 @@ class Executor {
      */
     maxRecursionError() {
         const currentLine = this.currentLineCpt + 1;
-        this.display("ERROR at line " + currentLine + " :  Maximum recursion reached.");
+        this.display("ERROR at instruction " + currentLine + " :  Maximum recursion reached.");
     }
     /**
      * @description raises an unknown error
@@ -224,7 +224,7 @@ class Executor {
      */
     unknownError(error) {
         const currentLine = this.currentLineCpt + 1;
-        this.display("ERROR at line " + currentLine + ".");
+        this.display("ERROR at instruction " + currentLine + ".");
     }
     //--------------------------------------------------------------------------------//
     //-------------------------------- Nilnovi Methods -------------------------------//
@@ -450,7 +450,7 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(b.value - a.value, "integer");
+        return this.evaluable_empiler(a.value - b.value, "integer");
     }
     /**
      * @description stacks a + b on top of the pile, where b is on top of the pile and a just below
@@ -469,7 +469,7 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(b.value + a.value, "integer");
+        return this.evaluable_empiler(a.value + b.value, "integer");
     }
     /**
      * @description stacks a * b on top of the pile, where b is on top of the pile and a just below
@@ -488,7 +488,7 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(b.value * a.value, "integer");
+        return this.evaluable_empiler(a.value * b.value, "integer");
     }
     /**
      * @description stacks a // b on top of the pile, where b is on top of the pile, a just below and // is the euclidean division
@@ -507,11 +507,11 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        if (a.value == 0) {
+        if (b.value == 0) {
             this.zeroDivisionError();
             return 1;
         }
-        return this.evaluable_empiler(Math.floor(b.value / a.value), "integer");
+        return this.evaluable_empiler(Math.floor(a.value / b.value), "integer");
     }
     /**
      * @description stacks a == b on top of the pile, where b is on top of the pile, a just below
@@ -644,7 +644,7 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(Number(b.value && a.value), "boolean");
+        return this.evaluable_empiler(Number(a.value && b.value), "boolean");
     }
     /**
      * @description stacks a || b on top of the pile, where b is on top of the pile, a just below
@@ -663,7 +663,7 @@ class Executor {
         if (a === undefined || b === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(Number(b.value || a.value), "boolean");
+        return this.evaluable_empiler(Number(a.value || b.value), "boolean");
     }
     /**
      * @description stacks !a on top of the pile, where a is on top of the pile

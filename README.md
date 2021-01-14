@@ -40,6 +40,7 @@ All you need is VScode 1.49.0 or upper.
   - Variable scope should no longer be a problem.
   - No parameter methods fixed.
   - Opération on methods.
+  - Fixing non symmetrical operators
 
 
 ### **1.0.1**
