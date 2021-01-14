@@ -31,3 +31,4 @@ ERRORS FIXED:
  - no parameter method
  - assym op
  - boolean functions in While/if
+ - if proc stopping

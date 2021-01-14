@@ -41,7 +41,8 @@ All you need is VScode 1.49.0 or upper.
   - No parameter methods fixed.
   - Opération on methods.
   - Fixing non symmetrical operators
-  - Boolean functions can now be given as boolean condition in ```while``` and ```if``` 
+  - Boolean functions can now be given as boolean condition in ```while``` and ```if```
+  - Solving scope issues 
 
 
 ### **1.0.1**

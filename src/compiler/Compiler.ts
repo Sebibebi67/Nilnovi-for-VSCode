@@ -183,13 +183,11 @@ export class Compiler {
 		if (this.blockScope == 1 && !this.traCompleted && words[0] != "function" && words[0] != "procedure") {
 			let traLine = this.instructions.length + 1;
 
-			if (traLine != 3) { this.instructions[1] = new Instruction("tra(" + traLine + ");"); }
+			if (traLine != 3) { this.instructions[1] = new Instruction("tra(" + traLine + ");");}
 			else { this.instructions.pop(); }
 
 			this.traCompleted = true;
 		}
-
-		// console.log("eval : ",words);
 
 		// if it's a "procedure" or "function"
 		if (words[0] == "function" || words[0] == "procedure") {
@@ -223,7 +221,7 @@ export class Compiler {
 		else if (words[0] == "begin") { return 0; }
 
 		// if "end" is read
-		else if (words[0] == "end") { return this.generateEnd(words); }
+		else if (words[0] == "end") { return this.generateEnd(); }
 
 		// if "return" is read
 		else if (words[0] == "return") { return this.generateReturn(words) }
@@ -281,19 +279,21 @@ export class Compiler {
 
 		// then we pass to the next line
 		this.nbLine++;
+		let blockScopeBeforeProc = this.blockScope;
 
 		// while the procedure is not terminated
-		while (!new RegExp(/^\$[0-9]+\$\s*end/).test(this.nilnoviProgram[this.nbLine].trim())) {
-
+		while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeProc == this.blockScope)) {
+			this.nbLine++;
 			// we evaluate each line and checks the eventual errors
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
 			if (returnValue != 0) { return 1; }
-			this.nbLine++;
 		}
 
+		this.nbLine++;
+		
 		// then we update the blockScope
 		this.blockScope--;
-
+		
 		// and we create the procedure ending instruction and we update the current method's name
 		this.instructions.push(new Instruction("retourProc();"));
 		this.currentMethodName = "pp";
@@ -326,10 +326,10 @@ export class Compiler {
 
 		// then we pass to the next line
 		this.nbLine++;
+		let blockScopeBeforeWhile = this.blockScope;
 
 		// while the function is not terminated
-
-		while (!new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine].trim())) {
+		while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
 			if (returnValue != 0) { return 1; }
 			this.nbLine++;
@@ -489,6 +489,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private generateIf(words: string[]) {
+
 		// If it's the beginning of the block
 		if (words[0] == "if") { this.blockScope++; }
 
@@ -524,7 +525,7 @@ export class Compiler {
 		}
 
 		// Now we jump to the end of the whole block, store the reference and change the value of the "tze"
-		this.instructions.push(new Instruction("tra(X);"));
+		this.instructions.push(new Instruction("tra(x);"));
 		this.ifTraList.push([this.instructions.length - 1, this.blockScope]);
 		this.instructions[tzeLine] = new Instruction("tze(" + (this.instructions.length + 1) + ");");
 
@@ -724,16 +725,16 @@ export class Compiler {
 
 	/**
 	 * @description checks for errors and generates the instructions for an "end" line
-	 * @param string[] the words
 	 * @returns the output status
 	 * @author Sébastien HERT
 	 * @author Adam RIVIÈRE
 	 */
-	private generateEnd(words: string[]) {
+	private generateEnd() {
 
 		// for each "tra(x)" created before
-		for (const i in this.ifTraList) {
-			let [tra, blockScope] = this.ifTraList[i]
+		for (let i = this.ifTraList.length -1; i >= 0; i--){
+		// for (const i in this.ifTraList) {
+			let [tra, blockScope] = this.ifTraList[i];
 
 			// if the instruction's scope is equal to the current blockScope
 			if (blockScope == this.blockScope) {
@@ -759,7 +760,7 @@ export class Compiler {
 					let nbLineTze: number = +this.instructions[lastIndexTze].machineCode.split("(")[1].split(")")[0];
 					this.instructions[lastIndexTze].machineCode = "tze(" + (nbLineTze - 1) + ");";
 				}
-				delete this.ifTraList[i];
+				this.ifTraList.pop();
 			}
 		}
 		this.blockScope--;
