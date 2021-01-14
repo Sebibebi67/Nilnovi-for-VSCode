@@ -37,6 +37,9 @@ All you need is VScode 1.49.0 or upper.
   - Return type is now verified in functions and should match declaration.
   - Indexing lines should now work with comments.
   - Variable and Procedures declarations with the same name is no longer a problem.
+  - Variable scope should no longer be a problem.
+  - No parameter methods fixed.
+  - Opération on methods.
 
 
 ### **1.0.1**

@@ -19,9 +19,13 @@ method without params -> error
 method's return type error (return; = return 0;)
 loop infinite ??? -> see mystic file
 
+;;
+
 
 
 
 ERRORS FIXED:
  - wrong return type
  - same name game
+ - no scope for get
+ - no parameter method

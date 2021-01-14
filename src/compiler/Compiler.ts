@@ -60,7 +60,7 @@ export class Compiler {
 
 	private currentLineNb: number = 0;
 
-	private returnRead : boolean = false;
+	private returnRead: boolean = false;
 
 	//--------------------------------------------------------------------------------//
 
@@ -325,7 +325,7 @@ export class Compiler {
 		this.nbLine++;
 
 		// while the function is not terminated
-		
+
 		while (!new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine].trim())) {
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
 			if (returnValue != 0) { return 1; }
@@ -339,7 +339,7 @@ export class Compiler {
 		this.instructions.push(new Instruction("retourFonct();"));
 		this.currentMethodName = "pp";
 
-		if (this.returnRead ==false){
+		if (this.returnRead == false) {
 			this.displayError(new CompilationError(511, "function should have at least one 'return'", this.currentLineNb));
 			return 1;
 		}
@@ -575,11 +575,7 @@ export class Compiler {
 			return 1;
 		}
 
-		// we get the variable pile address
-		let address = this.variableList.get(this.fullVariableName(variable)).addPile;
-
-		// then we create the instruction to stack the address
-		this.instructions.push(new Instruction("empiler(" + address + ");", "address"));
+		this.generateEmpiler(this.variableList.get(this.fullVariableName(variable)))
 
 		// then we generate the "get" instruction
 		this.instructions.push(new Instruction("get();"));
@@ -601,13 +597,13 @@ export class Compiler {
 		words = tools.removeFromWords(words, 2, 2);
 
 		// "put" need an unique parameter...
-		if (words.length == 0){
+		if (words.length == 0) {
 			this.displayError(new CompilationError(512, "The method 'put' needs a unique parameter", this.currentLineNb));
 			return 1;
 		}
 
 		// ... which cannot be a procedure
-		if (this.methodList.get(words[0]) !== undefined && this.methodList.get(words[0]).type == "none"){
+		if (this.methodList.get(words[0]) !== undefined && this.methodList.get(words[0]).type == "none") {
 			this.displayError(new CompilationError(512, "The method 'put' cannot call a procedure", this.currentLineNb));
 			return 1;
 		}
@@ -669,17 +665,7 @@ export class Compiler {
 
 		let fullVariableName = this.variableList.get(this.fullVariableName(variable));
 
-		// if it's a parameter
-		if (fullVariableName.isParameter) {
-			// in out parameter
-			if (fullVariableName.isOut) { this.instructions.push(new Instruction("empilerParam(" + fullVariableName.addPile + ");", "address")); }
-
-			// in parameter
-			else { this.instructions.push(new Instruction("empilerAd(" + fullVariableName.addPile + ");", "address")); }
-		}
-
-		// else if not
-		else { this.instructions.push(new Instruction("empiler(" + fullVariableName.addPile + ");", "address")); }
+		this.generateEmpiler(fullVariableName);
 
 
 		returnValue = this.generateInstructions(this.currentExpressionList, false);
@@ -782,7 +768,7 @@ export class Compiler {
 	 * @author Adam RIVIÈRE
 	 */
 	private generateReturn(words: string[]) {
-		
+
 		// Checking if it's a procedure
 		if (this.methodList.get(this.currentMethodName).type == "none") {
 			this.displayError(new CompilationError(510, "'return' cannot be used in a procedure", this.currentLineNb));
@@ -1095,17 +1081,7 @@ export class Compiler {
 			else if (this.isVar(this.fullVariableName(word))) {
 				let variable = this.variableList.get(this.fullVariableName(word));
 
-				// if it's a parameter
-				if (variable.isParameter) {
-					// in out parameter
-					if (variable.isOut) { this.instructions.push(new Instruction("empilerParam(" + variable.addPile + ");", "address")); }
-
-					// in parameter
-					else { this.instructions.push(new Instruction("empilerAd(" + variable.addPile + ");", "address")); }
-				}
-
-				// else if not
-				else { this.instructions.push(new Instruction("empiler(" + variable.addPile + ");", "address")); }
+				this.generateEmpiler(variable);
 
 				// If we are waiting for valeurPile();
 				if (!isOut) {
@@ -1123,10 +1099,22 @@ export class Compiler {
 
 			// else it's a method, we create a space in the instructions line to place those of the method
 			else {
-				let end = this.currentExpressionList.slice(i + 1);
-				this.currentExpressionList = this.currentExpressionList.slice(0, i);
+
+				// We need a blank currentExpressionList in order to call generateInstructionsMethod
+
+				// First we need to store the values on a tmpList
+				let tmp = this.currentExpressionList;
+
+				// Then reset the currentExpressionList
+				this.currentExpressionList = [];
+
+				// And generate the instructions for the method
 				returnValue = this.generateInstructionsMethod(word);
-				this.currentExpressionList = this.currentExpressionList.concat(end);
+				if (returnValue != 0){return 1}
+
+				// And then change currentExpressionList again
+				this.currentExpressionList = tmp;
+
 			}
 		}
 
@@ -1204,6 +1192,7 @@ export class Compiler {
 
 		// then we process the last parameter as we did for the others
 		let returnValue = this.analyzer(this.concatWords(tmpWordsList));
+
 		if (returnValue != 0) { return returnValue; }
 
 		// we check if there isn't too few parameters
@@ -1218,18 +1207,35 @@ export class Compiler {
 			if (returnValue != 0) { return returnValue; }
 		}
 
-		// we generate the instructions for the method's parameters
-		let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
-		if (isOut) { returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName); }
-		else { returnValue = this.generateInstructions(this.currentExpressionList, isOut); }
+		if (nbParamsRead > 0){
+			let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
+			// we generate the instructions for the method's parameters
+			if (isOut) { returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName); }
+			else { returnValue = this.generateInstructions(this.currentExpressionList, isOut); }
 
-		if (returnValue != 0) { return returnValue; }
+			if (returnValue != 0) { return returnValue; }
+		}
+
 		tmpWordsList = [];
 
 		// finally we create the instruction to call the method with its beginning line and the number of parameters to get
 		let methodLine = this.methodList.get(methodName).refLine + 1;
 		this.instructions.push(new Instruction("traStat(" + methodLine + "," + nbParamsExpected + ");"));
 		return 0;
+	}
+
+	private generateEmpiler(variable: Variable) {
+		// if it's a parameter
+		if (variable.isParameter) {
+			// in out parameter
+			if (variable.isOut) { this.instructions.push(new Instruction("empilerParam(" + variable.addPile + ");", "address")); }
+
+			// in parameter
+			else { this.instructions.push(new Instruction("empilerAd(" + variable.addPile + ");", "address")); }
+		}
+
+		// else if not
+		else { this.instructions.push(new Instruction("empiler(" + variable.addPile + ");", "address")); }
 	}
 
 	//--------------------------------------------------------------------------------//
@@ -1402,12 +1408,12 @@ export class Compiler {
 			}
 
 			// else if it's a method
-			else if (this.isMethod(word) && words[i+1] == "(") {
+			else if (this.isMethod(word) && words[i + 1] == "(") {
 				inMethod = true;
 				method += word;
 			}
 
-			else if (this.isVar(this.fullVariableName(word)) && !inMethod){
+			else if (this.isVar(this.fullVariableName(word)) && !inMethod) {
 				line.push(word);
 			}
 

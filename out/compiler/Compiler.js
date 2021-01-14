@@ -495,10 +495,7 @@ class Compiler {
             this.displayError(new CompilationError_1.CompilationError(508, "The method 'get' needs a unique parameter which is a variable", this.currentLineNb));
             return 1;
         }
-        // we get the variable pile address
-        let address = this.variableList.get(this.fullVariableName(variable)).addPile;
-        // then we create the instruction to stack the address
-        this.instructions.push(new Instruction_1.Instruction("empiler(" + address + ");", "address"));
+        this.generateEmpiler(this.variableList.get(this.fullVariableName(variable)));
         // then we generate the "get" instruction
         this.instructions.push(new Instruction_1.Instruction("get();"));
         // finally we update the variable with the fact that it has been affected
@@ -579,21 +576,7 @@ class Compiler {
             return 1;
         }
         let fullVariableName = this.variableList.get(this.fullVariableName(variable));
-        // if it's a parameter
-        if (fullVariableName.isParameter) {
-            // in out parameter
-            if (fullVariableName.isOut) {
-                this.instructions.push(new Instruction_1.Instruction("empilerParam(" + fullVariableName.addPile + ");", "address"));
-            }
-            // in parameter
-            else {
-                this.instructions.push(new Instruction_1.Instruction("empilerAd(" + fullVariableName.addPile + ");", "address"));
-            }
-        }
-        // else if not
-        else {
-            this.instructions.push(new Instruction_1.Instruction("empiler(" + fullVariableName.addPile + ");", "address"));
-        }
+        this.generateEmpiler(fullVariableName);
         returnValue = this.generateInstructions(this.currentExpressionList, false);
         if (returnValue != 0) {
             return returnValue;
@@ -979,21 +962,7 @@ class Compiler {
             // if the word is a known variable
             else if (this.isVar(this.fullVariableName(word))) {
                 let variable = this.variableList.get(this.fullVariableName(word));
-                // if it's a parameter
-                if (variable.isParameter) {
-                    // in out parameter
-                    if (variable.isOut) {
-                        this.instructions.push(new Instruction_1.Instruction("empilerParam(" + variable.addPile + ");", "address"));
-                    }
-                    // in parameter
-                    else {
-                        this.instructions.push(new Instruction_1.Instruction("empilerAd(" + variable.addPile + ");", "address"));
-                    }
-                }
-                // else if not
-                else {
-                    this.instructions.push(new Instruction_1.Instruction("empiler(" + variable.addPile + ");", "address"));
-                }
+                this.generateEmpiler(variable);
                 // If we are waiting for valeurPile();
                 if (!isOut) {
                     this.instructions.push(new Instruction_1.Instruction("valeurPile();"));
@@ -1008,10 +977,18 @@ class Compiler {
             }
             // else it's a method, we create a space in the instructions line to place those of the method
             else {
-                let end = this.currentExpressionList.slice(i + 1);
-                this.currentExpressionList = this.currentExpressionList.slice(0, i);
+                // We need a blank currentExpressionList in order to call generateInstructionsMethod
+                // First we need to store the values on a tmpList
+                let tmp = this.currentExpressionList;
+                // Then reset the currentExpressionList
+                this.currentExpressionList = [];
+                // And generate the instructions for the method
                 returnValue = this.generateInstructionsMethod(word);
-                this.currentExpressionList = this.currentExpressionList.concat(end);
+                if (returnValue != 0) {
+                    return 1;
+                }
+                // And then change currentExpressionList again
+                this.currentExpressionList = tmp;
             }
         }
         // finally we reset the current expression
@@ -1098,22 +1075,41 @@ class Compiler {
                 return returnValue;
             }
         }
-        // we generate the instructions for the method's parameters
-        let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
-        if (isOut) {
-            returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName);
-        }
-        else {
-            returnValue = this.generateInstructions(this.currentExpressionList, isOut);
-        }
-        if (returnValue != 0) {
-            return returnValue;
+        if (nbParamsRead > 0) {
+            let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
+            // we generate the instructions for the method's parameters
+            if (isOut) {
+                returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName);
+            }
+            else {
+                returnValue = this.generateInstructions(this.currentExpressionList, isOut);
+            }
+            if (returnValue != 0) {
+                return returnValue;
+            }
         }
         tmpWordsList = [];
         // finally we create the instruction to call the method with its beginning line and the number of parameters to get
         let methodLine = this.methodList.get(methodName).refLine + 1;
         this.instructions.push(new Instruction_1.Instruction("traStat(" + methodLine + "," + nbParamsExpected + ");"));
         return 0;
+    }
+    generateEmpiler(variable) {
+        // if it's a parameter
+        if (variable.isParameter) {
+            // in out parameter
+            if (variable.isOut) {
+                this.instructions.push(new Instruction_1.Instruction("empilerParam(" + variable.addPile + ");", "address"));
+            }
+            // in parameter
+            else {
+                this.instructions.push(new Instruction_1.Instruction("empilerAd(" + variable.addPile + ");", "address"));
+            }
+        }
+        // else if not
+        else {
+            this.instructions.push(new Instruction_1.Instruction("empiler(" + variable.addPile + ");", "address"));
+        }
     }
     //--------------------------------------------------------------------------------//
     //------------------------------------ Tools -------------------------------------//
