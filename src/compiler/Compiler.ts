@@ -1245,6 +1245,8 @@ export class Compiler {
 			else { this.instructions.push(new Instruction("empilerAd(" + variable.addPile + ");", "address")); }
 		}
 
+		else if (variable.methodName != "pp") { this.instructions.push(new Instruction("empilerAd(" + variable.addPile + ");", "address")); }
+
 		// else if not
 		else { this.instructions.push(new Instruction("empiler(" + variable.addPile + ");", "address")); }
 	}

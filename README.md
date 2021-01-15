@@ -44,7 +44,8 @@ All you need is VScode 1.49.0 or upper.
   - Boolean functions can now be given as boolean condition in ```while``` and ```if```.
   - Solving scope issues.
   - Binary operators now check both operands.
-  - "moins" no longer returns null. 
+  - "moins" no longer returns null.
+  - Variable declaration in procedure should no longer be a problem.
 
 
 ### **1.0.1**
