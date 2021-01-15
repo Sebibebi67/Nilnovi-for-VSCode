@@ -232,7 +232,6 @@ class Compiler {
         this.methodList.add(new Method_1.Method(name, "none", this.instructions.length, params)),
             this.parameterLoading(words);
         // then we pass to the next line
-        this.nbLine++;
         let blockScopeBeforeProc = this.blockScope;
         // while the procedure is not terminated
         while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeProc == this.blockScope)) {
@@ -271,7 +270,6 @@ class Compiler {
         this.methodList.add(new Method_1.Method(name, returnType, this.instructions.length, params));
         this.parameterLoading(words);
         // then we pass to the next line
-        this.nbLine++;
         let blockScopeBeforeFunc = this.blockScope;
         // while the function is not terminated
         while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeFunc == this.blockScope)) {
@@ -556,6 +554,8 @@ class Compiler {
         let variable = words[0];
         // Does it exist ?
         if (!this.isVar(this.fullVariableName(variable))) {
+            console.log(variable);
+            console.log(this.variableList);
             this.displayError(new CompilationError_1.CompilationError(503, variable + " is not defined", this.currentLineNb));
             return 1;
         }
