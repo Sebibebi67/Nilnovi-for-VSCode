@@ -12,19 +12,20 @@ This extension provides :
 
 ## **Quick start**
 
-<!-- TODO -->
-
 * First, open a file with the ```.nn``` extension to activate all the features of this extension
 * Then, write your program with all those wonderful tools
 * You can now play with the following buttons :
-  * ![](src/icons/PlayButton.png) : Runs the entire program.
+  * ![](./src/icons/PlayButton.png) : Runs the entire program.
   * ![](./src/icons/StopButton.png) : Stops the program.
-  * ![](https://github.com/Sebibebi67/Nilnovi-for-VSCode/blob/master/src/icons/ForwardButton.png) : Moves forward.
+  * ![](./src/icons/ForwardButton.png) : Moves forward.
+  * ![](./src/icons/BackwardButton.png) : Moves backward.
+  * ![](./src/icons/PlayPauseButton.png) : Pauses and resumes the execution.
+  * ![](./src/icons/ResetButton.png) : Resets the output.
+  * ![](./src/icons/DelayButton.png) : Sets the delay between each instruction.
+  * ![](./src/icons/MaxRecButton.png) : Sets the max recursions number.
+* Notice that you can also use the same features by using their corresponding command using the VSCode commands list.
+* This will generate a new file called ```yourFileName.machine_code``` and open a new tab where you will see the machine_code and the pile.
 
-
-
-<!-- * With that done, you can run your program by tapping ```F1``` (by default) to open the VSCode commands list and use ```run Nilnovi```
-* This will generate a new file called ```yourFileName.machine_code``` and open a new tab where you will see the machine_code and the pile. -->
 
 ## **Requirements**
 

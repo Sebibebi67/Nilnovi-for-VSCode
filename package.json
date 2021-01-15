@@ -4,7 +4,10 @@
 	"publisher": "Enssat-Compilation-Team-Students",
 	"description": "Write, compile and execute programs in Nilnovi",
 	"version": "1.0.1",
-	"repository": "https://github.com/Sebibebi67/Nilnovi-for-VSCode.git",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Sebibebi67/Nilnovi-for-VSCode"
+	},
 	"engines": {
 		"vscode": "^1.49.0"
 	},
@@ -100,7 +103,7 @@
 			{
 				"command": "nilnovi-for-vscode.setDelay",
 				"title": "Set delay",
-				"icon": "src/icons/delay.png"
+				"icon": "src/icons/DelayButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.setRec",
