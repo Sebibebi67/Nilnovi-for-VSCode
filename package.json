@@ -2,7 +2,7 @@
 	"name": "nilnovi-for-vscode",
 	"displayName": "Nilnovi for VSCode",
 	"publisher": "Enssat-Compilation-Team-Students",
-	"description": "",
+	"description": "Write, compile and execute programs in Nilnovi",
 	"version": "1.0.1",
 	"repository": "https://github.com/Sebibebi67/Nilnovi-for-VSCode.git",
 	"engines": {

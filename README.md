@@ -12,16 +12,23 @@ This extension provides :
 
 ## **Quick start**
 
-TODO
+<!-- TODO -->
 
 * First, open a file with the ```.nn``` extension to activate all the features of this extension
 * Then, write your program with all those wonderful tools
-* With that done, you can run your program by tapping ```F1``` (by default) to open the VSCode commands list and use ```run Nilnovi```
-* This will generate a new file called ```yourFileName.machine_code``` and open a new tab where you will see the machine_code and the pile.
+* You can now play with the following buttons :
+  * ![](src/icons/PlayButton.png) : Runs the entire program.
+  * ![](./src/icons/StopButton.png) : Stops the program.
+  * ![](https://github.com/Sebibebi67/Nilnovi-for-VSCode/blob/master/src/icons/ForwardButton.png) : Moves forward.
+
+
+
+<!-- * With that done, you can run your program by tapping ```F1``` (by default) to open the VSCode commands list and use ```run Nilnovi```
+* This will generate a new file called ```yourFileName.machine_code``` and open a new tab where you will see the machine_code and the pile. -->
 
 ## **Requirements**
 
-All you need is VScode 1.49.0 or upper.
+All you need is VScode 1.49.0 or higher.
 
 ## **Known Issues**
 
@@ -32,6 +39,17 @@ All you need is VScode 1.49.0 or upper.
 
 
 ### **2.0.0**
+
+- New features :
+  - Adding a Run button to run the program.
+  - Adding a Play/Pause button to pause and replay the execution.
+  - Adding a Next Step button to execute the next line in the machine code.
+  - Adding a Previous Step button to execute the previous line in the machine code.
+  - Adding a Reset button to reset the display windows.
+  - Adding a Stop button to stop a running program.
+  - Adding a Delay button to configure the delay between executed lines.
+  - Adding a Max Recursion button to configure the maximum number of recursions.
+  - Adding a highlight to the current machine code line.
 
 - Corrected issues :
   - Return type is now verified in functions and should match declaration.
