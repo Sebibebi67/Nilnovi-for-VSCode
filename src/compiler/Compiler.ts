@@ -278,7 +278,6 @@ export class Compiler {
 			this.parameterLoading(words);
 
 		// then we pass to the next line
-		this.nbLine++;
 		let blockScopeBeforeProc = this.blockScope;
 
 		// while the procedure is not terminated
@@ -325,7 +324,6 @@ export class Compiler {
 		this.parameterLoading(words);
 
 		// then we pass to the next line
-		this.nbLine++;
 		let blockScopeBeforeFunc = this.blockScope;
 
 		// while the function is not terminated
@@ -646,6 +644,8 @@ export class Compiler {
 
 		// Does it exist ?
 		if (!this.isVar(this.fullVariableName(variable))) {
+			console.log(variable);
+			console.log(this.variableList);
 			this.displayError(new CompilationError(503, variable + " is not defined", this.currentLineNb));
 			return 1;
 		}
