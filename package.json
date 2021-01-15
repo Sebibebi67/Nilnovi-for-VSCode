@@ -4,7 +4,7 @@
 	"publisher": "Enssat-Compilation-Team-Students",
 	"description": "Write, compile and execute programs in Nilnovi",
 	"version": "2.0.0",
-	"icon": "./src/icons/LogoNilnovi.png",
+	"icon": "src/icons/LogoNilnovi.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Sebibebi67/Nilnovi-for-VSCode"
