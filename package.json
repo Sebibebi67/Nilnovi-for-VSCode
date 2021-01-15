@@ -4,6 +4,7 @@
 	"publisher": "Enssat-Compilation-Team-Students",
 	"description": "Write, compile and execute programs in Nilnovi",
 	"version": "1.0.1",
+	"icon": "./src/icons/LogoNilnovi.png",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Sebibebi67/Nilnovi-for-VSCode"
@@ -23,6 +24,13 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"iconThemes": [
+			{
+				"id": "fileIcons",
+				"label": "File Icons",
+				"path": "./src/icons/fileIcons_theme.json"
+			}
+		],
 		"configuration": [
 			{
 				"title": "Shortcut Bar Configuration",

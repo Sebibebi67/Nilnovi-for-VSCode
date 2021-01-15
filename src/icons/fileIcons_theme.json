@@ -1,0 +1,14 @@
+{
+    "iconDefinitions": {
+        "nilnovi": {
+            "iconPath": "LogoNN.png"
+        },
+        "machineCode": {
+            "iconPath": "LogoMachineCode.png"
+        }
+    },
+    "fileExtensions": {
+        "nn": "nilnovi",
+        "machine_code": "machineCode"
+    }
+}
