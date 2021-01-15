@@ -326,13 +326,13 @@ export class Compiler {
 
 		// then we pass to the next line
 		this.nbLine++;
-		let blockScopeBeforeWhile = this.blockScope;
+		let blockScopeBeforeFunc = this.blockScope;
 
 		// while the function is not terminated
-		while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
+		while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeFunc == this.blockScope)) {
+			this.nbLine++;
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
 			if (returnValue != 0) { return 1; }
-			this.nbLine++;
 		}
 
 		// then we update the blockScope
