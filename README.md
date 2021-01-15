@@ -40,9 +40,11 @@ All you need is VScode 1.49.0 or upper.
   - Variable scope should no longer be a problem.
   - No parameter methods fixed.
   - Opération on methods.
-  - Fixing non symmetrical operators
-  - Boolean functions can now be given as boolean condition in ```while``` and ```if```
-  - Solving scope issues 
+  - Fixing non symmetrical operators.
+  - Boolean functions can now be given as boolean condition in ```while``` and ```if```.
+  - Solving scope issues.
+  - Binary operators now check both operands.
+  - "moins" no longer returns null. 
 
 
 ### **1.0.1**

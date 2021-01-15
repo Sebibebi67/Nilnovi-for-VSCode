@@ -431,7 +431,7 @@ class Executor {
         if (a === undefined) {
             return 1;
         }
-        return this.evaluable_empiler(-a, "integer");
+        return this.evaluable_empiler(-a.value, "integer");
     }
     /**
      * @description stacks a - b on top of the pile, where b is on top of the pile and a just below

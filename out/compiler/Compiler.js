@@ -884,6 +884,7 @@ class Compiler {
                     let typeOp = this.opDict[element].inType;
                     if (typeA == typeOp) {
                         expressionCopy[i] = this.opDict[element].outType;
+                        expressionCopy[i - 1] = "none";
                     }
                     else {
                         if (element == "!") {
@@ -904,6 +905,8 @@ class Compiler {
                     // if the types match
                     if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
                         expressionCopy[i] = this.opDict[element].outType;
+                        expressionCopy[i - 1] = "none";
+                        expressionCopy[i - 2] = "none";
                     }
                     // else there is an error
                     else {

@@ -511,7 +511,7 @@ export class Executor {
 		this.cptPile--;
 		if (a === undefined) { return 1; }
 
-		return this.evaluable_empiler(-a, "integer");
+		return this.evaluable_empiler(-a.value, "integer");
 	}
 
 

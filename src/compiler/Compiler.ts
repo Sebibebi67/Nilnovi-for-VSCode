@@ -183,7 +183,7 @@ export class Compiler {
 		if (this.blockScope == 1 && !this.traCompleted && words[0] != "function" && words[0] != "procedure") {
 			let traLine = this.instructions.length + 1;
 
-			if (traLine != 3) { this.instructions[1] = new Instruction("tra(" + traLine + ");");}
+			if (traLine != 3) { this.instructions[1] = new Instruction("tra(" + traLine + ");"); }
 			else { this.instructions.pop(); }
 
 			this.traCompleted = true;
@@ -290,10 +290,10 @@ export class Compiler {
 		}
 
 		this.nbLine++;
-		
+
 		// then we update the blockScope
 		this.blockScope--;
-		
+
 		// and we create the procedure ending instruction and we update the current method's name
 		this.instructions.push(new Instruction("retourProc();"));
 		this.currentMethodName = "pp";
@@ -365,25 +365,25 @@ export class Compiler {
 		let returnValue = this.analyzer(this.concatWords(words));
 		if (returnValue != 0) { return returnValue; }
 
-		
+
 
 		// we check its type
 		returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
 
-		
+
 		if (returnValue != 0) { return returnValue; }
-		
+
 		// then we generate the corresponding instructions
 		let whileLine = this.instructions.length + 1;
 		returnValue = this.generateInstructions(this.currentExpressionList, false);
 		if (returnValue != 0) { return returnValue; }
-		
+
 		// then we create the jump instruction
 		this.instructions.push(new Instruction("tze(x);"));
-		
+
 		// and we keep the current line number for the callback
 		let tzeLine = this.instructions.length - 1;
-		
+
 		// we keep the current blockScope
 		let blockScopeBeforeWhile = this.blockScope;
 		while (!(new RegExp(/^\$[0-9]+\$\s*end$/).test(this.nilnoviProgram[this.nbLine + 1].trim()) && blockScopeBeforeWhile == this.blockScope)) {
@@ -391,7 +391,7 @@ export class Compiler {
 			// recursive calling
 			this.nbLine++;
 			let returnValue = this.eval(this.nilnoviProgram[this.nbLine]);
-			
+
 			// Something got wrong
 			if (returnValue != 0) { return 1; }
 		}
@@ -732,8 +732,8 @@ export class Compiler {
 	private generateEnd() {
 
 		// for each "tra(x)" created before
-		for (let i = this.ifTraList.length -1; i >= 0; i--){
-		// for (const i in this.ifTraList) {
+		for (let i = this.ifTraList.length - 1; i >= 0; i--) {
+			// for (const i in this.ifTraList) {
 			let [tra, blockScope] = this.ifTraList[i];
 
 			// if the instruction's scope is equal to the current blockScope
@@ -1001,6 +1001,7 @@ export class Compiler {
 
 					if (typeA == typeOp) {
 						expressionCopy[i] = this.opDict[element].outType;
+						expressionCopy[i - 1] = "none";
 					}
 					else {
 						if (element == "!") { element = "-"; }
@@ -1017,9 +1018,12 @@ export class Compiler {
 					let typeB = expressionCopy[i - 1];
 					let typeOp = this.opDict[element].inType
 
+
 					// if the types match
 					if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
 						expressionCopy[i] = this.opDict[element].outType;
+						expressionCopy[i - 1] = "none";
+						expressionCopy[i - 2] = "none";
 					}
 
 					// else there is an error
@@ -1117,7 +1121,7 @@ export class Compiler {
 
 				// And generate the instructions for the method
 				returnValue = this.generateInstructionsMethod(word);
-				if (returnValue != 0){return 1}
+				if (returnValue != 0) { return 1 }
 
 				// And then change currentExpressionList again
 				this.currentExpressionList = tmp;
@@ -1214,7 +1218,7 @@ export class Compiler {
 			if (returnValue != 0) { return returnValue; }
 		}
 
-		if (nbParamsRead > 0){
+		if (nbParamsRead > 0) {
 			let isOut = this.variableList.get(methodName + "." + this.methodList.get(methodName).params[nbParamsRead - 1]).isOut;
 			// we generate the instructions for the method's parameters
 			if (isOut) { returnValue = this.generateInstructions(this.currentExpressionList, isOut, nbParamsRead, methodName); }
