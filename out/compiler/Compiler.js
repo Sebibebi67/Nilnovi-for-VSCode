@@ -118,6 +118,7 @@ class Compiler {
      * @author Adam RIVIÈRE
      */
     eval(currentLine) {
+        console.log(currentLine);
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
         currentLine = lineFeatures["content"];
@@ -352,7 +353,7 @@ class Compiler {
         let lowerBound = words.splice(3, spliceIndex - 3);
         let upperBound = words.splice(4, words.length - 5);
         // we create a fake affectation line to initialize the increment with the lower bound
-        let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
+        let affectationToLowerBoundLine = ("$" + this.currentLineNb + "$" + variable + ":=" + lowerBound + ";").replace(/\,/g, "");
         // we keep the stopping condition
         let condition = [variable, "<"].concat(upperBound);
         // then we evaluate it
@@ -393,7 +394,7 @@ class Compiler {
             }
         }
         // then we add 1 to the increment variable
-        let finalIncrementLine = variable + ":=" + variable + "+" + "1;";
+        let finalIncrementLine = "$" + this.currentLineNb + "$" + variable + ":=" + variable + "+" + "1;";
         returnValue = this.eval(finalIncrementLine);
         // Something got wrong
         if (returnValue != 0) {
