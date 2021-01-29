@@ -81,7 +81,7 @@
 		"commands": [
 			{
 				"command": "nilnovi-for-vscode.run",
-				"title": "Run Nilnovi",
+				"title": "start",
 				"icon": "src/icons/PlayButton.png"
 			},
 			{
@@ -90,37 +90,37 @@
 			},
 			{
 				"command": "nilnovi-for-vscode.stop",
-				"title": "Stop execution",
+				"title": "stop",
 				"icon": "src/icons/StopButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.resume",
-				"title": "Play/Pause",
+				"title": "play/pause",
 				"icon": "src/icons/PlayPauseButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.next",
-				"title": "Next step",
+				"title": "nextStep",
 				"icon": "src/icons/ForwardButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.previous",
-				"title": "Previous step",
+				"title": "previousStep",
 				"icon": "src/icons/BackwardButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.setDelay",
-				"title": "Set delay",
+				"title": "setDelay",
 				"icon": "src/icons/DelayButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.setRec",
-				"title": "Set Rec number",
+				"title": "setNbRec",
 				"icon": "src/icons/MaxRecButton.png"
 			},
 			{
 				"command": "nilnovi-for-vscode.reset",
-				"title": "Reset program",
+				"title": "reset",
 				"icon": "src/icons/ResetButton.png"
 			}
 		],
