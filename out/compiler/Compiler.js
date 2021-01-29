@@ -871,7 +871,6 @@ class Compiler {
             // then we push the element
             expressionCopy.push(element);
         }
-        console.log(expressionCopy);
         // for each element in the list
         let i = 0;
         while (i < expressionCopy.length) {
@@ -922,7 +921,6 @@ class Compiler {
                         if (element == "!") {
                             element = "-";
                         }
-                        console.log(expressionCopy, i);
                         this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
                         return 1;
                     }
@@ -930,7 +928,6 @@ class Compiler {
             }
             i++;
         }
-        console.log(expressionCopy);
         // if the operator's out type isn't right
         if (expectedType !== undefined) {
             if (expectedType != expressionCopy.pop()) {

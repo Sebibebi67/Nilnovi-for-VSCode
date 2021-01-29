@@ -984,8 +984,6 @@ export class Compiler {
 			expressionCopy.push(element)
 		}
 
-		console.log(expressionCopy);
-
 		// for each element in the list
 		let i = 0;
 		while (i < expressionCopy.length) {
@@ -1036,7 +1034,6 @@ export class Compiler {
 						if (typeOp == "both") { typeOp = "2 integers or 2 booleans"; }
 						else { typeOp = "2 " + typeOp + "s" }
 						if (element == "!") { element = "-"; }
-						console.log(expressionCopy, i);
 						this.displayError(new CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
 						return 1;
 					}
@@ -1046,7 +1043,6 @@ export class Compiler {
 			}
 			i++;
 		}
-		console.log(expressionCopy);
 
 		// if the operator's out type isn't right
 		if (expectedType !== undefined) {
