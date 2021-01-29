@@ -118,7 +118,6 @@ class Compiler {
      * @author Adam RIVIÈRE
      */
     eval(currentLine) {
-        console.log(currentLine);
         // Let's prepare the effective content
         let lineFeatures = tools.splittingLine(currentLine);
         currentLine = lineFeatures["content"];
@@ -555,8 +554,6 @@ class Compiler {
         let variable = words[0];
         // Does it exist ?
         if (!this.isVar(this.fullVariableName(variable))) {
-            console.log(variable);
-            console.log(this.variableList);
             this.displayError(new CompilationError_1.CompilationError(503, variable + " is not defined", this.currentLineNb));
             return 1;
         }
@@ -874,8 +871,11 @@ class Compiler {
             // then we push the element
             expressionCopy.push(element);
         }
+        console.log(expressionCopy);
         // for each element in the list
-        for (let i = 0; i < expressionCopy.length; i++) {
+        let i = 0;
+        while (i < expressionCopy.length) {
+            // for (let i = 0; i < expressionCopy.length; i++) {
             let element = expressionCopy[i];
             // if the element is a known operator
             if (this.opDict[element] != undefined) {
@@ -885,7 +885,9 @@ class Compiler {
                     let typeOp = this.opDict[element].inType;
                     if (typeA == typeOp) {
                         expressionCopy[i] = this.opDict[element].outType;
-                        expressionCopy[i - 1] = "none";
+                        // expressionCopy[i - 1] = "none";
+                        expressionCopy.splice(i - 1, 1);
+                        i -= 1;
                     }
                     else {
                         if (element == "!") {
@@ -906,8 +908,8 @@ class Compiler {
                     // if the types match
                     if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
                         expressionCopy[i] = this.opDict[element].outType;
-                        expressionCopy[i - 1] = "none";
-                        expressionCopy[i - 2] = "none";
+                        expressionCopy.splice(i - 2, 2);
+                        i -= 2;
                     }
                     // else there is an error
                     else {
@@ -920,12 +922,15 @@ class Compiler {
                         if (element == "!") {
                             element = "-";
                         }
+                        console.log(expressionCopy, i);
                         this.displayError(new CompilationError_1.CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
                         return 1;
                     }
                 }
             }
+            i++;
         }
+        console.log(expressionCopy);
         // if the operator's out type isn't right
         if (expectedType !== undefined) {
             if (expectedType != expressionCopy.pop()) {

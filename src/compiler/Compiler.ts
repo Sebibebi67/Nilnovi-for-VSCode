@@ -167,8 +167,6 @@ export class Compiler {
 	 */
 	private eval(currentLine: string) {
 
-		console.log(currentLine);
-
 		// Let's prepare the effective content
 		let lineFeatures = tools.splittingLine(currentLine);
 		currentLine = lineFeatures["content"];
@@ -646,8 +644,6 @@ export class Compiler {
 
 		// Does it exist ?
 		if (!this.isVar(this.fullVariableName(variable))) {
-			console.log(variable);
-			console.log(this.variableList);
 			this.displayError(new CompilationError(503, variable + " is not defined", this.currentLineNb));
 			return 1;
 		}
@@ -988,8 +984,12 @@ export class Compiler {
 			expressionCopy.push(element)
 		}
 
+		console.log(expressionCopy);
+
 		// for each element in the list
-		for (let i = 0; i < expressionCopy.length; i++) {
+		let i = 0;
+		while (i < expressionCopy.length) {
+		// for (let i = 0; i < expressionCopy.length; i++) {
 			let element = expressionCopy[i];
 
 			// if the element is a known operator
@@ -1003,7 +1003,10 @@ export class Compiler {
 
 					if (typeA == typeOp) {
 						expressionCopy[i] = this.opDict[element].outType;
-						expressionCopy[i - 1] = "none";
+						// expressionCopy[i - 1] = "none";
+						expressionCopy.splice(i-1, 1);
+						i-=1;
+
 					}
 					else {
 						if (element == "!") { element = "-"; }
@@ -1024,8 +1027,8 @@ export class Compiler {
 					// if the types match
 					if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
 						expressionCopy[i] = this.opDict[element].outType;
-						expressionCopy[i - 1] = "none";
-						expressionCopy[i - 2] = "none";
+						expressionCopy.splice(i-2, 2);
+						i-=2;
 					}
 
 					// else there is an error
@@ -1033,6 +1036,7 @@ export class Compiler {
 						if (typeOp == "both") { typeOp = "2 integers or 2 booleans"; }
 						else { typeOp = "2 " + typeOp + "s" }
 						if (element == "!") { element = "-"; }
+						console.log(expressionCopy, i);
 						this.displayError(new CompilationError(505, "wrong type : operator " + element + " requires " + typeOp, this.currentLineNb));
 						return 1;
 					}
@@ -1040,7 +1044,9 @@ export class Compiler {
 
 
 			}
+			i++;
 		}
+		console.log(expressionCopy);
 
 		// if the operator's out type isn't right
 		if (expectedType !== undefined) {

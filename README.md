@@ -40,7 +40,8 @@ All you need is VScode 1.49.0 or higher.
 ### **2.0.1**
 
 - Corrected issues :
-  - line indexing in "for" messed up compilation
+  - Line indexing in "for" messed up compilation
+  - Correct algebraic expressions sometimes raised unexpected errors. 
 
 
 ### **2.0.0**
