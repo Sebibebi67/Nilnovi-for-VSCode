@@ -420,7 +420,7 @@ export class Compiler {
 		let upperBound = words.splice(4, words.length - 5);
 
 		// we create a fake affectation line to initialize the increment with the lower bound
-		let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
+		let affectationToLowerBoundLine = ("$"+this.currentLineNb+"$"+variable + ":=" + lowerBound + ";").replace(/\,/g, "");
 
 		// we keep the stopping condition
 		let condition = [variable, "<"].concat(upperBound);
@@ -464,7 +464,7 @@ export class Compiler {
 		}
 
 		// then we add 1 to the increment variable
-		let finalIncrementLine = variable + ":=" + variable + "+" + "1;";
+		let finalIncrementLine = "$"+this.currentLineNb+"$"+variable + ":=" + variable + "+" + "1;";
 		returnValue = this.eval(finalIncrementLine);
 
 		// Something got wrong
@@ -644,8 +644,6 @@ export class Compiler {
 
 		// Does it exist ?
 		if (!this.isVar(this.fullVariableName(variable))) {
-			console.log(variable);
-			console.log(this.variableList);
 			this.displayError(new CompilationError(503, variable + " is not defined", this.currentLineNb));
 			return 1;
 		}
@@ -987,7 +985,9 @@ export class Compiler {
 		}
 
 		// for each element in the list
-		for (let i = 0; i < expressionCopy.length; i++) {
+		let i = 0;
+		while (i < expressionCopy.length) {
+		// for (let i = 0; i < expressionCopy.length; i++) {
 			let element = expressionCopy[i];
 
 			// if the element is a known operator
@@ -1001,7 +1001,10 @@ export class Compiler {
 
 					if (typeA == typeOp) {
 						expressionCopy[i] = this.opDict[element].outType;
-						expressionCopy[i - 1] = "none";
+						// expressionCopy[i - 1] = "none";
+						expressionCopy.splice(i-1, 1);
+						i-=1;
+
 					}
 					else {
 						if (element == "!") { element = "-"; }
@@ -1022,8 +1025,8 @@ export class Compiler {
 					// if the types match
 					if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
 						expressionCopy[i] = this.opDict[element].outType;
-						expressionCopy[i - 1] = "none";
-						expressionCopy[i - 2] = "none";
+						expressionCopy.splice(i-2, 2);
+						i-=2;
 					}
 
 					// else there is an error
@@ -1038,6 +1041,7 @@ export class Compiler {
 
 
 			}
+			i++;
 		}
 
 		// if the operator's out type isn't right

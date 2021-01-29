@@ -352,7 +352,7 @@ class Compiler {
         let lowerBound = words.splice(3, spliceIndex - 3);
         let upperBound = words.splice(4, words.length - 5);
         // we create a fake affectation line to initialize the increment with the lower bound
-        let affectationToLowerBoundLine = (variable + ":=" + lowerBound + ";").replace(/\,/g, "");
+        let affectationToLowerBoundLine = ("$" + this.currentLineNb + "$" + variable + ":=" + lowerBound + ";").replace(/\,/g, "");
         // we keep the stopping condition
         let condition = [variable, "<"].concat(upperBound);
         // then we evaluate it
@@ -393,7 +393,7 @@ class Compiler {
             }
         }
         // then we add 1 to the increment variable
-        let finalIncrementLine = variable + ":=" + variable + "+" + "1;";
+        let finalIncrementLine = "$" + this.currentLineNb + "$" + variable + ":=" + variable + "+" + "1;";
         returnValue = this.eval(finalIncrementLine);
         // Something got wrong
         if (returnValue != 0) {
@@ -554,8 +554,6 @@ class Compiler {
         let variable = words[0];
         // Does it exist ?
         if (!this.isVar(this.fullVariableName(variable))) {
-            console.log(variable);
-            console.log(this.variableList);
             this.displayError(new CompilationError_1.CompilationError(503, variable + " is not defined", this.currentLineNb));
             return 1;
         }
@@ -874,7 +872,9 @@ class Compiler {
             expressionCopy.push(element);
         }
         // for each element in the list
-        for (let i = 0; i < expressionCopy.length; i++) {
+        let i = 0;
+        while (i < expressionCopy.length) {
+            // for (let i = 0; i < expressionCopy.length; i++) {
             let element = expressionCopy[i];
             // if the element is a known operator
             if (this.opDict[element] != undefined) {
@@ -884,7 +884,9 @@ class Compiler {
                     let typeOp = this.opDict[element].inType;
                     if (typeA == typeOp) {
                         expressionCopy[i] = this.opDict[element].outType;
-                        expressionCopy[i - 1] = "none";
+                        // expressionCopy[i - 1] = "none";
+                        expressionCopy.splice(i - 1, 1);
+                        i -= 1;
                     }
                     else {
                         if (element == "!") {
@@ -905,8 +907,8 @@ class Compiler {
                     // if the types match
                     if (typeA == typeB && (typeOp == "both" || typeOp == typeA)) {
                         expressionCopy[i] = this.opDict[element].outType;
-                        expressionCopy[i - 1] = "none";
-                        expressionCopy[i - 2] = "none";
+                        expressionCopy.splice(i - 2, 2);
+                        i -= 2;
                     }
                     // else there is an error
                     else {
@@ -924,6 +926,7 @@ class Compiler {
                     }
                 }
             }
+            i++;
         }
         // if the operator's out type isn't right
         if (expectedType !== undefined) {
