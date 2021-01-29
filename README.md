@@ -37,9 +37,17 @@ All you need is VScode 1.49.0 or higher.
 
 ## **Release Notes**
 
+### **2.0.1**
 
+- Corrected issues :
+  - Line indexing in "for" messed up compilation.
+  - Correct algebraic expressions sometimes raised unexpected errors. 
+
+- Changing the buttons names.
 
 ### **2.0.0**
+
+
 
 - New features :
   - Adding a Run button to run the program.
