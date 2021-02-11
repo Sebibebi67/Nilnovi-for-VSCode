@@ -88,6 +88,14 @@ Initial release
 
 
 
+### Limits
+
+Keep in mind that this is a pedagogical extension, implemented by students for students. No need to try to break into using HUGE numbers or LONG programs. It has been coded with TypeScript, so it has the same calculating capacity. Concerning long programs, they could run, but very slowly, and for sure the display of the pile couldn't follow LONG programs, even more without delay. But don't be scared, you can always stop the execution, and the extension handles infinite loops.
+
+Sadly, you can't use NNO for now. but NNA and NNP are well implemented.
+
+
+
 ## **Authors**
 
 Enssat Compilation Team of Students (ECTS):
