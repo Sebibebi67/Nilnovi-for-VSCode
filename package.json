@@ -138,7 +138,7 @@
 				},
 				{
 					"when": "config.Previous",
-					"command": "nilnovi-for-vscode.previous",
+					"command":  "nilnovi-for-vscode.previous",
 					"group": "navigation@3"
 				},
 				{

@@ -74,10 +74,10 @@ function autoCompletion() {
 }
 exports.autoCompletion = autoCompletion;
 /**
-   * Description : Provides hovers for the Nilnovi functions
-   * @returns The provider to push
-   * @author Adam RIVIERE
-*/
+ * Description : Provides hovers for the Nilnovi functions
+ * @returns The provider to push
+ * @author Adam RIVIERE
+ */
 function hovers() {
     return vscode.languages.registerHoverProvider('nilnovi', {
         provideHover(document, position, token) {
@@ -246,7 +246,7 @@ function resetTables() {
     knownWords = ["put", "get"];
 }
 /**
- * @description checks if it a potential boolean expression. It doesn't check if it is correct
+ * @description checks if it is a potential boolean expression. It doesn't check if it is correct
  * @param string expression
  * @param number line number
  * @returns true | false
@@ -258,29 +258,37 @@ function expressionIsBoolean(expression, nbLine) {
         expression = expression.slice(1, -1);
     }
     const regexContainsBooleanInstructions = new RegExp(/(or|and|<|>|=|true|false)/);
+    // if the expression contains a boolean key word
     if (regexContainsBooleanInstructions.test(expression)) {
         return true;
     }
+    // else if the expression is a known variable
     if (variableExists(expression)) {
+        // if the variable isn't boolean
         if (variablesTable[currentMethod + "." + expression].type == "boolean") {
             return true;
         }
         return false;
     }
     const regexIsFunction = new RegExp(/^\(*([a-zA-Z][a-zA-Z0-9_]*)\(.*\)\)*$/);
+    // if the expression is a method
     if (regexIsFunction.test(expression.trim())) {
         const methodName = expression.split("(")[0].trim();
         const methodDef = methodsTable[methodName];
+        // if the method doesn't exist
         if (!methodExists(methodName)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(404, "Method " + methodName + " not found", nbLine));
             return false;
         }
+        // else we check it's type
         return methodDef.returnType == "boolean";
     }
     const regexIsVariable = new RegExp(/^([a-zA-Z][a-zA-Z0-9_]*);$/);
+    // if the expression can be a variable
     if (regexIsVariable.test(expression)) {
         const variableName = expression.split(";")[0].trim();
         const variableDef = variablesTable[currentMethod + "." + variableName];
+        // if it really is a variable
         if (!variableExists(variableName)) {
             exports.errors.push(new SyntaxError_1.SyntaxError(414, "Variable " + variableName + " not found", nbLine));
             return false;
@@ -337,14 +345,6 @@ function validBound(bound) {
         }
     }
 }
-// /**
-//  * @description get the last element of method table
-//  * @returns the object method : { name: string, nbParams: number, returnType : string } }
-//  * @author Sébastien HERT
-//  */
-// function getLastMethod() {
-//     return methodsTable[Object.keys(methodsTable)[Object.keys(methodsTable).length - 1]]
-// }
 /**
  * @description remove the method and its list of variables from the tables
  * @param String the method name
@@ -568,7 +568,6 @@ function checkingError_While(currentLine, nbLine) {
         else {
             blockScope++;
         }
-        // blockScope++;
     }
 }
 /**
@@ -732,32 +731,6 @@ function checkingError_Parameters(nbLine, params, methodName) {
         }
     });
 }
-// /**
-//  * @description checks the number of parameters when calling a method
-//  * @param number the number of line
-//  * @param string the method and all its params
-//  * @author Sébastien HERT
-//  * @author Adam RIVIÈRE
-//  */
-// function checkingError_CallingMethod(nbLine : number, expression:string){
-//     const methodName = expression.split("(")[0].trim();
-//     // Checks if the the method is defined 
-//     if (!methodExists(methodName)){
-//         errors.push(new SyntaxError(404,"Method "+methodName+" not found", nbLine));
-//     }
-//     else{
-//         // Let's check if there et least one parameter
-//         const regexNoParameter = new RegExp(/\(\)/);
-//         if (!regexNoParameter.test(expression)){
-//             // We need to be sure there are even parameters in description in our table
-//             const nbParam = expression.split(',').length;
-//             const realNbParam = methodsTable[methodName].nbParams;
-//             if (realNbParam != nbParam){
-//                 errors.push(new SyntaxError(413, "Wrong number of parameters", nbLine));
-//             }
-//         }
-//     }
-// }
 /**
  * @description Checks if the word has already been seen
  * @param string the line

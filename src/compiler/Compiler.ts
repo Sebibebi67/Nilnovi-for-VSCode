@@ -27,8 +27,6 @@ import { Instruction } from "./Instruction";
 import { CompilationError } from "./CompilationError";
 import * as vscode from "vscode";
 import { setError } from "./CompilationError";
-import { features } from "process";
-import { captureRejectionSymbol } from "events";
 
 //--------------------------------------------------------------------------------//
 
@@ -108,18 +106,6 @@ export class Compiler {
 			if (returnValue != 0) { vscode.window.showErrorMessage("Compilation failed : check Nilnovi-Output for more information"); }
 			else { vscode.window.showInformationMessage("Compilation ran successfully") }
 		}
-
-
-
-		// Printing part
-
-		// for (let i = 0; i < this.instructions.length; i++) {
-		// 	console.log(i + 1, this.instructions[i].toString());
-		// }
-
-		// this.methodList.display();
-		// this.variableList.display();
-
 
 	}
 
@@ -363,11 +349,8 @@ export class Compiler {
 		let returnValue = this.analyzer(this.concatWords(words));
 		if (returnValue != 0) { return returnValue; }
 
-
-
 		// we check its type
 		returnValue = this.syntaxAnalyzer(this.currentExpressionList, "boolean");
-
 
 		if (returnValue != 0) { return returnValue; }
 
@@ -1454,12 +1437,20 @@ export class Compiler {
 		return line;
 	}
 
-
+	/**
+	 * @description displays the given error
+	 * @param CompilationError the error to display
+	 * @author Sébastien HERT
+	 */
 	private displayError(error: CompilationError) {
 		this.outputChannel.appendLine(error.message);
 		this.outputChannel.show(true);
 	}
 
+	/**
+	 * @description displays the machine instructions
+	 * @author Sébastien HERT
+	 */
 	public displayInstructions() {
 		let instructions = "";
 		for (let i of this.instructions) {

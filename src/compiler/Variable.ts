@@ -12,18 +12,12 @@
 // Adam RIVIÈRE
 //
 //--------------------------------------------------------------------------------//
-
-//----------------------------------- Imports ------------------------------------//
-//
-//--------------------------------------------------------------------------------//
-
 export class Variable {
 	//------------------------------- Class Variables --------------------------------//
 
 	public name: string;
 	public addPile: number;
 	public methodName : string
-	// public scope: number = -1;
 	public type: string;
 	public isParameter: boolean;
 	public parameterIndex: number = -1;
@@ -41,15 +35,10 @@ export class Variable {
 		if (!(parameterIndex === undefined)) { this.parameterIndex = parameterIndex; }
 		if (!(isOut === undefined)) { this.isOut = isOut; }
 		this.addPile = addPile;
-		// if (!(scope === undefined)) { this.scope = scope; }
 		this.isParameter = isParameter;
 		if (isParameter){this.hasBeenAffected = true;}
 	}
 
-	//--------------------------------------------------------------------------------//
-
-	//----------------------------------- Methods ------------------------------------//
-	//
 	//--------------------------------------------------------------------------------//
 }
   //================================================================================//

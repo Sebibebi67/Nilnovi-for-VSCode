@@ -1,8 +1,0 @@
-procedure test() is
-    function f() return integer is # erreur d'extension, corrigé en ajoutant un paramètre (même sans l'utiliser)
-    begin
-        return 1;
-    end
-begin
-    put(f());
-end

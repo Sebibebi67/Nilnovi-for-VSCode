@@ -34,6 +34,7 @@ import { SyntaxError } from "./syntax/SyntaxError";
  * @author Adam RIVIÈRE
  */
 export function splittingLine(line: string) {
+
     // $ is used to indicate the line number
     var splitLine = line.trim().split("$");
 
@@ -46,6 +47,7 @@ export function splittingLine(line: string) {
         // and we need to merge each part of the split line (except the last one) in order to look for more errors
         var currentLine = "";
         for (let i = 2; i < splitLine.length ; i++) { currentLine += splitLine[i].trim(); }
+
         // And don't forget to raise an error
         errors.push(new SyntaxError(402, "Unexpected character", nbLine));
     }

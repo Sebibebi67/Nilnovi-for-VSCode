@@ -11,6 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Executor = void 0;
+//--------------------------------- Description ----------------------------------//
+//
+// This class describes how the nilnovi executor should work
+//
+//--------------------------------------------------------------------------------//
+//----------------------------------- Authors ------------------------------------//
+//
+// Sébastien HERT
+// Simon JOURDAN
+// Adam RIVIERE
+//
+//--------------------------------------------------------------------------------//
+//----------------------------------- Imports ------------------------------------//
 const vscode = require("vscode");
 const Loader_1 = require("./Loader");
 //--------------------------------------------------------------------------------//
@@ -19,7 +32,6 @@ class Executor {
     //--------------------------------- Constructor ----------------------------------//
     constructor(instructions, output, panel, delay = 200, maxRec = 100) {
         //------------------------------- Class Variables --------------------------------//
-        // public previousLineCpt
         this.currentLineCpt = 0;
         this.cptPile = 0;
         this.pile = [];
@@ -131,6 +143,10 @@ class Executor {
             }
         });
     }
+    /**
+     * @description loads the previous status of pile
+     * @author Sébastien HERT
+     */
     previous() {
         let loadingConfig = this.loader.pop();
         if (loadingConfig === undefined) {
@@ -292,7 +308,7 @@ class Executor {
         // First we need to get a and b
         const b = this.pile.pop();
         const a = this.pile.pop();
-        // Then we check if everything is ok
+        // Then we check if everything is ok (it should be)
         if (a === undefined ||
             a.value < 0 ||
             a.value > this.pile.length ||
@@ -692,13 +708,16 @@ class Executor {
      * @author Adam RIVIÈRE
      */
     evaluable_tra(n) {
+        // if it's the first time we see this tra
         if (this.traRec[n] === undefined) {
             this.traRec[n] = { nbRec: 1 };
         }
+        // else if we have reached the maximum recursion
         else if (this.traRec[n].nbRec == this.maxRec) {
             this.maxRecursionError();
             return 1;
         }
+        // else let's increments the counter of this tra
         else {
             this.traRec[n].nbRec++;
         }

@@ -1,10 +1,11 @@
 "use strict";
-//== Class Loader ==//
+//================================= Class Loader =================================//
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Loader = void 0;
 //--------------------------------- Description ----------------------------------//
 //
-// 
+// This class allows us to save the status of the pile after each instructions,
+// which is very useful for the next and the previous step.
 //
 //--------------------------------------------------------------------------------//
 //----------------------------------- Authors ------------------------------------//
@@ -12,14 +13,9 @@ exports.Loader = void 0;
 // Sébastien HERT
 //
 //--------------------------------------------------------------------------------//
-//----------------------------------- Imports ------------------------------------//
-//
-//--------------------------------------------------------------------------------//
 class Loader {
-    // {currentLineCpt : number, cptPile : number, pile :{value : number, type : string}[], base : number}
     //--------------------------------------------------------------------------------//
     //--------------------------------- Constructor ----------------------------------//
-    //
     constructor(currentLineCpt, cptPile, pile, base) {
         this.currentLineCpt = currentLineCpt;
         this.cptPile = cptPile;

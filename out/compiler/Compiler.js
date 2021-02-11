@@ -75,12 +75,6 @@ class Compiler {
                 vscode.window.showInformationMessage("Compilation ran successfully");
             }
         }
-        // Printing part
-        // for (let i = 0; i < this.instructions.length; i++) {
-        // 	console.log(i + 1, this.instructions[i].toString());
-        // }
-        // this.methodList.display();
-        // this.variableList.display();
     }
     //--------------------------------------------------------------------------------//
     //--------------------------------- Compilation ----------------------------------//
@@ -1298,10 +1292,19 @@ class Compiler {
         }
         return line;
     }
+    /**
+     * @description displays the given error
+     * @param CompilationError the error to display
+     * @author Sébastien HERT
+     */
     displayError(error) {
         this.outputChannel.appendLine(error.message);
         this.outputChannel.show(true);
     }
+    /**
+     * @description displays the machine instructions
+     * @author Sébastien HERT
+     */
     displayInstructions() {
         let instructions = "";
         for (let i of this.instructions) {

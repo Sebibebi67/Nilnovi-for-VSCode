@@ -13,8 +13,6 @@ exports.CompilationError = exports.setError = exports.isError = void 0;
 // Adam RIVIÈRE
 //
 //--------------------------------------------------------------------------------//
-//----------------------------------- Imports ------------------------------------//
-//--------------------------------------------------------------------------------//
 exports.isError = false;
 function setError(bool) {
     exports.isError = bool;

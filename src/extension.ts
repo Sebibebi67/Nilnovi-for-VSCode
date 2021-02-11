@@ -181,6 +181,10 @@ function runNilnovi(context: vscode.ExtensionContext) {
 	else { vscode.window.showErrorMessage("No current file"); }
 }
 
+/**
+ * @description stops the execution
+ * @author Sébastien HERT
+ */
 function stop() {
 	if (onRun) {
 		executor.stop();
@@ -188,6 +192,10 @@ function stop() {
 	}
 }
 
+/**
+ * @description resumes or continues the execution
+ * @author Sébastien HERT
+ */
 function resume() {
 	if (onRun && !onPause) {
 		executor.pause();
@@ -201,6 +209,10 @@ function resume() {
 }
 
 
+/**
+ * @description Goes to the next step
+ * @author Sébastien HERT
+ */
 function next(context: vscode.ExtensionContext) {
 	if (!onRun) {
 		// checks if there is an activeTextEditor
@@ -250,6 +262,10 @@ function next(context: vscode.ExtensionContext) {
 
 }
 
+/**
+ * @description goes to the previous step
+ * @author Sébastien HERT
+ */
 function previous() { executor.previous(); }
 
 async function setDelay() {
@@ -265,6 +281,10 @@ async function setDelay() {
 	}
 }
 
+/**
+ * @description sets the maximum of recursion
+ * @author Sébastien HERT
+ */
 async function setRec() {
 	let res = await vscode.window.showInputBox({
 		placeHolder: String(maxRec),
@@ -278,6 +298,11 @@ async function setRec() {
 	}
 }
 
+/**
+ * @description stops the execution, resets the pile display. It doesn't reset the maximum recursion and the delay
+ * @param vscode.ExtensionContext context
+ * @author Sébastien HERT
+ */
 function reset(context: vscode.ExtensionContext) {
 	stop();
 	outputChannel.clear();

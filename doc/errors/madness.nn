@@ -1,5 +1,0 @@
-procedure test() is
-    a:integer;
-begin
-    put(true and (and true)); # watican
-end

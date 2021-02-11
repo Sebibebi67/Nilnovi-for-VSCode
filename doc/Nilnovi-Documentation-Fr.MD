@@ -134,8 +134,19 @@ end
 * **from**
 * **to**
 
+## **Différences**
+
+* Ajout de la boucle for
+* Ajout du commentaire de bloc avec ```/* commented block */```
+* Changement du commentaire de ligne ```//``` en ```#```
+* Suppression du ```.``` en fin de programme
+* Obligation de finir une ligne par un mot-clef approprié ou par un ```;```
+
+
+
 
 ## **Auteurs**
 
 * Sébastien HERT
+* Simon JOURDAN
 * Adam RIVIÈRE

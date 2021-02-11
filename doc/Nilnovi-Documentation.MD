@@ -135,9 +135,16 @@ end
 * **from**
 * **to**
 
+## **Differences**
 
+* Added : For loop
+* Added : block comments with  ```/* commented block */```
+* Changed : line comment from ```//``` to ```#```
+* Deleted : ```.``` is no longer required at the end of the program
+* Added : a line must be finished by an appropriate keyword or a ```;```
 
 ## **Authors**
 
 * Sébastien HERT
+* Simon JOURDAN
 * Adam RIVIÈRE

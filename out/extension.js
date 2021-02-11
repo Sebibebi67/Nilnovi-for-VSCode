@@ -162,12 +162,20 @@ function runNilnovi(context) {
         vscode.window.showErrorMessage("No current file");
     }
 }
+/**
+ * @description stops the execution
+ * @author Sébastien HERT
+ */
 function stop() {
     if (onRun) {
         executor.stop();
         onRun = false;
     }
 }
+/**
+ * @description resumes or continues the execution
+ * @author Sébastien HERT
+ */
 function resume() {
     if (onRun && !onPause) {
         executor.pause();
@@ -178,6 +186,10 @@ function resume() {
         onPause = false;
     }
 }
+/**
+ * @description Goes to the next step
+ * @author Sébastien HERT
+ */
 function next(context) {
     if (!onRun) {
         // checks if there is an activeTextEditor
@@ -222,6 +234,10 @@ function next(context) {
         executor.next();
     }
 }
+/**
+ * @description goes to the previous step
+ * @author Sébastien HERT
+ */
 function previous() { executor.previous(); }
 function setDelay() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -237,6 +253,10 @@ function setDelay() {
         }
     });
 }
+/**
+ * @description sets the maximum of recursion
+ * @author Sébastien HERT
+ */
 function setRec() {
     return __awaiter(this, void 0, void 0, function* () {
         let res = yield vscode.window.showInputBox({
@@ -251,6 +271,11 @@ function setRec() {
         }
     });
 }
+/**
+ * @description stops the execution, resets the pile display. It doesn't reset the maximum recursion and the delay
+ * @param vscode.ExtensionContext context
+ * @author Sébastien HERT
+ */
 function reset(context) {
     stop();
     outputChannel.clear();

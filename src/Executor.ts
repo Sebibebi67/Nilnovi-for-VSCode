@@ -16,7 +16,6 @@
 
 //----------------------------------- Imports ------------------------------------//
 
-import { PRIORITY_HIGHEST } from "constants";
 import * as vscode from "vscode";
 import { Instruction } from "./compiler/Instruction";
 import { Loader } from "./Loader";
@@ -26,7 +25,7 @@ import { Loader } from "./Loader";
 export class Executor {
 	//------------------------------- Class Variables --------------------------------//
 
-	// public previousLineCpt
+
 	public currentLineCpt = 0;
 	public cptPile = 0;
 	public pile: { value: number, type: string }[] = [];
@@ -167,6 +166,10 @@ export class Executor {
 	}
 
 
+	/**
+	 * @description loads the previous status of pile
+	 * @author Sébastien HERT
+	 */
 	public previous(){
 		let loadingConfig = this.loader.pop();
 		if (loadingConfig === undefined){return 0;}
@@ -178,8 +181,6 @@ export class Executor {
 		
 		//We now need to update the web View
 		this.updateWebView();
-
-		
 	}
 	
 	/**
@@ -285,8 +286,6 @@ export class Executor {
 	}
 
 
-
-
 	//--------------------------------------------------------------------------------//
 
 	//-------------------------------- Nilnovi Methods -------------------------------//
@@ -362,7 +361,7 @@ export class Executor {
 		const a = this.pile.pop();
 
 
-		// Then we check if everything is ok
+		// Then we check if everything is ok (it should be)
 		if (
 			a === undefined ||
 			a.value < 0 ||
@@ -815,19 +814,20 @@ export class Executor {
 	 * @author Adam RIVIÈRE
 	 */
 	private evaluable_tra(n: number) {
+
+		// if it's the first time we see this tra
 		if (this.traRec[n] === undefined){
 			this.traRec[n] = {nbRec : 1}
 		}
-
+		
+		// else if we have reached the maximum recursion
 		else if (this.traRec[n].nbRec == this.maxRec){
 			this.maxRecursionError();
 			return 1
 		}
-		else {
-			this.traRec[n].nbRec++;
-		}
 
-
+		// else let's increments the counter of this tra
+		else { this.traRec[n].nbRec++; }
 
 		this.currentLineCpt = n - 1;
 		return 0;

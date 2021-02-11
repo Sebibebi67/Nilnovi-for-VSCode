@@ -2,6 +2,16 @@
 //================================= Class Method =================================//
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Method = void 0;
+//--------------------------------- Description ----------------------------------//
+//
+// This is a structure which describes the fields of a function or a procedure 
+//
+//--------------------------------------------------------------------------------//
+//----------------------------------- Authors ------------------------------------//
+//
+// Sébastien HERT
+// Adam RIVIÈRE
+//
 //--------------------------------------------------------------------------------//
 class Method {
     //--------------------------------------------------------------------------------//
@@ -9,7 +19,6 @@ class Method {
     constructor(name, type, refLine, params) {
         this.fakePileLength = 0;
         this.name = name;
-        // this.scope = scope;
         this.type = type;
         this.refLine = refLine;
         this.params = params;
