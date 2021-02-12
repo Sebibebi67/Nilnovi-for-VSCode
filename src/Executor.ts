@@ -69,11 +69,11 @@ export class Executor {
 
 		// while not "FinProg" or error
 		while (!this.end && !this.onPause) {
-
+			
 			// We need a copy of the pile
 			let copyPile: { value: number, type: string }[] = [];
 			this.pile.forEach(element => {
-				copyPile.push(element);
+				copyPile.push({value : element.value, type:element.type});
 			});
 
 			// Storing the values
@@ -148,7 +148,7 @@ export class Executor {
 			// We need a copy of the pile
 			let copyPile: { value: number, type: string }[] = [];
 			this.pile.forEach(element => {
-				copyPile.push(element);
+				copyPile.push({value : element.value, type:element.type});
 			});
 
 			this.loader.push(new Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
@@ -178,7 +178,7 @@ export class Executor {
 		this.cptPile = loadingConfig.cptPile;
 		this.base = loadingConfig.base;
 		this.pile = loadingConfig.pile;
-		
+
 		//We now need to update the web View
 		this.updateWebView();
 	}

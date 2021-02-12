@@ -61,7 +61,7 @@ class Executor {
                 // We need a copy of the pile
                 let copyPile = [];
                 this.pile.forEach(element => {
-                    copyPile.push(element);
+                    copyPile.push({ value: element.value, type: element.type });
                 });
                 // Storing the values
                 this.loader.push(new Loader_1.Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
@@ -129,7 +129,7 @@ class Executor {
                 // We need a copy of the pile
                 let copyPile = [];
                 this.pile.forEach(element => {
-                    copyPile.push(element);
+                    copyPile.push({ value: element.value, type: element.type });
                 });
                 this.loader.push(new Loader_1.Loader(this.currentLineCpt, this.cptPile, copyPile, this.base));
                 // Evaluating current line
