@@ -9,6 +9,7 @@
 </head>
 
 <style>
+	/* Adapt colors to user's theme */
 	body.vscode-light {
 		--color: black;
 		--intColor: #4b692f;
@@ -36,17 +37,75 @@
 		--backgroundColor: #212121;
 	}
 
-
-	#pileExecution td,
-	th {
-		border: 2px solid var(--color);
-		font-weight: 800;
-		padding: 10px;
+	/* Title parameters */
+	h1 {
 		text-align: center;
 	}
 
+	/* Page layout */
+	.div {
+		display: grid;
+		grid-template-columns: 30% 60%;
+		grid-gap: 10%;
+	}
+
+	/* Table parameters */
 	table {
 		border-collapse: collapse;
+	}
+
+	/* Right side tables parameters */
+	#pileExecution,	#legend {
+		width: 100%;
+		font-weight: 800;
+		text-align: center;
+		table-layout: fixed;
+	}
+
+	/* Legend parameters */
+	#legend td {
+		padding: 10px;
+		overflow: hidden;
+	}
+
+	/* Execution pile parameters */
+	#pileExecution td, th {
+		border: 2px solid var(--color);
+		padding: 10px;
+		width: 50%;
+	}
+
+	#pileExecution tr:hover {
+		background-color: var(--backgroundColor);
+	}
+
+	/* Value colors */	
+	.integer { color: var(--intColor); }
+
+	.boolean { color: var(--boolColor);	}
+
+	.address { color: var(--linkColor); }
+
+	.block { color: var(--blockColor); }
+	.bottomBlock { color: var(--blockColor); }
+	.topBlock { color: var(--blockColor); }
+
+
+	/* Legend parameters */
+	#legend, #legend td{
+		border: 2px solid var(--color);
+		border-top: 0px;
+	}
+
+	/* Instruction list parameters */
+	#instructionList {
+		border: 0px;
+		margin-left: 10%;
+		table-layout: fixed;
+	}
+
+	#instructionList td {
+		overflow: hidden;
 	}
 
 	#instructionList .num {
@@ -57,59 +116,6 @@
 		background-color: var(--backgroundColor);
 	}
 
-	#legend{
-		text-align: center;
-	}
-
-	#pileExecution,
-	#legend {
-		width: 100%;
-	}
-
-	#instructionList {
-		border: 0px;
-	}
-
-	.div {
-		display: grid;
-		grid-template-columns: 30% 70%;
-		grid-gap: 10px;
-	}
-
-
-	.integer {
-		color: var(--intColor);
-	}
-
-	#pileExecution tr:hover {
-		background-color: var(--backgroundColor);
-	}
-
-	.boolean {
-		color: var(--boolColor);
-	}
-
-	.address {
-		color: var(--linkColor);
-	}
-
-	.bottomBlock {
-		color: var(--blockColor);
-		border-top: 0px;
-	}
-
-	.topBlock {
-		color: var(--blockColor);
-		border-bottom: 0px;
-	}
-
-	.block {
-		color: var(--blockColor);
-	}
-
-	h1 {
-		text-align: center;
-	}
 </style>
 
 <body>
@@ -150,40 +156,45 @@
 	<script>
 
 		const vscode = acquireVsCodeApi();
+		
 		// Handle the message inside the webview
-
 		window.addEventListener('message', event => {
 
 			const message = event.data; // The JSON data our extension sent
 
 			switch (message.command) {
 
+				// Pile display
 				case 'showPile':
 					table = document.getElementById('pileExecution');
 					tableBody = document.getElementById('pileBody');
 					tableBody.innerHTML = "" //Reset Pile
 
+					//Display each element of the pile
 					message.pile.forEach(element => {
 						let tr = document.createElement('tr');
+
+						//Index
 						let num = document.createElement('td');
-						num.innerHTML = table.rows.length - 1;
-						if (message.pointer == num.innerHTML) {
-							num.innerHTML = 'ip -> ' + num.innerHTML;
-						}
+						num.innerHTML = (table.rows.length - 1);
 						tr.appendChild(num);
+						
+						//Value
 						let content = document.createElement('td');
-						if (element.type != 'link') {
+						if (element.type != 'address') {
 							content.innerHTML = "<span class=" + element.type + ">" + element.value + "</span>";
 						} else {
 							content.innerHTML =
 								"<span class=" + element.type + ">" + element.value + "</span>" +
-								" -> (" +
-								"<span class=" + message.pile[element.value]['type'] + ">" + message.pile[element.value]['value'] + "</span>)";
+								" -> " +
+								"<span class=" + message.pile[element.value]['type'] + ">" + message.pile[element.value]['value'] + "</span>";
 						}
 						tr.appendChild(content);
+						
 						tableBody.insertBefore(tr, tableBody.firstChild);
 					})
 
+					//Highlight the line that just got executed
 					document.getElementsByClassName('highlighted')[0].classList.remove('highlighted');
 					document.getElementById('instructionListBody').children[message.instructionLine - 1].classList.add('highlighted');
 
@@ -192,23 +203,25 @@
 				case 'showInstructionList':
 
 					let instructionListBody = document.getElementById('instructionListBody');
-					instructionListBody.innerHTML = "";
+					instructionListBody.innerHTML = "";//Reset instructionList
 
+					//For each instruction
 					for (let i = 0; i < message.list.length; i++) {
 
 						let instruction = message.list[i];
+						let tr = document.createElement('tr');
 
+						//Instruction number
 						let num = document.createElement('td');
 						num.classList.add("num");
 						num.innerHTML = (i + 1) + " - ";
+						tr.appendChild(num);
 
-						let tr = document.createElement('tr');
-
+						//Instruction
 						let line = document.createElement('td');
 						line.innerHTML = instruction.machineCode;
-
-						tr.appendChild(num);
 						tr.appendChild(line);
+
 						instructionListBody.appendChild(tr);
 
 					}
