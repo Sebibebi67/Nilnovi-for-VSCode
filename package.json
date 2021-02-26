@@ -3,7 +3,7 @@
 	"displayName": "Nilnovi for VSCode",
 	"publisher": "Enssat-Compilation-Team-Students",
 	"description": "Write, compile and execute programs in Nilnovi",
-	"version": "2.0.1",
+	"version": "2.1.0",
 	"icon": "src/icons/LogoNilnovi.png",
 	"repository": {
 		"type": "git",
@@ -138,7 +138,7 @@
 				},
 				{
 					"when": "config.Previous",
-					"command":  "nilnovi-for-vscode.previous",
+					"command": "nilnovi-for-vscode.previous",
 					"group": "navigation@3"
 				},
 				{
