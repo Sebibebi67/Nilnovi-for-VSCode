@@ -5,10 +5,11 @@ This extension allows you to write, compile and execute programs in Nilnovi.
 ## **Features**
 
 This extension provides :
-- a description of the Nilnovi **Grammar** and **Syntax** in [french](./doc/Nilnovi-Documentation-Fr.MD) and in [english](./doc/Nilnovi-Documentation.MD)
+- A description of the Nilnovi **Grammar** and **Syntax** in [french](./doc/Nilnovi-Documentation-Fr.MD) and in [english](./doc/Nilnovi-Documentation.MD)
 - **IntelliSense**
 - Tracking of **Compilation** and **Execution** errors
 - **Dynamic display** of the pile
+- See our short video (in french) [here](https://youtu.be/0ZNmCM-lnFQ) for more information.
 
 ## **Quick start**
 
@@ -36,6 +37,11 @@ All you need is VScode 1.49.0 or higher.
 ø
 
 ## **Release Notes**
+
+### **2.0.2**
+
+Adding a new presentation video.
+
 
 ### **2.0.1**
 
