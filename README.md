@@ -38,7 +38,7 @@ All you need is VScode 1.49.0 or higher.
 
 ## **Release Notes**
 
-### **2.0.2**
+### **2.1.0**
 
 Adding a new presentation video.
 
