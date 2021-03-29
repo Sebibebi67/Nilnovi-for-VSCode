@@ -38,6 +38,12 @@ All you need is VScode 1.49.0 or higher.
 
 ## **Release Notes**
 
+### **2.1.1**
+
+- Corrected Issues :
+  - Changed "Link Block"'s color in the pile view to help colorblind people differenciate from "Integer"'s color.
+
+
 ### **2.1.0**
 
 Adding a new presentation video.
